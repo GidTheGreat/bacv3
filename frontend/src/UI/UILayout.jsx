@@ -41,8 +41,8 @@ export default function Layout() {
             DRAWING TOOLS
         ======================================================== */}
 
-        <DrawingToolbar />
-
+        {//<DrawingToolbar />
+}
         {/* =======================================================
             MAIN VIEW
         ======================================================== */}
@@ -50,15 +50,21 @@ export default function Layout() {
         <Box
           sx={{
             flex: 1,
+            display: "flex",
+            flexDirection: "column",
             gap: 1,
             overflow: "hidden",
+            minHeight: 0,
           }}
         >
           
 
           <Paper
             sx={{
-              placeItems: "center",
+              flex: 1,
+              display: "flex",
+              minHeight: 0,
+              overflow: "hidden",
             }}
           >
             <ChartManager/>

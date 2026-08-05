@@ -8,6 +8,15 @@ import useChartData from "./chartHooks/useChartData";
 //import Alerts from "./Alerts";
 //import FetchDataButton from "./fetch";
 import DrawingTools from "./drawings/drawingTools";
+import {
+  Box,
+  Paper,
+  Button,
+  IconButton,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 export default function NewChart({
     Controls = null,
@@ -17,7 +26,7 @@ export default function NewChart({
     setReplayState
 }) {
    //console.log("replaystate", setReplayState);
-    
+    const theme = useTheme();
     const containerRef = useRef(null);
     const chartRef = useRef(null);
     const [chartReady, setChartReady] = useState(false);
@@ -157,84 +166,96 @@ export default function NewChart({
 
     return (
 
-        <div
-    style={{
-        display: "flex",
-        justifyContent: "center",
-        width: "100%",
-        marginTop: 3,
-    }}
+    <Box
+        sx={{
+            display: "flex",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%",
+            flex: 1,
+            minHeight: 0,
+        }}
 >
-    <div
-        style={{
+    <Box
+        sx={{
             width: "98%",
-            border: "1px solid #2a2e39",
-            borderRadius: 12,
+            border: 1,
+            borderColor: "divider",
+            borderRadius: 2,
             overflow: "hidden",
-            background: "#0b0b0b",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+            bgcolor: "background.default",
+            boxShadow: 3,
+            display: "flex",
+            flexDirection: "column",
+            flex: 1,
+            minHeight: 0,
         }}
     >
         {Controls && (
-            <div
-                style={{
+            <Box
+                sx={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    background: "#161b22",
-                    borderBottom: "1px solid #2a2e39",
-                    padding: "10px 14px",
-                    minHeight: 52,
+                    bgcolor: "background.paper",
+                    borderBottom: 1,
+                    borderColor: "divider",
+                    px: 1.5,
+                    py: 1,
+                    minHeight: 44,
                 }}
             >
-                <div
-                    style={{
+                <Box
+                    sx={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 14,
+                        gap: 1.5,
                     }}
                 >
                     <Controls chartId={chartId} />
 
-                    <div
-                        style={{
+                    <Box
+                        sx={{
                             width: 1,
                             height: 24,
-                            background: "#2a2e39",
+                            bgcolor: "divider",
                         }}
                     />
                     
                     
                     
-                </div>
+                </Box>
 
                 {destroy && (
-                    <button
+                    <IconButton
                         onClick={destroy}
-                        style={{
-                            width: 34,
-                            height: 34,
-                            border: "1px solid #3a3f4b",
-                            borderRadius: 8,
-                            background: "#20252d",
-                            color: "#d0d7de",
-                            cursor: "pointer",
-                            fontSize: 16,
-                            fontWeight: "bold",
+                        sx={{
+                            width: 28,
+                            height: 28,
+                            border: 1,
+                            borderColor: "divider",
+                            borderRadius: 1,
+                            bgcolor: "background.paper",
+                            color: "text.primary",
+
+                            "&:hover": {
+                                bgcolor: "action.hover",
+                            },
                         }}
                     >
                         ✕
-                    </button>
+                    </IconButton>
                 )}
-            </div>
+            </Box>
         )}
 
-        <div
-    style={{
-        position: "relative",
-        width: "100%",
-        height: 570,
-    }}
+    <Box
+        sx={{
+            position: "relative",
+            width: "100%",
+            flex: 1,
+            minHeight: 0,
+        }}
 >
     {chartReady && (
         <DrawingTools
@@ -242,16 +263,16 @@ export default function NewChart({
         />
     )}
 
-    <div
+    <Box
         ref={containerRef}
-        style={{
+        sx={{
             width: "100%",
             height: "100%",
         }}
     />
-</div>
-    </div>
-</div>
+</Box>
+    </Box>
+</Box>
 
     );
 

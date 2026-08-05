@@ -95,27 +95,7 @@ export default function LogoBar() {
             }}
         >
           {/* */}
-          <Button startIcon={<ReplayIcon />}>
-            Replay
-          </Button>
-
-          <Journal/>
-
-          <Button startIcon={<NotificationsNoneOutlinedIcon />}>
-            Alerts
-          </Button>
-
-          <Button startIcon={<AccountTreeOutlinedIcon />}>
-            Strategy
-          </Button>
-
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            endIcon={<KeyboardArrowDownIcon />}
-          >
-            Add Panel
-          </Button>
+          
         </Stack>
 
         {/* ================================================= */}
@@ -127,21 +107,7 @@ export default function LogoBar() {
           spacing={0.5}
           sx={{ flexShrink: 0 }}
         >
-          <IconButton>
-            <SettingsOutlinedIcon />
-          </IconButton>
-
-          <IconButton>
-            <FullscreenOutlinedIcon />
-          </IconButton>
-
-          <IconButton>
-            <DashboardCustomizeOutlinedIcon />
-          </IconButton>
-
-          <IconButton>
-            <AccountCircleOutlinedIcon />
-          </IconButton>
+          
         </Stack>
       </Toolbar>
     </AppBar>

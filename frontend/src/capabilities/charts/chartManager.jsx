@@ -1,19 +1,31 @@
 import { useEffect, useState } from "react";
 import NewChart from "./nChart";
 import useChartStore from "../../stores/chartStore";
+import Buttons from "./buttons";
+import {
+  Box,
+  Paper,
+  Button,
+  IconButton,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+
 //import ReplayToggle from "./replay";
 //import Alerts from "./Alerts";
 //import FetchDataButton from "./fetch";
 
 
 
-export default function ChartManager({ controls = null }) {
+export default function ChartManager({ controls = Buttons }) {
   const createChart = useChartStore((s)=>s.createChart)
   const destroyChart = useChartStore((s)=>s.destroyChart)
 
   const dataset = useChartStore(state => state.data)
   const defaultSelection =
   useChartStore(s => s.selection.default);
+  const theme = useTheme();
 
   const [replayOpen, setReplayOpen] = useState(false);   // panel visibility
   const [replayOwner, setReplayOwner] = useState(null);  // which pane owns the panel
@@ -151,58 +163,71 @@ export default function ChartManager({ controls = null }) {
   if (!pane.visible) return null;
 
   return (
-    <div
+    <Box
       key={name}
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        background: "#0b0b0b",
-        border: "1px solid #2a2e39",
-        overflow: "hidden",
-        minWidth: 0,
-      }}
+      sx={{
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
+
+      bgcolor: "background.default",
+      border: 1,
+      borderColor: "divider",
+
+      overflow: "hidden",
+      minWidth: 0,
+    }}
     >
       {/* ---------- Toolbar ---------- */}
 
-      <div
-          style={{
+      <Box
+          sx={{
             height: 42,
             display: "flex",
-            background: "#161b22",
-            borderBottom: "1px solid #2a2e39",
-          }}
-        >
-        <div
-        style={{
+
+            bgcolor: "background.paper",
+
+            borderBottom: 1,
+            borderColor: "divider",
+            borderRadius:7
+        }}
+                >
+        <Box
+          sx={{
           flex: 1,
           display: "flex",
           alignItems: "center",
-          gap: 8,
-          padding: "0 8px",
+
+          gap: 1,
+          px: 1,
+
           minWidth: 0,
         }}
-      >
-        <button
+          >
+        <IconButton
           onClick={() => addChart(name)}
           title="New Chart"
-          style={{
+          sx={{
             width: 28,
             height: 28,
+
             flexShrink: 0,
-            borderRadius: 6,
-            border: "1px solid #353b45",
-            background: "#20252d",
-            color: "#c9d1d9",
+
+            borderRadius: 1,
+            border: 1,
+            borderColor: "divider",
+
+            bgcolor: "background.paper",
+            color: "text.primary",
+
             fontSize: 18,
-            cursor: "pointer",
-          }}
+        }}
         >
           +
-        </button>
+        </IconButton>
         {/* ---------------- Tabs ---------------- */}
 
-        <div
+        <Box
           style={{
             flex: 1,
             display: "flex",
@@ -218,19 +243,21 @@ export default function ChartManager({ controls = null }) {
             const active = pane.active === id;
 
             return (
-              <div
+              <Box
                 key={id}
-                style={{
+                sx={{
                   flexShrink: 0,
                   display: "flex",
                   alignItems: "center",
-                  borderBottom: active
-                    ? "2px solid #2962ff"
-                    : "2px solid transparent",
+                  borderBottom: 2,
+
+                  borderColor: active
+                      ? "primary.main"
+                      : "transparent",
                 }}
               >
                 {editingChart === id ? (
-                  <input
+                  <TextField
                     autoFocus
                     defaultValue={chartNames[id] ?? id}
                     onBlur={(e) => {
@@ -249,42 +276,57 @@ export default function ChartManager({ controls = null }) {
                       if (e.key === "Escape")
                         setEditingChart(null);
                     }}
-                    style={{
+                    sx={{
                       width: 100,
-                      background: "#1b1f27",
-                      color: "#fff",
-                      border: "1px solid #2962ff",
-                      borderRadius: 4,
-                      outline: "none",
-                      padding: "2px 6px",
+
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "background.paper",
+                        color: "text.primary",
+                        borderRadius: 1,
+
+                        "& fieldset": {
+                          borderColor: "primary.main",
+                        },
+
+                        "&:hover fieldset": {
+                          borderColor: "primary.main",
+                        },
+
+                        "&.Mui-focused fieldset": {
+                          borderColor: "primary.main",
+                        },
+                      },
                     }}
                   />
                 ) : (
-                  <button
+                  <IconButton
                     onClick={() => switchChart(name, id)}
                     onDoubleClick={() => setEditingChart(id)}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      color: active ? "#4f8cff" : "#c9d1d9",
-                      padding: "0 10px",
+                    sx={{
+                      bgcolor: "transparent",
+                      color: active ? "primary.main" : "text.primary",
+                      px: 1.25,
                       height: 30,
-                      cursor: "pointer",
                       whiteSpace: "nowrap",
+                      borderRadius: 1,
+
+                      "&:hover": {
+                        bgcolor: "action.hover",
+                      },
                     }}
                   >
                     {chartNames[id] ?? id}
-                  </button>
+                  </IconButton>
                 )}
-              </div>
+              </Box>
             );
           })}
-        </div>
+        </Box>
 
         {/* ---------------- Right Tools ---------------- */}
 
-        <div
-          style={{
+        <Box
+          sx={{
             display: "flex",
             alignItems: "center",
             flexShrink: 0,
@@ -293,17 +335,17 @@ export default function ChartManager({ controls = null }) {
             overflow: "hidden",
           }}
         >
-        <div
-          style={{
+        <Box
+          sx={{
             display: "flex",
             alignItems: "center",
-            gap: 4,
+            gap: 0.5,
             overflowX: "auto",
             overflowY: "hidden",
             whiteSpace: "nowrap",
             scrollbarWidth: "thin",
             WebkitOverflowScrolling: "touch",
-            paddingBottom: 2,
+            pb: 0.25,
           }}
         >
             {/*<Alerts/>
@@ -323,47 +365,52 @@ export default function ChartManager({ controls = null }) {
 
               <FetchDataButton /> */}
               
-        </div>
+        </Box>
 
-        <div
-          style={{
-            width: 60,
-            flexShrink: 0,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            borderLeft: "1px solid #2a2e39",
-          }}
+        <Box
+          sx={{
+          width: 60,
+          flexShrink: 0,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          borderLeft: 1,
+          borderColor: "divider",
+        }}
         >
           {layout.left.visible && layout.right.visible && (
-            <button
+            <IconButton
               onClick={() => removePane(name)}
               title="Collapse Pane"
-              style={{
+              sx={{
                 width: 24,
                 height: 24,
-                borderRadius: 6,
-                border: "1px solid #353b45",
-                background: "#20252d",
-                color: "#c9d1d9",
-                cursor: "pointer",
+                borderRadius: 1,
+                border: 1,
+                borderColor: "divider",
+                bgcolor: "background.paper",
+                color: "text.primary",
                 fontSize: 10,
+
+                "&:hover": {
+                  bgcolor: "action.hover",
+                },
               }}
             >
               {name === "left" ? "◧" : "◨"}
-            </button>
+            </IconButton>
           )}
-        </div>
+        </Box>
 
               
-            </div>
-          </div>
-      </div>
+            </Box>
+          </Box>
+      </Box>
 
       {/* ---------------- Chart ---------------- */}
 
-      <div
-        style={{
+      <Box
+        sx={{
           flex: 1,
           minHeight: 0,
         }}
@@ -383,14 +430,14 @@ export default function ChartManager({ controls = null }) {
             }
           />
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 
   return (
-  <div
-    style={{
+  <Box
+    sx={{
       position: "relative",
       display: "flex",
       width: "100%",
@@ -400,51 +447,59 @@ export default function ChartManager({ controls = null }) {
     {/* Floating Restore Buttons */}
 
     {!layout.left.visible && (
-      <button
+      <IconButton
         title="Restore Left Pane"
         onClick={() => restorePane("left")}
-        style={{
+        sx={{
           position: "absolute",
-          top: 8,
-          left: 8,
+          top: 1,
+          left: 1,
           zIndex: 50,
           width: 34,
           height: 34,
-          borderRadius: 8,
-          border: "1px solid #353b45",
-          background: "#20252d",
-          color: "#c9d1d9",
-          cursor: "pointer",
+          borderRadius: 1,
+          border: 1,
+          borderColor: "divider",
+          bgcolor: "background.paper",
+          color: "text.primary",
+
+          "&:hover": {
+            bgcolor: "action.hover",
+          },
         }}
-      >
+              >
         ◧
-      </button>
+      </IconButton>
     )}
 
     {!layout.right.visible && (
-      <button
+      <IconButton
         title="Restore Right Pane"
         onClick={() => restorePane("right")}
-        style={{
+        sx={{
           position: "absolute",
-          top: 8,
-          right: 8,
+          top: 1,
+          right: 1,
           zIndex: 50,
           width: 34,
           height: 34,
-          borderRadius: 8,
-          border: "1px solid #353b45",
-          background: "#20252d",
-          color: "#c9d1d9",
-          cursor: "pointer",
+          borderRadius: 1,
+          border: 1,
+          borderColor: "divider",
+          bgcolor: "background.paper",
+          color: "text.primary",
+
+          "&:hover": {
+            bgcolor: "action.hover",
+          },
         }}
       >
         ◨
-      </button>
+      </IconButton>
     )}
 
     {renderPane("left")}
     {renderPane("right")}
-  </div>
+  </Box>
 );
 }

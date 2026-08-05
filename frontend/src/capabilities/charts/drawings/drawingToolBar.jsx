@@ -1,10 +1,9 @@
-// DrawingToolbar.jsx
-// Stateless toolbar ready for integration.
-// Props:
-//   activeTool        -> string | null
-//   onSelectTool      -> (tool) => void
-//   onDeleteSelected  -> () => void
-//   onDeleteAll       -> () => void
+import {
+  Box,
+  Divider,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 
 import {
   MousePointer2,
@@ -29,192 +28,146 @@ export default function DrawingToolbar({
   toolIds = null,
 }) {
   const tools = [
-    {
-      id: "cursor",
-      icon: MousePointer2,
-      label: "Cursor",
-    },
-    {
-      id: "trendline",
-      icon: Slash,
-      label: "Trend",
-    },
-    {
-      id: "horizontal",
-      icon: Minus,
-      label: "Horizontal",
-    },
-    {
-      id: "vertical",
-      icon: ArrowUpDown,
-      label: "Vertical",
-    },
-    {
-      id: "rectangle",
-      icon: Square,
-      label: "Rectangle",
-    },
-    {
-      id: "ray",
-      icon: Pencil,
-      label: "Ray",
-    },
-    {
-      id: "text",
-      icon: Type,
-      label: "Text",
-    },
-    {
-      id: "measure",
-      icon: Move,
-      label: "Measure",
-    },
-    {
-      id: "long",
-      icon: TrendingUp,
-      label: "Long",
-    },
-    {
-      id: "short",
-      icon: TrendingDown,
-      label: "Short",
-    },
+    { id: "cursor", icon: MousePointer2, label: "Cursor" },
+    { id: "trendline", icon: Slash, label: "Trend" },
+    { id: "horizontal", icon: Minus, label: "Horizontal" },
+    { id: "vertical", icon: ArrowUpDown, label: "Vertical" },
+    { id: "rectangle", icon: Square, label: "Rectangle" },
+    { id: "ray", icon: Pencil, label: "Ray" },
+    { id: "text", icon: Type, label: "Text" },
+    { id: "measure", icon: Move, label: "Measure" },
+    { id: "long", icon: TrendingUp, label: "Long" },
+    { id: "short", icon: TrendingDown, label: "Short" },
   ];
 
   const visibleTools = toolIds
-    ? tools.filter(tool => toolIds.includes(tool.id))
+    ? tools.filter((tool) => toolIds.includes(tool.id))
     : tools;
 
-  const buttonStyle = (active) => ({
-  width: 34,
-  height: 34,
-  borderRadius: 7,
-  border: active
-    ? "1px solid #3b82f6"
-    : "1px solid #353b45",
-  background: active ? "#243244" : "#20252d",
-  color: active ? "#58a6ff" : "#c9d1d9",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  cursor: "pointer",
-  transition: "0.15s",
-  flexShrink: 0,
-});
+  const buttonSx = (active) => ({
+    width: 34,
+    height: 34,
+    borderRadius: "7px",
+    border: active
+      ? "1px solid #3b82f6"
+      : "1px solid #353b45",
+    bgcolor: active ? "#243244" : "#20252d",
+    color: active ? "#58a6ff" : "#c9d1d9",
+    flexShrink: 0,
+    "&:hover": {
+      bgcolor: active ? "#243244" : "#2b313b",
+    },
+  });
 
-const dangerStyle = {
-  width: 34,
-  height: 34,
-  borderRadius: 7,
-  border: "1px solid #5b2c2c",
-  background: "#2a2020",
-  color: "#ff7b72",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  cursor: "pointer",
-  flexShrink: 0,
-};
-
-  
+  const dangerSx = {
+    width: 34,
+    height: 34,
+    borderRadius: "7px",
+    border: "1px solid #5b2c2c",
+    bgcolor: "#2a2020",
+    color: "#ff7b72",
+    flexShrink: 0,
+    "&:hover": {
+      bgcolor: "#342626",
+    },
+  };
 
   return (
-  <div
-    className="drawing-toolbar"
-    style={{
-      position: "absolute",
-      top: 12,
-      left: 12,
+    <Box
+      sx={{
+        position: "absolute",
+        top: 12,
+        left: 12,
 
-      display: "flex",
-      flexDirection: "column",
-      gap: 5,
+        display: "flex",
+        flexDirection: "column",
+        gap: "5px",
 
-      padding: 0,
+        width: 34,
+        maxHeight: "calc(100% - 24px)",
 
-      width: 34,
+        overflowY: "auto",
+        overflowX: "hidden",
+        WebkitOverflowScrolling: "touch",
 
-      maxHeight: "calc(100% - 24px)",
-      overflowY: "visible",
+        bgcolor: "transparent",
 
-      background: "transparent",
-      border: "none",
+        zIndex: 1000,
+        userSelect: "none",
 
-      zIndex: 1000,
-      userSelect: "none",
-
-      scrollbarWidth: "thin",
-      scrollbarColor: "#5a6472 transparent",
-    }}
-  >
-    {visibleTools.map((tool) => {
-      const Icon = tool.icon;
-
-      return (
-        <div
-          key={tool.id}
-          style={{
-            position: "relative",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          <button
-            style={buttonStyle(activeTool === tool.id)}
-            onClick={() =>
-              onSelectTool(
-                activeTool === tool.id ? null : tool.id
-              )
-            }
-            className="drawing-tool-btn"
-          >
-            <Icon size={18} />
-          </button>
-
-          <div className="drawing-tooltip">
-            {tool.label}
-          </div>
-        </div>
-      );
-    })}
-
-    <div
-      style={{
-        height: 1,
-        width: 24,
-        alignSelf: "center",
-        background: "#404754",
-        margin: "4px 0",
+        scrollbarWidth: "thin",
+        scrollbarColor: "#5a6472 transparent",
       }}
-    />
+    >
+      {visibleTools.map((tool) => {
+        const Icon = tool.icon;
 
-    <div style={{ position: "relative" }}>
-      <button
-        style={dangerStyle}
-        onClick={onDeleteSelected}
-        className="drawing-tool-btn"
+        return (
+          <Tooltip
+            key={tool.id}
+            title={tool.label}
+            placement="right"
+            arrow
+            enterTouchDelay={0}
+            leaveTouchDelay={1500}
+          >
+            <IconButton
+              size="small"
+              sx={buttonSx(activeTool === tool.id)}
+              onClick={() =>
+                onSelectTool(
+                  activeTool === tool.id
+                    ? null
+                    : tool.id
+                )
+              }
+            >
+              <Icon size={18} />
+            </IconButton>
+          </Tooltip>
+        );
+      })}
+
+      <Divider
+        sx={{
+          width: 24,
+          alignSelf: "center",
+          borderColor: "#404754",
+          my: "4px",
+        }}
+      />
+
+      <Tooltip
+        title="Delete Selected"
+        placement="right"
+        arrow
+        enterTouchDelay={0}
+        leaveTouchDelay={1500}
       >
-        <Trash2 size={18} />
-      </button>
+        <IconButton
+          size="small"
+          sx={dangerSx}
+          onClick={onDeleteSelected}
+        >
+          <Trash2 size={18} />
+        </IconButton>
+      </Tooltip>
 
-      <div className="drawing-tooltip">
-        Delete Selected
-      </div>
-    </div>
-
-    <div style={{ position: "relative" }}>
-      <button
-        style={dangerStyle}
-        onClick={onDeleteAll}
-        className="drawing-tool-btn"
+      <Tooltip
+        title="Delete All"
+        placement="right"
+        arrow
+        enterTouchDelay={0}
+        leaveTouchDelay={1500}
       >
-        <Trash size={18} />
-      </button>
-
-      <div className="drawing-tooltip">
-        Delete All
-      </div>
-    </div>
-  </div>
-);
+        <IconButton
+          size="small"
+          sx={dangerSx}
+          onClick={onDeleteAll}
+        >
+          <Trash size={18} />
+        </IconButton>
+      </Tooltip>
+    </Box>
+  );
 }
