@@ -71,48 +71,29 @@ export  class Queue {
 
 let scheduled = false;
 
-export function scheduleConsumer(queue,
-  addSymbol,addPlatform,addTf,addTradeType,setData,store) {
-    if (scheduled) return;
+export function scheduleConsumer(queue, consume) {
+  if (scheduled) return;
 
-    scheduled = true;
+  scheduled = true;
 
-    requestAnimationFrame(() => {
-        scheduled = false;
+  requestAnimationFrame(() => {
+    scheduled = false;
 
-        while (!queue.isEmpty()) {
-            const message = queue.dequeue();
-            //console.log(message)
-            const parsed = typeof message === "string" ? JSON.parse(message) : message
-            const parsed_data = parsed.data;
-            const symbol = parsed_data.s
-            //console.log(symbol)
-            const platform = "binance"
-            const tradeType = "futures trade"
+    // Optional time budget (ms)
+    const start = performance.now();
+    const budget = 4;
 
-            const aggressor = parsed_data["m"] ? "seller" : "buyer"
-            const quantity = parseFloat(parsed_data["q"])
-            const value = parseFloat(parsed_data["p"])
-            // ms -> seconds
-            const time = Math.floor(parsed_data["T"] / 1000)
+    while (
+      !queue.isEmpty() &&
+      performance.now() - start < budget
+    ) {
+      consume(queue.dequeue());
+    }
 
-            const streamkey = `${platform}|${tradeType}|${symbol}`
-            addSymbol(symbol);
-            addPlatform(platform);
-            addTradeType(tradeType);
-            addTf("tick")
-            setData(streamkey,"tick",
-              [{"time":time, "value":value, "volume":quantity, "aggressor":aggressor}])
-
-            //console.log(store.getState().data)
-        }
-
-        if (!queue.isEmpty()) {
-            scheduleConsumer();
-        }
-    });
+    // Continue next frame if backlog remains
+    if (!queue.isEmpty()) {
+      scheduleConsumer(queue, consume);
+    }
+  });
 }
 
-function parser(data){
-
-}

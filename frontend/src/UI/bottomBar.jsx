@@ -11,6 +11,8 @@ import { getCapabilities } from '../registry'
 
 import {useRef} from 'react'
 
+
+
 export default function BottomBar() {
   
 
