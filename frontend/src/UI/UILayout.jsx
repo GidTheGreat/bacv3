@@ -1,20 +1,79 @@
-import UIToolbar from './toolbar'
-import BidAskCathedralLogo from './logo'
-import UITopBar from './topbar'
+// Layout.jsx
+import { Box, IconButton, Paper, Stack, Typography } from "@mui/material";
 
-export default function Layout(){
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+
+import LogoBar from "./logobar";
+import BottomBar from "./bottomBar";
+import DrawingToolbar from "./drawings/drawingTools";
+import Dock from "./dock";
+import { getCapabilities } from "../registry";
+
+export default function Layout() {
+ const ChartManager = getCapabilities("chartManager")[0].component;
+
   return (
-    <>
-      
-      <div style={{border:"2px solid red",height:"8vh"}}>
-        <UITopBar
-        logo={<BidAskCathedralLogo size={38}/>} name="Bid Ask Cathedral" 
-        description="From Market Intuition to Market Science">
-        </UITopBar>
-      </div>
-      <div style={{border:"2px solid white",height:"5vh"}}>Tool Bar</div>
-      <div style={{border:"2px solid blue",height:"70vh"}}>Main View</div>
-      <div style={{border:"2px solid yellow",height:"10vh"}}>Bottom Bar</div>
-    </>
-    )
+    <Box
+      sx={{
+        height: "100vh",
+        display: "grid",
+        gridTemplateRows: "36px 1fr 28px",
+        bgcolor: "background.default",
+        gap: 1,
+        p: 1,
+      }}
+    >
+      <LogoBar />
+
+      {/* ===========================================================
+          WORKSPACE
+      ============================================================ */}
+
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          overflow: "hidden",
+        }}
+      >
+        
+        {/* =======================================================
+            DRAWING TOOLS
+        ======================================================== */}
+
+        <DrawingToolbar />
+
+        {/* =======================================================
+            MAIN VIEW
+        ======================================================== */}
+
+        <Box
+          sx={{
+            flex: 1,
+            gap: 1,
+            overflow: "hidden",
+          }}
+        >
+          
+
+          <Paper
+            sx={{
+              placeItems: "center",
+            }}
+          >
+            <ChartManager/>
+            
+          </Paper>
+        </Box>
+
+        {/* =======================================================
+            CAPABILITY DOCK
+        ======================================================== */}
+
+        <Dock/>
+      </Box>
+
+      <BottomBar />
+    </Box>
+  );
 }

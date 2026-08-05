@@ -5,13 +5,14 @@ import heroImg from './assets/hero.png'
 import './App.css'
 
 import Layout from './UI/UILayout'
-
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <>
-      <Layout/>
+      
+  <Layout />
+
     </>
   )
 }
