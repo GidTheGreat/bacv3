@@ -27,6 +27,7 @@ export default function ChartManager({ controls = Buttons }) {
   const destroyChart = useChartStore((s)=>s.destroyChart)
 
   const dataset = useChartStore(state => state.data)
+  //console.log(dataset)
   const defaultSelection =
   useChartStore(s => s.selection.default);
 

@@ -104,18 +104,75 @@ const useChartStore = create((set) => ({
     },
   })),
 
-  setData: (k1, k2, value) =>
-    set((state) => ({
+  setData: (k1, k2, incoming) =>
+  set((state) => {
+    const current = state.data[k1]?.[k2];
+
+    const existing = current?.data ?? [];
+    const revision = (current?.revision ?? 0) + 1;
+
+    // First load
+    if (existing.length === 0 || incoming.length === 0) {
+      return {
+        data: {
+          ...state.data,
+          [k1]: {
+            ...state.data[k1],
+            [k2]: {
+              data: incoming,
+              mode: "replace",
+              revision,
+            },
+          },
+        },
+      };
+    }
+
+    const oldFirst = existing[0].time;
+    const oldLast = existing[existing.length - 1].time;
+
+    const newFirst = incoming[0].time;
+    const newLast = incoming[incoming.length - 1].time;
+
+    let merged;
+    let mode;
+
+    // Pure append
+    if (newFirst > oldLast) {
+      merged = [...existing, ...incoming];
+      mode = "append";
+    }
+    // Pure prepend
+    else if (newLast < oldFirst) {
+      merged = [...incoming, ...existing];
+      mode = "prepend";
+    }
+    // Anything overlapping
+    else {
+      const map = new Map();
+
+      existing.forEach(item => map.set(item.time, item));
+      incoming.forEach(item => map.set(item.time, item));
+
+      merged = [...map.values()].sort((a, b) => a.time - b.time);
+      mode = "merge";
+    }
+
+    return {
       data: {
         ...state.data,
         [k1]: {
           ...state.data[k1],
           [k2]: {
-            data: value
-          }
-        }
-      }
-    }))
+            data: merged,
+            mode,
+            revision,
+          },
+        },
+      },
+    };
+  }),
 }));
+
 
 export default useChartStore;
