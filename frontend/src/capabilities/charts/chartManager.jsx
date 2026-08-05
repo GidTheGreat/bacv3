@@ -11,20 +11,26 @@ import {
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { useDockStore } from "../../stores/dockstore";
+import Dock from "./dock/dock";
+import DockToggle from "./dock/dockToggle";
+import { getCapabilities } from "../../registry";
 
-//import ReplayToggle from "./replay";
 //import Alerts from "./Alerts";
 //import FetchDataButton from "./fetch";
 
 
 
 export default function ChartManager({ controls = Buttons }) {
+  const Replay = getCapabilities("replayButton")[0].component
   const createChart = useChartStore((s)=>s.createChart)
   const destroyChart = useChartStore((s)=>s.destroyChart)
 
   const dataset = useChartStore(state => state.data)
   const defaultSelection =
   useChartStore(s => s.selection.default);
+
+  const dock = useDockStore((s) => s.dock);
   const theme = useTheme();
 
   const [replayOpen, setReplayOpen] = useState(false);   // panel visibility
@@ -348,8 +354,7 @@ export default function ChartManager({ controls = Buttons }) {
             pb: 0.25,
           }}
         >
-            {/*<Alerts/>
-              <ReplayToggle
+          <Replay
                   ctx={{
                       replayState,
                       setReplayState,
@@ -362,8 +367,7 @@ export default function ChartManager({ controls = Buttons }) {
                        name
                   }}
               />
-
-              <FetchDataButton /> */}
+              <DockToggle/>
               
         </Box>
 
@@ -500,6 +504,7 @@ export default function ChartManager({ controls = Buttons }) {
 
     {renderPane("left")}
     {renderPane("right")}
+    {dock.open && <Dock />}
   </Box>
 );
 }

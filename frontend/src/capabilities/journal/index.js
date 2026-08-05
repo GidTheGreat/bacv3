@@ -1,6 +1,6 @@
 import Journal from "./Journal";
 
-export default {
+export default [{
   id: "journal",
   component: Journal,
-};
+}];

@@ -6,7 +6,6 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import LogoBar from "./logobar";
 import BottomBar from "./bottomBar";
 import DrawingToolbar from "./drawings/drawingTools";
-import Dock from "./dock";
 import { getCapabilities } from "../registry";
 
 export default function Layout() {
@@ -72,11 +71,7 @@ export default function Layout() {
           </Paper>
         </Box>
 
-        {/* =======================================================
-            CAPABILITY DOCK
-        ======================================================== */}
-
-        <Dock/>
+        
       </Box>
 
       <BottomBar />

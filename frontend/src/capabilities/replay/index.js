@@ -1,6 +1,14 @@
-import ReplayToggle from "./ReplayToggle";
+import ReplayButton from "./replayButton";
+import ReplayPanel from "./ReplayPanel"
 
-export default {
-  id: "replay",
-  component: ReplayToggle,
-};
+export default [
+  {
+    id: "replayButton",
+    component: ReplayButton,
+  },
+  {
+    id: "replay",
+    title: "Replay",
+    component: ReplayPanel,
+  },
+];
