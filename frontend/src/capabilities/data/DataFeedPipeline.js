@@ -12,11 +12,20 @@ const TIMEFRAMES = {
   "4h": 14400,
 };
 
+const FOOTPRINT_REFRESH = {
+    "1m": 250,
+    "5m": 1250+300,
+    "15m": 3750+700,
+    "1h": 15000+1500,
+    "4h": 36000+1800
+};
+
 export class DataFeedPipeline {
   constructor(store) {
     this.store = store;
     this.cursor = {};
     this.consume = this.consume.bind(this);
+    this.footprintPending = new Set();
   }
 
   consume(message) {
@@ -58,6 +67,153 @@ export class DataFeedPipeline {
       this.update(streamKey, label, seconds, tick);
     }
   }
+
+
+  prepareFootprint(candle) {
+
+      const profileRows = Object.entries(
+        candle.binned_profile || {}
+      )
+      .map(([price, profile]) => ({
+          price: Number(price),
+          buy: profile.buy ?? 0,
+          sell: profile.sell ?? 0,
+          total:
+            (profile.buy ?? 0) +
+            (profile.sell ?? 0)
+      }))
+      .sort((a, b) => b.price - a.price);
+
+
+      const totalVolume =
+        candle.total_volume ??
+        profileRows.reduce(
+          (sum, row) => sum + row.total,
+          0
+        );
+
+
+      const maxVolume =
+        Math.max(
+          ...profileRows.map(
+            row => row.total
+          ),
+          0
+        );
+
+
+      if (!profileRows.length) {
+        candle.footprint = null;
+        return candle;
+      }
+
+
+      const pocRow =
+        profileRows.reduce(
+          (best, row) =>
+            row.total > best.total
+              ? row
+              : best
+        );
+
+
+      const poc =
+        pocRow.price;
+
+
+      const targetVolume =
+        totalVolume * 0.70;
+
+
+      const pocIndex =
+        profileRows.findIndex(
+          row => row.price === poc
+        );
+
+
+      let higher = pocIndex;
+      let lower = pocIndex;
+
+      let running =
+        profileRows[pocIndex].total;
+
+
+      while (
+        running < targetVolume
+      ) {
+
+        const nextLower =
+          lower < profileRows.length - 1
+            ? profileRows[lower + 1].total
+            : -1;
+
+
+        const nextHigher =
+          higher > 0
+            ? profileRows[higher - 1].total
+            : -1;
+
+
+        if (nextHigher >= nextLower) {
+
+          if (higher > 0) {
+            higher--;
+            running +=
+              profileRows[higher].total;
+          }
+
+        } else {
+
+          if (lower < profileRows.length - 1) {
+            lower++;
+            running +=
+              profileRows[lower].total;
+          }
+
+        }
+
+      }
+
+
+      candle.footprint = {
+        rows: profileRows,
+
+        poc,
+
+        vah:
+          profileRows[higher].price,
+
+        val:
+          profileRows[lower].price,
+
+        totalVolume,
+
+        maxVolume
+      };
+
+
+      return candle;
+    }
+
+
+  scheduleFootprint(candle, streamKey, label) {
+        const key = `${streamKey}|${label}`;
+        if (this.footprintPending.has(key)) {
+            return;
+        }
+        const delay =
+        FOOTPRINT_REFRESH[label] ?? 5000;
+
+        this.footprintPending.add(key);
+
+        setTimeout(() => {
+
+            this.prepareFootprint(candle);
+
+            this.footprintPending.delete(key);
+
+        }, delay);
+    }
 
   update(streamKey, label, tfSeconds, tick) {
     const state = this.store.getState();
@@ -165,6 +321,10 @@ export class DataFeedPipeline {
     }
 
     candle.binned_profile = cursor.bins;
+    this.scheduleFootprint(
+        candle,
+        streamKey,label
+    );
 
     state.setData(streamKey, label, [candle]);
   }

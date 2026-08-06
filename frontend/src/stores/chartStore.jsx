@@ -128,27 +128,90 @@ const useChartStore = create((set) => ({
       };
     }
 
+
+    /*
+      FAST PATH
+      ----------
+      Live candle updates:
+      incoming contains only the current forming candle.
+
+      Replace existing candle with same timestamp.
+      Avoid Map + sort over entire dataset.
+    */
+
+    if (
+      k2 !== "tick" &&
+      incoming.length === 1
+    ) {
+      const update = incoming[0];
+
+      const index =
+        existing.findIndex(
+          item => item.time === update.time
+        );
+
+      if (index !== -1) {
+        const merged = [...existing];
+
+        merged[index] = update;
+
+        return {
+          data: {
+            ...state.data,
+            [k1]: {
+              ...state.data[k1],
+              [k2]: {
+                data: merged,
+                mode: "replace",
+                revision,
+              },
+            },
+          },
+        };
+      }
+    }
+
+
     const oldFirst = existing[0].time;
-    const oldLast = existing[existing.length - 1].time;
+    const oldLast =
+      existing[existing.length - 1].time;
 
     const newFirst = incoming[0].time;
-    const newLast = incoming[incoming.length - 1].time;
+    const newLast =
+      incoming[incoming.length - 1].time;
+
 
     let merged;
     let mode;
 
+
     // Pure append
     if (newFirst > oldLast) {
-      merged = [...existing, ...incoming];
+
+      merged = [
+        ...existing,
+        ...incoming,
+      ];
+
       mode = "append";
+
     }
+
     // Pure prepend
     else if (newLast < oldFirst) {
-      merged = [...incoming, ...existing];
+
+      merged = [
+        ...incoming,
+        ...existing,
+      ];
+
       mode = "prepend";
+
     }
+
     // Anything overlapping
     else {
+
       const map = new Map();
 
       const key = (item) =>
@@ -156,10 +219,27 @@ const useChartStore = create((set) => ({
           ? item.id
           : item.time;
 
-      existing.forEach(item => map.set(key(item), item));
-      incoming.forEach(item => map.set(key(item), item));
 
-      merged = [...map.values()].sort((a, b) => {
+      existing.forEach(item =>
+        map.set(
+          key(item),
+          item
+        )
+      );
+
+
+      incoming.forEach(item =>
+        map.set(
+          key(item),
+          item
+        )
+      );
+
+
+      merged = [
+        ...map.values()
+      ].sort((a, b) => {
+
         if (a.time !== b.time) {
           return a.time - b.time;
         }
@@ -171,8 +251,10 @@ const useChartStore = create((set) => ({
         return 0;
       });
 
+
       mode = "merge";
     }
+
 
     return {
       data: {

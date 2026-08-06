@@ -1,3 +1,5 @@
+import { getRenderableCandles } from "./footprintLOD";
+
 export class FootprintRenderer {
     constructor() {
         this._data = null;
@@ -49,11 +51,20 @@ export class FootprintRenderer {
                     continue;
                 }
 
-                const levels = Object.entries(
-                    candle.binned_profile || {}
-                );
+                const footprint = candle.footprint;
+                //FIRST THING TO CHECK IF BREAK
+                //if (!rows?.length) continue;
 
-                if (!levels.length) continue;
+                if (!footprint) continue;
+
+                const {
+                    rows,
+                    poc,
+                    vah,
+                    val,
+                    totalVolume,
+                    maxVolume
+                } = footprint;
 
                 const candleTop = Math.min(
                     highY,
@@ -69,7 +80,7 @@ export class FootprintRenderer {
                     candleBottom - candleTop;
 
                 const rowHeight =
-                    candleHeight / levels.length;
+    candleHeight / rows.length;
 
                 const candleWidth =
                     Math.max(
@@ -85,130 +96,13 @@ export class FootprintRenderer {
                             0.35
                     );
 
-                // ---------------------------------
-                // PROFILE METRICS
-                // ---------------------------------
-
-                const profileRows =
-                    levels.map(
-                        ([price, profile]) => ({
-                            price:
-                                Number(price),
-                            buy:
-                                profile.buy ??
-                                0,
-                            sell:
-                                profile.sell ??
-                                0,
-                            total:
-                                (profile.buy ??
-                                    0) +
-                                (profile.sell ??
-                                    0),
-                        })
-                    );
                 
-                profileRows.sort((a, b) => b.price - a.price);
-                const totalVolume =
-                    candle.total_volume ??
-                    profileRows.reduce(
-                        (s, r) =>
-                            s + r.total,
-                        0
-                    );
-
-                const maxCellVolume =
-                    Math.max(
-                        ...profileRows.map(
-                            r => r.total
-                        )
-                    );
-
-                const multiplier =
-                    maxCellVolume > 0
-                        ? totalVolume /
-                          maxCellVolume
-                        : 1;
-
-                // ---------------------------------
-                // POC
-                // ---------------------------------
-
-                const pocRow =
-                    profileRows.reduce(
-                        (best, row) =>
-                            row.total >
-                            best.total
-                                ? row
-                                : best
-                    );
-
-                const pocPrice =
-                    pocRow.price;
-
-                // ---------------------------------
-                // VALUE AREA (70%) - POC Expansion
-                // ---------------------------------
-
-                const targetVolume = totalVolume * 0.70;
-
-                // locate POC index
-                const pocIndex = profileRows.findIndex(
-                    row => row.price === pocPrice
-                );
-
-                let higher = pocIndex;
-                let lower = pocIndex;
-
-                let running = profileRows[pocIndex].total;
-
-                while (running < targetVolume) {
-
-                    const nextLowerVolume =
-                        lower < profileRows.length - 1
-                            ? profileRows[lower + 1].total
-                            : -1;
-
-                    const nextHigherVolume =
-                        higher > 0
-                            ? profileRows[higher - 1].total
-                            : -1;
-
-                    if (nextHigherVolume >= nextLowerVolume) {
-
-                        if (higher > 0) {
-                            higher--;
-                            running += profileRows[higher].total;
-                        } else if (lower < profileRows.length - 1) {
-                            lower++;
-                            running += profileRows[lower].total;
-                        } else {
-                            break;
-                        }
-
-                    } else {
-
-                        if (lower < profileRows.length - 1) {
-                            lower++;
-                            running += profileRows[lower].total;
-                        } else if (higher > 0) {
-                            higher--;
-                            running += profileRows[higher].total;
-                        } else {
-                            break;
-                        }
-
-                    }
-                }
-
-                const vah = profileRows[higher].price;
-                const val = profileRows[lower].price;
 
                 // ---------------------------------
                 // FOOTPRINT
                 // ---------------------------------
 
-                profileRows.forEach(
+                rows.forEach(
                     (row, idx) => {
                         const y =
                             candleTop +
@@ -218,14 +112,14 @@ export class FootprintRenderer {
                         const buyColor =
                             heatColor(
                                 row.buy,
-                                maxCellVolume,
+                                maxVolume,
                                 "buy"
                             );
 
                         const sellColor =
                             heatColor(
                                 row.sell,
-                                maxCellVolume,
+                                maxVolume,
                                 "sell"
                             );
 
@@ -236,8 +130,7 @@ export class FootprintRenderer {
                                 vah;
 
                         const isPOC =
-                            row.price ===
-                            pocPrice;
+                            row.price === poc;
 
                         const sellX =
                             x -
@@ -473,10 +366,7 @@ export class FootprintRenderer {
                 ctx.font =
                     "8px sans-serif";
             }
-             drawLegend(
-                ctx,
-                scope.mediaSize.width
-            );
+             
         });
     }
 }

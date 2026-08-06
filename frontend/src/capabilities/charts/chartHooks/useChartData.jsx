@@ -6,23 +6,107 @@ const defaultReplay = {
     speed: 1,
 };
 
-function dedupeTicks(ticks) {
-    const map = new Map();
+// -------------------------------------------------------------
+// Tick dedupe with boundary detection
+// -------------------------------------------------------------
+function createTickDeduper() {
 
-    for (const tick of ticks) {
-        map.set(tick.time, tick);
+    let first = null;
+    let last = null;
+    let count = 0;
+
+    let map = new Map();
+
+
+    function rebuild(ticks) {
+
+        map.clear();
+
+        for (const tick of ticks) {
+            map.set(tick.time, tick);
+        }
+
+        first = ticks[0]?.time ?? null;
+        last = ticks[ticks.length - 1]?.time ?? null;
+        count = ticks.length;
+
+        return [...map.values()];
     }
 
-    return [...map.values()];
+
+    return function dedupe(ticks) {
+
+        if (!ticks?.length) {
+            return [];
+        }
+
+
+        const newFirst = ticks[0].time;
+        const newLast = ticks[ticks.length - 1].time;
+
+
+        // first load
+        if (first === null) {
+            return rebuild(ticks);
+        }
+
+
+        /*
+            Normal stream update.
+
+            Same first timestamp means the window
+            has not moved backwards.
+
+            Only update the map.
+        */
+        if (
+            newFirst === first &&
+            newLast >= last
+        ) {
+
+            for (const tick of ticks) {
+                map.set(tick.time, tick);
+            }
+
+
+            last = newLast;
+            count = map.size;
+
+
+            return [...map.values()];
+        }
+
+
+        /*
+            Historical prepend,
+            reset,
+            replay jump,
+            or unknown dataset movement.
+
+            Expensive path.
+        */
+        return rebuild(ticks);
+
+    };
+
 }
 
-function getRenderableData(dataset, timeframe) {
+
+// -------------------------------------------------------------
+// Existing render helper
+// -------------------------------------------------------------
+function getRenderableData(dataset, timeframe, tickDeduper) {
+
     if (timeframe !== "tick") {
         return dataset.data;
     }
 
-    return dedupeTicks(dataset.data);
+
+    return tickDeduper.current(dataset.data);
+
 }
+
+
 
 export default function useChartData({
     dataset,
@@ -34,6 +118,10 @@ export default function useChartData({
 }) {
 
     const replayTimer = useRef(null);
+    // persistent tick deduper
+    const tickDeduper = useRef(
+        createTickDeduper()
+    );
 
     const k1 = selection
         ? `${selection.platform}|${selection.trade}|${selection.symbol}`
@@ -42,6 +130,15 @@ export default function useChartData({
     const replay = k1
         ? (replayState.streams[k1] ?? defaultReplay)
         : defaultReplay;
+
+    // reset dedupe when symbol/stream changes
+    useEffect(() => {
+
+        tickDeduper.current = createTickDeduper();
+
+    }, [
+        k1
+    ]);
 
     function updateReplay(updater) {
 
@@ -79,7 +176,8 @@ export default function useChartData({
         if (!series.length) return;
         const renderData = getRenderableData(
             dataset,
-            selection.timeframe
+            selection.timeframe,
+            tickDeduper
         );
 
         if (replayState.replayBar) {
