@@ -21,7 +21,7 @@ export default function BottomBar() {
   const pipeline = pipeRef.current;
 
   const useWs = getCapabilities('ws')[0].component
-    const url = "wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade"
+    const url = "wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade/ethusdt@aggTrade"
     const id = "live-feed"
   
     const { connected, connect, disconnect } = useWs({

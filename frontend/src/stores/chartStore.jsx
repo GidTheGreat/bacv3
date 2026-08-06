@@ -151,10 +151,26 @@ const useChartStore = create((set) => ({
     else {
       const map = new Map();
 
-      existing.forEach(item => map.set(item.time, item));
-      incoming.forEach(item => map.set(item.time, item));
+      const key = (item) =>
+        k2 === "tick"
+          ? item.id
+          : item.time;
 
-      merged = [...map.values()].sort((a, b) => a.time - b.time);
+      existing.forEach(item => map.set(key(item), item));
+      incoming.forEach(item => map.set(key(item), item));
+
+      merged = [...map.values()].sort((a, b) => {
+        if (a.time !== b.time) {
+          return a.time - b.time;
+        }
+
+        if (k2 === "tick") {
+          return a.id - b.id;
+        }
+
+        return 0;
+      });
+
       mode = "merge";
     }
 

@@ -108,7 +108,7 @@ export class FootprintRenderer {
                         })
                     );
                 
-                profileRows.sort((a, b) => a.price - b.price);
+                profileRows.sort((a, b) => b.price - a.price);
                 const totalVolume =
                     candle.total_volume ??
                     profileRows.reduce(
@@ -157,30 +157,30 @@ export class FootprintRenderer {
                     row => row.price === pocPrice
                 );
 
+                let higher = pocIndex;
                 let lower = pocIndex;
-                let upper = pocIndex;
 
                 let running = profileRows[pocIndex].total;
 
                 while (running < targetVolume) {
 
-                    const aboveVolume =
-                        upper < profileRows.length - 1
-                            ? profileRows[upper + 1].total
+                    const nextLowerVolume =
+                        lower < profileRows.length - 1
+                            ? profileRows[lower + 1].total
                             : -1;
 
-                    const belowVolume =
-                        lower > 0
-                            ? profileRows[lower - 1].total
+                    const nextHigherVolume =
+                        higher > 0
+                            ? profileRows[higher - 1].total
                             : -1;
 
-                    if (aboveVolume >= belowVolume) {
+                    if (nextHigherVolume >= nextLowerVolume) {
 
-                        if (upper < profileRows.length - 1) {
-                            upper++;
-                            running += profileRows[upper].total;
-                        } else if (lower > 0) {
-                            lower--;
+                        if (higher > 0) {
+                            higher--;
+                            running += profileRows[higher].total;
+                        } else if (lower < profileRows.length - 1) {
+                            lower++;
                             running += profileRows[lower].total;
                         } else {
                             break;
@@ -188,12 +188,12 @@ export class FootprintRenderer {
 
                     } else {
 
-                        if (lower > 0) {
-                            lower--;
+                        if (lower < profileRows.length - 1) {
+                            lower++;
                             running += profileRows[lower].total;
-                        } else if (upper < profileRows.length - 1) {
-                            upper++;
-                            running += profileRows[upper].total;
+                        } else if (higher > 0) {
+                            higher--;
+                            running += profileRows[higher].total;
                         } else {
                             break;
                         }
@@ -201,8 +201,8 @@ export class FootprintRenderer {
                     }
                 }
 
+                const vah = profileRows[higher].price;
                 const val = profileRows[lower].price;
-                const vah = profileRows[upper].price;
 
                 // ---------------------------------
                 // FOOTPRINT

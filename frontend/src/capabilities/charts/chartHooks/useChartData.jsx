@@ -6,6 +6,24 @@ const defaultReplay = {
     speed: 1,
 };
 
+function dedupeTicks(ticks) {
+    const map = new Map();
+
+    for (const tick of ticks) {
+        map.set(tick.time, tick);
+    }
+
+    return [...map.values()];
+}
+
+function getRenderableData(dataset, timeframe) {
+    if (timeframe !== "tick") {
+        return dataset.data;
+    }
+
+    return dedupeTicks(dataset.data);
+}
+
 export default function useChartData({
     dataset,
     renderState,
@@ -59,12 +77,16 @@ export default function useChartData({
         const series = Object.values(state.series).filter(Boolean);
 
         if (!series.length) return;
+        const renderData = getRenderableData(
+            dataset,
+            selection.timeframe
+        );
 
         if (replayState.replayBar) {
 
             syncReplay(
                 series,
-                dataset.data,
+                renderData,
                 replay,
                 selection.timeframe
             );
@@ -77,7 +99,7 @@ export default function useChartData({
 
             case "append":
 
-                syncAppend(series, state, dataset.data);
+                syncAppend(series, state, renderData);
                 break;
 
             case "replace":
@@ -85,12 +107,12 @@ export default function useChartData({
             case "merge":
             case "reset":
 
-                syncReplace(series, state, dataset.data);
+                syncReplace(series, state, renderData);
                 break;
 
             default:
 
-                syncReplace(series, state, dataset.data);
+                syncReplace(series, state, renderData);
 
         }
 
