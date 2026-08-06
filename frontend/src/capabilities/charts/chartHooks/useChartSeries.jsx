@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { LineSeries, CandlestickSeries } from "lightweight-charts";
-import { FootprintSeries } from "../volume";
+import { FootprintSeries } from "../volume/volume";
 
 export default function useChartSeries({
     chartRef,

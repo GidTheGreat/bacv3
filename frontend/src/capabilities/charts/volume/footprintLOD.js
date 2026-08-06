@@ -1,11 +1,23 @@
 // FootprintLOD.js
 
+
+
+function getLOD(barSpacing) {
+    if (barSpacing >= 80) return "full";
+    if (barSpacing >= 40) return "medium";
+    if (barSpacing >= 20) return "low";
+    return "minimal";
+}
+
 export function getRenderableCandles(
     bars,
     visibleRange,
     barSpacing,
     priceToCoordinate
 ) {
+
+    const lod = getLOD(barSpacing);
+    //console.log(lod)
     const renderables = [];
 
     for (
@@ -75,6 +87,25 @@ export function getRenderableCandles(
                 barSpacing * 0.35
             );
 
+        const renderRows = rows.map((row, idx) => ({
+                ...row,
+
+                y: candleTop + idx * rowHeight,
+
+                sellX:
+                    bar.x -
+                    candleWidth / 2 -
+                    ladderWidth,
+
+                buyX:
+                    bar.x +
+                    candleWidth / 2,
+
+                height: rowHeight,
+            }));
+
+        
+
         const openY =
             priceToCoordinate(
                 candle.open
@@ -108,7 +139,7 @@ export function getRenderableCandles(
 
             footerY,
 
-            rows,
+            rows: renderRows,
 
             poc,
             vah,
