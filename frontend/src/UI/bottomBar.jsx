@@ -8,20 +8,24 @@ import {
 
 import Clock from "./time";
 import { getCapabilities } from '../registry'
+import useChartStore from '../stores/chartStore'
 
 import {useRef} from 'react'
 
 
 
 export default function BottomBar() {
-  
+  const DFP = getCapabilities('data feed')[0].component
+  //console.log(DFP)
+  const pipeRef = useRef(new DFP(useChartStore));
+  const pipeline = pipeRef.current;
 
   const useWs = getCapabilities('ws')[0].component
     const url = "wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade"
- 
+    const id = "live-feed"
   
     const { connected, connect, disconnect } = useWs({
-      url
+      id, url, consumer: pipeline.consume
     });
   return (
     <Paper

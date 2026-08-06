@@ -1,4 +1,4 @@
-import useWebSocket from "./wsEffect";
+import useWebSocket from "./wsHook";
 
 export default [
     {
