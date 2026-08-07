@@ -116,7 +116,7 @@ export class DataFeedPipeline {
               : best
         );
 
-
+      //console.log(pocRow)
       const poc =
         pocRow.price;
 
@@ -174,7 +174,7 @@ export class DataFeedPipeline {
 
       }
 
-
+      //console.log(candle.total_volume_volume,candle.volume_delta_volume)
       candle.footprint = {
         rows: profileRows,
 

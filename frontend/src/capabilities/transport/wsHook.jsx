@@ -2,7 +2,22 @@ import { useCallback, useRef, useState, useEffect } from "react";
 //import {parseMarketData} from "./parser";
 
 import {Queue,scheduleConsumer } from './queue'
-import WebSocketManager from "./WebSocketManager";
+import WebSocketManager from "./websocket/WebSocketManager";
+import useChartStore from '../../stores/chartStore'
+/*import { fetchWithProgress } from "./http.js";
+
+const result = await fetchWithProgress("https://fapi.binance.com/fapi/v1/exchangeInfo", {
+    onProgress: ({ percent, loaded, total }) => {
+        if (percent !== null) {
+            console.log(`${percent.toFixed(1)}%`);
+        } else {
+            console.log(`${loaded} bytes`);
+        }
+    },
+});
+
+const data = await result.json();
+console.log(data);*/
 
 
 export function calculateStoreSize() {
@@ -25,6 +40,14 @@ export default function useWebSocket({ id, url, consumer }) {
   const [connected, setConnected] = useState(false);
   const queueRef = useRef(new Queue());
   const queue = queueRef.current;
+  useEffect(() => {
+    const id = setInterval(() => {
+        const size = calculateStoreSize();
+        console.log(size.mb.toFixed(2), "MB");
+    }, 60_000);
+
+    return () => clearInterval(id);
+}, []);
 
   const handleMessage = useCallback(event => {
     queue.enqueue(event.data);
