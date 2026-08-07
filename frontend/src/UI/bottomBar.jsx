@@ -12,12 +12,75 @@ import useChartStore from '../stores/chartStore'
 
 import {useRef} from 'react'
 
+// OutputAdapter.js
 
+class OutputAdapter {
+    constructor() {
+        this.listeners = new Set();
+
+        if (typeof window === "undefined") {
+            self.onmessage = (event) => {
+                for (const listener of this.listeners) {
+                    listener(event.data);
+                }
+            };
+        }
+    }
+
+    emit(message) {
+        if (typeof window === "undefined") {
+            self.postMessage(message);
+        } else {
+            for (const listener of this.listeners) {
+                listener(message);
+            }
+        }
+    }
+
+    subscribe(callback) {
+        this.listeners.add(callback);
+
+        return () => {
+            this.listeners.delete(callback);
+        };
+    }
+}
+
+function applyToStore(message) {
+    const state = useChartStore.getState();
+
+    switch (message.type) {
+        case "addSymbol":
+            state.addSymbol(message.symbol);
+            break;
+
+        case "addPlatform":
+            state.addPlatform(message.platform);
+            break;
+
+        case "addTradeType":
+            state.addTradeType(message.tradeType);
+            break;
+
+        case "addTimeframe":
+            state.addTimeframe(message.timeframe);
+            break;
+
+        case "setData":
+            state.setData(
+                message.streamKey,
+                message.timeframe,
+                message.data
+            );
+            break;
+    }
+}
 
 export default function BottomBar() {
   const DFP = getCapabilities('data feed')[0].component
-  //console.log(DFP)
-  const pipeRef = useRef(new DFP(useChartStore));
+  const output = new OutputAdapter()
+  output.subscribe(applyToStore)
+  const pipeRef = useRef(new DFP(output));
   const pipeline = pipeRef.current;
 
   const useWs = getCapabilities('ws')[0].component

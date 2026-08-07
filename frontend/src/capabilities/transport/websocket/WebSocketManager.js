@@ -1,8 +1,9 @@
 import LocalTransport from "./LocalTransport";
+import WorkerTransport from "./WorkerTransport";
 
 class WebSocketManager {
     constructor() {
-        this.useWorker = false;
+        this.useWorker = true;
     }
 
     setUseWorker(value) {
@@ -10,11 +11,9 @@ class WebSocketManager {
     }
 
     get transport() {
-        if (this.useWorker) {
-            // return WorkerTransport;
-        }
-
-        return LocalTransport;
+        return this.useWorker
+    ? WorkerTransport
+    : LocalTransport;
     }
 
     subscribe(...args) {

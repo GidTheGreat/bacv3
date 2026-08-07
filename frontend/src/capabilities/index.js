@@ -3,7 +3,8 @@ import Journal from "./journal";
 import ChartManager from "./charts"
 import ws from "./transport"
 import dataFeed from "./data"
-import WorkerRuntime from "./webWorker/workeRuntime";
+/*
+import WorkerRuntime from "./webWorker/workerRuntime";
 
 const runtime = new WorkerRuntime();
 
@@ -15,7 +16,7 @@ runtime.subscribe("test", (msg) => {
 
 runtime.send("test", {
     hello: "world",
-});
+});*/
 
 //console.log(Journal)
 export default [

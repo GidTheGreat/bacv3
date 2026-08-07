@@ -10,30 +10,40 @@ export default class WorkerRuntime {
      * @param {string|URL} script
      */
     run(id, path) {
-        if (this.workers.has(id)) {
+        let state = this.workers.get(id);
+
+        if (state?.worker) {
             throw new Error(`Worker "${id}" already exists.`);
         }
 
+        if (!state) {
+            state = {
+                id,
+                worker: null,
+                subscribers: new Set(),
+                started: null,
+            };
+
+            this.workers.set(id, state);
+        }
+
         console.log(`[runtime] starting "${id}"`);
-
+        const evalPath = new URL(path, import.meta.url);
+        //console.log(evalPath)
         const worker = new Worker(
-                new URL(path, import.meta.url),
-                {
-                    type: "module",
-                }
-            );
+            evalPath,
+            {
+                type: "module",
+            }
+        );
 
-        const subscribers = new Set();
-
-        const state = {
-            id,
-            worker,
-            subscribers,
-            started: Date.now(),
-        };
+        state.worker = worker;
+        console.log(state.worker);
+        state.started = Date.now();
 
         worker.onmessage = (event) => {
             const message = event.data;
+            //console.log(message)
 
             switch (message.type) {
                 case "ready":
@@ -52,15 +62,15 @@ export default class WorkerRuntime {
                     break;
             }
 
-            for (const callback of subscribers) {
+            for (const callback of state.subscribers) {
                 callback(message);
             }
         };
 
         worker.onerror = (error) => {
-            console.log(error)
+            console.error(`[runtime] "${id}" crashed`, error);
 
-            for (const callback of subscribers) {
+            for (const callback of state.subscribers) {
                 callback({
                     type: "error",
                     error,
@@ -72,8 +82,6 @@ export default class WorkerRuntime {
             console.error(`[runtime] "${id}" message error`, error);
         };
 
-        this.workers.set(id, state);
-
         return id;
     }
 
@@ -82,6 +90,7 @@ export default class WorkerRuntime {
      */
     send(id, message) {
         const state = this.workers.get(id);
+        console.log(state)
 
         if (!state) {
             throw new Error(`Unknown worker "${id}"`);
@@ -94,14 +103,21 @@ export default class WorkerRuntime {
      * Subscribe to worker events.
      */
     subscribe(id, callback) {
-        const state = this.workers.get(id);
+        let state = this.workers.get(id);
 
         if (!state) {
-            throw new Error(`Unknown worker "${id}"`);
+            state = {
+                id,
+                worker: null,
+                subscribers: new Set(),
+                started: null,
+            };
+
+            this.workers.set(id, state);
         }
 
         state.subscribers.add(callback);
-
+        //console.log(state)
         return () => {
             state.subscribers.delete(callback);
         };
@@ -117,7 +133,7 @@ export default class WorkerRuntime {
 
         console.log(`[runtime] terminating "${id}"`);
 
-        state.worker.terminate();
+        //state.worker.terminate();
 
         this.workers.delete(id);
 
@@ -131,6 +147,10 @@ export default class WorkerRuntime {
         for (const id of this.workers.keys()) {
             this.terminate(id);
         }
+    }
+
+    hasWorker(id) {
+        return !!this.workers.get(id)?.worker;
     }
 
     has(id) {
