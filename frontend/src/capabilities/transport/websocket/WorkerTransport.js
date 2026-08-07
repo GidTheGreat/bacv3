@@ -43,6 +43,12 @@ class WorkerTransport {
                         break;
 
                     default:
+                        //console.log(message)
+                        listeners.forEach(l =>
+                            l.onMessage?.({
+                                data: message,
+                            })
+                        );
                         break;
                 }
             });

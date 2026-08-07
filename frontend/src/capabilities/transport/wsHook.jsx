@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState, useEffect } from "react";
 //import {parseMarketData} from "./parser";
 
-import {Queue,scheduleConsumer } from './queue'
+
 import WebSocketManager from "./websocket/WebSocketManager";
 import useChartStore from '../../stores/chartStore'
 /*import { fetchWithProgress } from "./http.js";
@@ -33,13 +33,43 @@ export function calculateStoreSize() {
 }
 
 
+function applyToStore(messageEn) {
+  //console.log(messageEn)
+  const message = messageEn.data
+  if (!message) return;
+    const state = useChartStore.getState();
+  message.map(message=>{
+    switch (message.type) {
+        case "addSymbol":
+            state.addSymbol(message.symbol);
+            break;
+
+        case "addPlatform":
+            state.addPlatform(message.platform);
+            break;
+
+        case "addTradeType":
+            state.addTradeType(message.tradeType);
+            break;
+
+        case "addTimeframe":
+            state.addTimeframe(message.timeframe);
+            break;
+
+        case "setData":
+            state.setData(
+                message.streamKey,
+                message.timeframe,
+                message.data
+            );
+            break;
+    }})
+}
 
 
-
-export default function useWebSocket({ id, url, consumer }) {
+export default function useWebSocket({ id, url}) {
   const [connected, setConnected] = useState(false);
-  const queueRef = useRef(new Queue());
-  const queue = queueRef.current;
+ 
   useEffect(() => {
     const id = setInterval(() => {
         const size = calculateStoreSize();
@@ -49,10 +79,11 @@ export default function useWebSocket({ id, url, consumer }) {
     return () => clearInterval(id);
 }, []);
 
+/*
   const handleMessage = useCallback(event => {
     queue.enqueue(event.data);
     scheduleConsumer(queue, consumer);
-  }, [consumer]);
+  }, [consumer]);*/
 
   useEffect(() => {
     //console.log("[hook] subscribe");
@@ -74,9 +105,9 @@ export default function useWebSocket({ id, url, consumer }) {
     //console.log("[hook] connect");
 
     WebSocketManager.connect(id, url, {
-      onMessage: handleMessage
+      onMessage: applyToStore
     });
-  }, [id, url, handleMessage]);
+  }, [id, url]);
 
   const disconnect = useCallback(() => {
     //console.log("[hook] disconnect");

@@ -20,9 +20,82 @@ const FOOTPRINT_REFRESH = {
     "4h": 36000+1800
 };
 
+const pending = new Map();
+let timer = null;
+
+function getKey(message) {
+    switch (message.type) {
+        case "addSymbol":
+            return `symbol:${message.symbol}`;
+
+        case "addPlatform":
+            return `platform:${message.platform}`;
+
+        case "addTradeType":
+            return `tradeType:${message.tradeType}`;
+
+        case "addTimeframe":
+            return `timeframe:${message.timeframe}`;
+
+        case "setData":
+            return `data:${message.streamKey}|${message.timeframe}`;
+
+        default:
+            return null;
+    }
+}
+
+function getTimestamp(message) {
+    if (
+        message.type === "setData" &&
+        message.data?.length
+    ) {
+        return message.data[0].time ?? 0;
+    }
+
+    return 0;
+}
+
+export function workerPost(message) {
+    const key = getKey(message);
+
+    // Unknown messages: preserve normally
+    if (!key) {
+        pending.set(Symbol(), message);
+    } else {
+        const existing = pending.get(key);
+
+        // setData: keep newest state only
+        if (
+            message.type === "setData" &&
+            existing
+        ) {
+            const oldTime = getTimestamp(existing);
+            const newTime = getTimestamp(message);
+
+            if (newTime <= oldTime) {
+                return;
+            }
+        }
+
+        // all other types naturally dedupe
+        pending.set(key, message);
+    }
+
+    if (timer) return;
+
+    timer = setTimeout(() => {
+        const batch = Array.from(pending.values());
+
+        pending.clear();
+        timer = null;
+
+        postMessage(batch);
+    }, 5000);
+}
+
 export class DataFeedPipeline {
-  constructor(output) {
-    this.output = output;
+  constructor() {
     this.cursor = {};
     this.consume = this.consume.bind(this);
     this.footprintPending = new Set();
@@ -51,27 +124,28 @@ export class DataFeedPipeline {
 
     const streamKey = `binance|futures trade|${d.s}`;
 
-    this.output.emit({
+    workerPost({
         type: "addSymbol",
         symbol: d.s,
     });
 
-    this.output.emit({
+    workerPost({
         type: "addPlatform",
         platform: "binance",
     });
 
-    this.output.emit({
+    workerPost({
         type: "addTradeType",
         tradeType: "futures trade",
     });
 
-    this.output.emit({
+    workerPost({
         type: "addTimeframe",
         timeframe: "tick",
     });
+    
 
-    this.output.emit({type:"setData",streamKey, timeframe:"tick", data: [tick]});
+    workerPost({type:"setData",streamKey, timeframe:"tick", data: [tick]});
 
     if (!this.cursor[streamKey]) {
       this.cursor[streamKey] = {};
@@ -237,11 +311,11 @@ export class DataFeedPipeline {
       cursor = this.newCursor(tfSeconds, tick);
       this.cursor[streamKey][label] = cursor;
 
-      this.output.emit({
+      workerPost({
           type: "addTimeframe",
           timeframe: label,
       });
-      this.output.emit({
+      workerPost({
           type: "setData",
           streamKey,
           timeframe: label,
@@ -348,7 +422,7 @@ export class DataFeedPipeline {
         streamKey,label
     );
 
-    this.output.emit({
+    workerPost({
         type: "setData",
         streamKey,
         timeframe: label,

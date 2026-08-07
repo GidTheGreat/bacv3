@@ -1,6 +1,10 @@
-// websocket.worker.js
+import {Queue,scheduleConsumer } from './queue'
+import { DataFeedPipeline } from '../data/DataFeedPipeline';
+
 console.log("[worker] loaded");
 const connections = new Map();
+const queue = new Queue()
+const dfp = new DataFeedPipeline
 
 postMessage({
     type: "ready",
@@ -26,11 +30,14 @@ onmessage = (event) => {
             };
 
             socket.onmessage = (event) => {
+                queue.enqueue(event.data);
+                scheduleConsumer(queue, dfp.consume);
+                /*
                 postMessage({
                     type: "message",
                     id,
                     data: event.data,
-                });
+                });*/
             };
 
             socket.onclose = () => {
