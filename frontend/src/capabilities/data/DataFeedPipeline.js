@@ -145,7 +145,7 @@ export class DataFeedPipeline {
     });
     
 
-    workerPost({type:"setData",streamKey, timeframe:"tick", data: [tick]});
+    //workerPost({type:"setData",streamKey, timeframe:"tick", data: [tick]});
 
     if (!this.cursor[streamKey]) {
       this.cursor[streamKey] = {};

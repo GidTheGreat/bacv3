@@ -25,6 +25,7 @@ export default function ChartManager({ controls = Buttons }) {
   const Replay = getCapabilities("replayButton")[0].component
   const createChart = useChartStore((s)=>s.createChart)
   const destroyChart = useChartStore((s)=>s.destroyChart)
+  //console.count("chart manager")
 
   const dataset = useChartStore(state => state.data)
   //console.log(dataset)

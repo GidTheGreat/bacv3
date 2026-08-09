@@ -10,21 +10,24 @@ import Clock from "./time";
 import { getCapabilities } from '../registry'
 import useChartStore from '../stores/chartStore'
 
-import {useRef} from 'react'
+import {useEffect, useRef, useState} from 'react'
 
-// OutputAdapter.js
+import ochestrator from '../ochestrator/main'
+import useAppStore from "../stores/appStore";
 
 
 export default function BottomBar() {
+  console.count("bottom bar")
+  const ws = useAppStore(state => state.ws);
+  const url = "wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade"
   
-
-  const useWs = getCapabilities('ws')[0].component
-    const url = "wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade"
-    const id = "live-feed"
+  useEffect(
+    ()=>{
+      ochestrator.startUp()
+    return ()=> {ochestrator.cleanUp()}
+    },[]
+  )
   
-    const { connected, connect, disconnect } = useWs({
-      id, url
-    });
   return (
     <Paper
       sx={{
@@ -45,18 +48,25 @@ export default function BottomBar() {
       <Button
         variant="outlined"
         size="small"
-        onClick={connected ? ()=>{console.log("disconnecting");disconnect()} 
-        : ()=>{console.log("connecting");connect()}}
+        onClick={()=>{
+          if (ws){
+            ochestrator.netWorkMgmt("live feed", url, "close", "metadata", "ws")
+
+          } else {
+            ochestrator.netWorkMgmt("live feed", url, "connect", "metadata", "ws")
+          }
+          
+        }}
         startIcon={
           <Box
             sx={{
               width: 8,
               height: 8,
               borderRadius: "50%",
-              bgcolor: connected ? "success.main" : "error.main",
+              bgcolor: ws ? "success.main" : "error.main",
               boxShadow: (theme) =>
                 `0 0 6px ${
-                  connected
+                  ws
                     ? theme.palette.success.main
                     : theme.palette.error.main
                 }`,
@@ -64,7 +74,8 @@ export default function BottomBar() {
           />
         }
       >
-        {connected ? "Connected" : "Disconnected"}
+        {ws ? "Connected" : "Disconnected"
+        }
       </Button>
 
        
