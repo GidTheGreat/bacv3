@@ -7,6 +7,8 @@ import LogoBar from "./logobar";
 import BottomBar from "./bottomBar";
 import DrawingToolbar from "./drawings/drawingTools";
 import { getCapabilities } from "../registry";
+import PanelManager from "./panelManager";
+
 
 export default function Layout() {
  const ChartManager = getCapabilities("chartManager")[0].component;
@@ -14,7 +16,7 @@ export default function Layout() {
   return (
     <Box
       sx={{
-        height: "100vh",
+        height: "100dvh",
         display: "grid",
         gridTemplateRows: "36px 1fr 28px",
         bgcolor: "background.default",
@@ -40,7 +42,7 @@ export default function Layout() {
             DRAWING TOOLS
         ======================================================== */}
 
-        {//<DrawingToolbar />
+        {<DrawingToolbar />
 }
         {/* =======================================================
             MAIN VIEW
@@ -54,19 +56,21 @@ export default function Layout() {
             gap: 1,
             overflow: "hidden",
             minHeight: 0,
+            width: "100%",
+            height: "100%",
+            
           }}
         >
           
 
           <Paper
             sx={{
-              flex: 1,
-              display: "flex",
-              minHeight: 0,
-              overflow: "hidden",
+              width: "100%",
+              height: "100%",
             }}
           >
-            <ChartManager/>
+            {<PanelManager/>
+            }
             
           </Paper>
         </Box>

@@ -6,11 +6,19 @@ const useChartStore = create((set) => ({
       symbol: "BTCUSDT",
       platform: "binance",
       trade: "futures trade",
-      timeframe: "tick",
+      timeframe: "1min",
       candle: "japanese"
     }
   },
 
+  activeSeries: null,
+  setActiveSeries: (series)=>
+    set((state=>({
+      activeSeries: series
+    }))),
+
+  chartReady: false,
+  setChartReady: (status)=>set(()=>({chartReady:status})),
   createChart: (chartId) =>
   set((state) => ({
     selection: {
@@ -29,7 +37,7 @@ const useChartStore = create((set) => ({
   }),
 
   symbols: ["BTCUSDT"],
-  timeframes: ["tick"],
+  timeframes: ["1min"],
   platforms: ["binance"],
   trade_types: ["futures trade"],
   candle_types: ["japanese", "volume footprint"],

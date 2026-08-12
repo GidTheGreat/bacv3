@@ -20,13 +20,13 @@ export default function BottomBar() {
   console.count("bottom bar")
   const ws = useAppStore(state => state.ws);
   const url = "wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade"
-  
+  /*
   useEffect(
     ()=>{
       ochestrator.startUp()
     return ()=> {ochestrator.cleanUp()}
     },[]
-  )
+  )*/
   
   return (
     <Paper

@@ -23,6 +23,8 @@ import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined
 import BidAskCathedralLogo from "./logo";
 import { getCapabilities } from "../registry";
 
+import LayoutControls from "./panelUtils/layoutControls";
+
 export default function LogoBar() {
   const Journal = getCapabilities("journal")[0].component;
   //console.log(Journal)
@@ -107,7 +109,7 @@ export default function LogoBar() {
           spacing={0.5}
           sx={{ flexShrink: 0 }}
         >
-          
+          <LayoutControls/>
         </Stack>
       </Toolbar>
     </AppBar>

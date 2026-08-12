@@ -14,9 +14,11 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
-export default function Buttons({ chartId }) {
+export default function Buttons() {
     const theme = useTheme();
+    const chartId="default"
   const selection = useChartStore((s) => s.selection[chartId]);
+  //
   const modifySelection = useChartStore((s) => s.modifySelection);
   const symbols = useChartStore((s) => s.symbols);
   const timeframes = useChartStore((s) => s.timeframes);
