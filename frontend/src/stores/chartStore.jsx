@@ -1,15 +1,83 @@
 import { create } from 'zustand'
-
-const useChartStore = create((set) => ({
-  selection: {
-    default: {
-      symbol: "BTCUSDT",
+const DEFAULT = {symbol: "BTCUSDT",
       platform: "binance",
       trade: "futures trade",
       timeframe: "1min",
-      candle: "japanese"
+      candle: "japanese",}
+
+const useChartStore = create((set) => ({
+  selection: {
+    
+    default: {
+      ...DEFAULT,
+      pane:"",
+      displayName:""
     }
   },
+
+  activeChart:{
+    "a":null,
+    "b":null,
+    "c":null,
+    "d":null
+
+  },
+
+  setActiveChart:(id,pane)=>set(
+    (state)=>({
+      activeChart:{
+        ...state.activeChart,
+      [pane]:id
+      }
+      
+    })
+  ),
+
+  setDisplayName:(id,name)=>set((state)=>({
+    selection: {
+      ...state.selection,
+      [id] :{
+        ...state.selection[id],
+        displayName:name
+      }
+    }
+
+  })),
+
+  
+  createChart: (chartId, pane) =>
+    set(state => ({
+        activeChart: {
+            ...state.activeChart,
+            [pane]: String(chartId)
+        },
+        selection: {
+            ...state.selection,
+            [chartId]: {
+                ...DEFAULT,
+                pane,
+                displayName:"untitled"
+            }
+        }
+    })),
+
+  destroyChart: (chartId, pane) =>
+  set(state => {
+    const selection = { ...state.selection };
+    delete selection[chartId];
+
+    const remaining = Object.keys(selection).filter(
+      id => id !== "default" && selection[id].pane === pane
+    );
+
+    return {
+      selection,
+      activeChart: {
+        ...state.activeChart,
+        [pane]: remaining.length > 0 ? remaining[0] : null
+      }
+    };
+  }),
 
   activeSeries: null,
   setActiveSeries: (series)=>
@@ -19,22 +87,6 @@ const useChartStore = create((set) => ({
 
   chartReady: false,
   setChartReady: (status)=>set(()=>({chartReady:status})),
-  createChart: (chartId) =>
-  set((state) => ({
-    selection: {
-      ...state.selection,
-      [chartId]: {
-        ...state.selection.default,
-      },
-    },
-  })),
-
-  destroyChart: (chartId) =>
-  set((state) => {
-    const selection = { ...state.selection };
-    delete selection[chartId];
-    return { selection };
-  }),
 
   symbols: ["BTCUSDT"],
   timeframes: ["1min"],

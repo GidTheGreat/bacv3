@@ -15,6 +15,7 @@ import { useDockStore } from "../../stores/dockstore";
 import { getCapabilities } from "../../registry";
 import {createChart, CandlestickSeries} from 'lightweight-charts'
 import { FootprintSeries } from "./volume/volume";
+import CloseIcon from "@mui/icons-material/Close";
 
 
 function ChartSeries({chartRef}){
@@ -109,10 +110,15 @@ function ChartData(){
     
 }
 
-function Chart(){
+function Chart({chartId, destroyChart, pane}){
   const containerRef = useRef(null);
   const chartRef = useRef(null) 
   //console.count("chart")
+  const [chartShouldExist, setChartShouldExist] = useState(true);
+  function handleDestroyChart(){
+    setChartShouldExist(false);
+    destroyChart(chartId, pane);
+  }
   const setChartReady = useChartStore(s=>s.setChartReady)
   
   useEffect(
@@ -160,21 +166,48 @@ function Chart(){
       }
     },[]
   )
-  
+  if (!chartShouldExist){
+    chart.remove();
+        resize.disconnect();
+        setChartReady(false);
+        chartRef.current=null;
+  }
 
   return (
-    <Box ref={containerRef}
-    
-    sx={{
-            width: "100%",
-            height: "100%",
-            minWidth: 0,
-            minHeight: 0,
-            overflow: "hidden",
-        }}>
-          {/*<ChartSeries chartRef={chartRef} />
-          <ChartData />*/}
-       
+    <Box
+      sx={{
+        width: "100%",
+        height: "100%",
+        minWidth: 0,
+        minHeight: 0,
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          height: "20px",
+          flexShrink: 0,
+        }}
+      >
+        <Buttons />
+        <IconButton size="small" onClick={handleDestroyChart}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
+      <Box
+        ref={containerRef}
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          minWidth: 0,
+          width: "100%",
+        }}
+      />
     </Box>
   )
 
@@ -185,7 +218,8 @@ function Chart(){
 
 
 
-export default function ChartManager({ controls = Buttons }) {
+export default function ChartManager({chartId, destroyChart, pane}) {
+  
  
     return (
         <Box
@@ -199,20 +233,15 @@ export default function ChartManager({ controls = Buttons }) {
                 flexDirection: "column",
             }}
         >
-            {<Buttons /> 
-            }
+            
+            
 
-            <Box 
-                sx={{
-                    flex: 1,
-                    minHeight: 0,
-                    minWidth: 0,
-                }}
-            >
-                {<Chart />
+            
+                {
+                <Chart chartId={chartId} destroyChart={destroyChart} pane={pane}/>
                 }
                 
-            </Box>
+            
         </Box>
     )
 }
