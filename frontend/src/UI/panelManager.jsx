@@ -14,9 +14,12 @@ import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import ChartManager from "../capabilities/charts/chartManager";
 import {useEffect, useRef, useState} from 'react'
+import changeLayout from "./panelUtils/layoutManager";
+
 
 
 function Pane({paneArea}){
+    console.log("PANE RENDER:", paneArea);
     const activeLayout = usePanelStore(s=>s.activeLayout);
     const setActiveLayout = usePanelStore(s=>s.setActiveLayout);
     const createChart = useChartStore(s=>s.createChart);
@@ -25,33 +28,32 @@ function Pane({paneArea}){
     const selection = useChartStore(s=>s.selection);
     const activeChart = useChartStore(s=>s.activeChart[paneArea]);
     const setActiveChart = useChartStore(s=>s.setActiveChart);
-    const setDspName = useChartStore(s=>s.setDisplayName)
+    const setDspName = useChartStore(s=>s.setDisplayName);
 
     const [editingChart, setEditingChart] = useState(null);
-    const [chartTitles, setChartTitles] = useState({});
 
     function handlePaneRemoval(){
         if (activeLayout=="fourGrid"){
             if (paneArea=="b"){
-                    setActiveLayout("flippedTriangle")
+                    changeLayout("flippedTriangle")
             } else {
-                setActiveLayout("triangle")
+                changeLayout("triangle")
             }
         
         } else if (activeLayout=="triangle"){
             if (paneArea=="b"){
-                setActiveLayout("twoRows")
+                changeLayout("twoRows")
             } else {
-                setActiveLayout("twoColumns")
+                changeLayout("twoColumns")
             }
         } else if (activeLayout=="flippedTriangle"){
             if (paneArea=="b"|| paneArea=="c"){
-                setActiveLayout("twoRows")
+                changeLayout("twoRows")
             } else {
-                setActiveLayout("twoColumns")
+                changeLayout("twoColumns")
             }
         } else {
-            setActiveLayout("monolith")
+            changeLayout("monolith")
         }
     
         }
@@ -76,7 +78,7 @@ function Pane({paneArea}){
                         autoFocus
                         value={selection[chartId].displayName??chartId}
                         onChange={e =>
-                            setDspName(chartId, name)
+                            setDspName(chartId, e.target.value)
                         }
                         onBlur={() => setEditingChart(null)}
                         onKeyDown={e => {
@@ -119,8 +121,8 @@ function Pane({paneArea}){
             });
 
         } else {
+           
             return paneCharts.map(chartId => {
-
                 return activeChart === chartId && (
                     <ChartManager
                         key={chartId}
@@ -134,6 +136,7 @@ function Pane({paneArea}){
     }
 
     useEffect(() => {
+        console.log("PANE MOUNT:", paneArea);
         const hasChart = Object.values(selection).some(
             chart => chart.pane === paneArea
         );
@@ -142,6 +145,10 @@ function Pane({paneArea}){
             const id = Math.floor(Math.random() * 1_000_000_000);
             createChart(id, paneArea);
         }
+        return () => {
+            console.log("PANE UNMOUNT:", paneArea);
+        };
+        
     }, [paneArea, selection, createChart]);
     
     return (
@@ -262,8 +269,7 @@ export default function PanelManager(){
     const layout = layouts[activeLayout]
     const gridDeets = getGridStyle(layout)
     
-    const RenderPanes = ()=> {
-        //console.log(layout)
+    
         const areas = new Set();
 
         for (const row of layout.areas) {
@@ -271,10 +277,7 @@ export default function PanelManager(){
             areas.add(area);
         }
         }
-
-        return [...areas].map(area => (
-        <Pane key={area} paneArea={area} />))
-    }
+    
    
     return (
         <Box 
@@ -287,7 +290,8 @@ export default function PanelManager(){
             minHeight: 0,
             ...gridDeets
         }}>
-            <RenderPanes/>
+            {[...areas].map(area => (
+        <Pane key={area} paneArea={area} />))}
         </Box>
     )
 }

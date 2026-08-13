@@ -20,6 +20,7 @@ import {
 } from "./layoutIcons";
 
 import usePanelStore from "../../stores/panelStore";
+import changeLayout from "./layoutManager";
 
 export default function LayoutControls() {
   const activeLayout = usePanelStore(
@@ -29,6 +30,7 @@ export default function LayoutControls() {
   const setActiveLayout = usePanelStore(
     (s) => s.setActiveLayout
   );
+
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -47,7 +49,8 @@ export default function LayoutControls() {
     : undefined;
 
   const handleLayoutChange = (layout) => {
-    setActiveLayout(layout);
+    
+    changeLayout(layout);
     handleClose();
   };
 

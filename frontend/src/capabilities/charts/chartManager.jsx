@@ -17,112 +17,112 @@ import {createChart, CandlestickSeries} from 'lightweight-charts'
 import { FootprintSeries } from "./volume/volume";
 import CloseIcon from "@mui/icons-material/Close";
 
-
-function ChartSeries({chartRef}){
+function ChartSeries({chartId,chartRef}){
     //console.count("in usechart",chartRef)
-    const candle = useChartStore(s=>s.selection.default.candle)
-    const activeSeries = useChartStore(s=>s.activeSeries)
+    const candle = useChartStore(s=>s.selection[chartId].candle)
+    const activeSeries = useChartStore(s=>s.selection[chartId].activeSeries)
     const setActiveSeries =useChartStore(s=>s.setActiveSeries)
-    const chartReady  =useChartStore(s=>s.chartReady)
-
-    function japaneseCandles(){
-      const jpCandles=chartRef.current.addSeries(
-            CandlestickSeries,
-            {
-                upColor: "#26a69a",
-                downColor: "#ef5350",
-                borderVisible: false,
-                wickUpColor: "#26a69a",
-                wickDownColor: "#ef5350",
-            })
-      //console.log(jpCandles)
-      
-      setActiveSeries(jpCandles)
-
-    }
-
-    function volumecandles(){
-        const vpCandles=chartRef.current.addCustomSeries(
-              new FootprintSeries()
-          )
-        setActiveSeries(vpCandles)
-    }
-
-    function rmSeries(){
-        if (activeSeries){
-          console.log("removing series",activeSeries)
-              chartRef.current.removeSeries(activeSeries);
-              setActiveSeries(null)
-            }
-    }
+    const chartReady  =useChartStore(s=>s.selection[chartId].ready)
+    console.log("SERIES RENDER:", {
+        chartId,
+        candle,
+        chartReady,
+        activeSeries,
+        chartRef: chartRef.current
+    });
     
-    useEffect(
-      ()=>{
-        //console.log("running effect in chart series")
-        //console.log(chartRef.current)
-        if (!chartRef.current || !chartReady) return;
-        //console.log(candle)
-        //console.log("selection changed")
-        if (candle==="japanese"){
-          //console.log("adding japanese")
-          rmSeries()
-          japaneseCandles()
-        
-        }  else {
-          rmSeries()
-          volumecandles()
+    
+    useEffect(() => {
+        if (!chartReady || !chartRef.current) return;
 
+        let series;
+
+        if (candle === "japanese") {
+            series = chartRef.current.addSeries(
+                CandlestickSeries,
+                {
+                    upColor: "#26a69a",
+                    downColor: "#ef5350",
+                    borderVisible: false,
+                    wickUpColor: "#26a69a",
+                    wickDownColor: "#ef5350",
+                }
+            );
+        } else {
+            series = chartRef.current.addCustomSeries(
+                new FootprintSeries()
+            );
         }
-        //console.log("in chart series",activeSeries)
+
+        setActiveSeries(chartId, series);
+
+        return () => {
+            if (chartRef.current && series) {
+                chartRef.current.removeSeries(series);
+            }
+
+            setActiveSeries(chartId, null);
+        };
+
+    }, [candle, chartReady]);
         
-        return ()=>{}
-      },[candle, chartReady]
-      
-    )
-    
     
 
 }
 
-function ChartData(){
-  console.count("chartData")
-    const activeSeries = useChartStore(s=>s.activeSeries)
-    const selection = useChartStore(s=>s.selection.default);
-    const chartReady  =useChartStore(s=>s.chartReady)
-    
-    
+function ChartData({ chartId }) {
+    const activeSeries = useChartStore(
+        s => s.selection[chartId]?.activeSeries
+    )
+
+    const selection = useChartStore(
+        s => s.selection[chartId]
+    )
+
+    const chartReady = useChartStore(
+        s => s.selection[chartId]?.ready
+    )
+
     const k1 = selection
         ? `${selection.platform}|${selection.trade}|${selection.symbol}`
-        : null;
+        : null
 
-    
-    const tf = selection.timeframe
-    
-    const data = useChartStore(s=>s.data?.[k1]?.[tf]);
-    
-    
-     const renderdata = data?.data
-     //console.log(renderdata)
-     //console.log("in chartdata",activeSeries)
-     if (!activeSeries|| !renderdata) {//console.log("returning");
-      return}
-     activeSeries.setData(renderdata)
-    
+    const tf = selection?.timeframe
+
+    const data = useChartStore(
+        s => s.data?.[k1]?.[tf]
+    )
+
+    const renderdata = data?.data
+
+    useEffect(() => {
+        if (!chartReady || !activeSeries || !renderdata) return
+
+        activeSeries.setData(renderdata)
+    }, [chartReady, activeSeries, renderdata])
+
+    return null
 }
 
 function Chart({chartId, destroyChart, pane}){
+  console.log("CHART RENDER:", {
+        chartId,
+        pane
+    });
   const containerRef = useRef(null);
   const chartRef = useRef(null) 
   //console.count("chart")
-  const [chartShouldExist, setChartShouldExist] = useState(true);
   function handleDestroyChart(){
-    setChartShouldExist(false);
     destroyChart(chartId, pane);
   }
   const setChartReady = useChartStore(s=>s.setChartReady)
   
   useEffect(
     ()=>{
+      console.log("CHART EFFECT/MOUNT:", {
+        chartId,
+        pane
+    });
       const rect = containerRef.current.getBoundingClientRect();
       const chart = createChart(containerRef.current,
             {
@@ -142,8 +142,12 @@ function Chart({chartId, destroyChart, pane}){
                 },
             })
       chartRef.current = chart;
-      
-      setChartReady(true)
+       console.log("CHART CREATED:", {
+        chartId,
+        chartRef: chartRef.current
+    });
+
+      setChartReady(chartId,true)
       const resize = new ResizeObserver((entries) => {
         const entry = entries[0];
 
@@ -159,20 +163,23 @@ function Chart({chartId, destroyChart, pane}){
       resize.observe(containerRef.current);
        
       return ()=>{
+        console.log("CHART CLEANUP START:", {
+            chartId,
+            pane,
+            chartRef: chartRef.current
+        });
         chart.remove();
         resize.disconnect();
-        setChartReady(false);
+        setChartReady(chartId,false);
         chartRef.current=null;
+        console.log("CHART CLEANUP END:", {
+            chartId,
+            chartRef: chartRef.current
+        });
       }
     },[]
   )
-  if (!chartShouldExist){
-    chart.remove();
-        resize.disconnect();
-        setChartReady(false);
-        chartRef.current=null;
-  }
-
+  
   return (
     <Box
       sx={{
@@ -193,7 +200,7 @@ function Chart({chartId, destroyChart, pane}){
           flexShrink: 0,
         }}
       >
-        <Buttons />
+        <Buttons chartId={chartId} />
         <IconButton size="small" onClick={handleDestroyChart}>
           <CloseIcon />
         </IconButton>
@@ -208,6 +215,8 @@ function Chart({chartId, destroyChart, pane}){
           width: "100%",
         }}
       />
+      <ChartSeries chartId={chartId} chartRef={chartRef}/>
+      <ChartData chartId={chartId}/>
     </Box>
   )
 
@@ -238,7 +247,7 @@ export default function ChartManager({chartId, destroyChart, pane}) {
 
             
                 {
-                <Chart chartId={chartId} destroyChart={destroyChart} pane={pane}/>
+                <Chart key={chartId} chartId={chartId} destroyChart={destroyChart} pane={pane}/>
                 }
                 
             

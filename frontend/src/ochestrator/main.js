@@ -21,6 +21,7 @@ class OchestratorMain{
     cleanUp(){
         this.workerController.stopWorkers()
         appstore.getState().setThreadsStatus(false)
+        appstore.getState().setWs();
         this.unsub()
 
 

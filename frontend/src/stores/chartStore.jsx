@@ -3,15 +3,18 @@ const DEFAULT = {symbol: "BTCUSDT",
       platform: "binance",
       trade: "futures trade",
       timeframe: "1min",
-      candle: "japanese",}
+      candle: "japanese",
+      pane:"",
+      displayName:"",
+      ready:false,
+      activeSeries:null}
 
-const useChartStore = create((set) => ({
+const useChartStore = create((set,get) => ({
   selection: {
     
     default: {
       ...DEFAULT,
-      pane:"",
-      displayName:""
+      
     }
   },
 
@@ -22,6 +25,38 @@ const useChartStore = create((set) => ({
     "d":null
 
   },
+
+  setActiveSeries: (id, series) =>
+  set(state => {
+
+    console.log("SET ACTIVE SERIES", {
+      id,
+      series,
+      previous: state.selection[id]?.activeSeries,
+    });
+
+    return {
+      selection: {
+        ...state.selection,
+        [id]: {
+          ...state.selection[id],
+          activeSeries: series
+        }
+      }
+    };
+  }),
+
+  
+  setChartReady: (id,status)=>
+    set((state=>({
+      selection: {
+      ...state.selection,
+      [id] :{
+        ...state.selection[id],
+        ready:status
+      }
+    }
+    }))),
 
   setActiveChart:(id,pane)=>set(
     (state)=>({
@@ -56,37 +91,47 @@ const useChartStore = create((set) => ({
             [chartId]: {
                 ...DEFAULT,
                 pane,
-                displayName:"untitled"
+                displayName:"untitled"+" "+String(Math.floor(Math.random()*10))
             }
         }
     })),
 
   destroyChart: (chartId, pane) =>
-  set(state => {
-    const selection = { ...state.selection };
-    delete selection[chartId];
+    set(state => {
+      console.log("STORE destroyChart BEFORE", {
+          chartId,
+          selection: state.selection[chartId],
+      });
 
-    const remaining = Object.keys(selection).filter(
-      id => id !== "default" && selection[id].pane === pane
-    );
+      const selection = { ...state.selection };
+      delete selection[chartId];
 
-    return {
-      selection,
-      activeChart: {
-        ...state.activeChart,
-        [pane]: remaining.length > 0 ? remaining[0] : null
-      }
-    };
-  }),
+      console.log("STORE destroyChart AFTER", {
+          chartId,
+          selection: selection[chartId],
+      });
 
-  activeSeries: null,
-  setActiveSeries: (series)=>
-    set((state=>({
-      activeSeries: series
-    }))),
+      const remaining = Object.keys(selection).filter(
+          id =>
+              id !== "default" &&
+              selection[id].pane === pane
+      );
 
-  chartReady: false,
-  setChartReady: (status)=>set(()=>({chartReady:status})),
+      console.log("REMAINING:", remaining);
+
+      return {
+          selection,
+          activeChart: {
+              ...state.activeChart,
+              [pane]: remaining.length > 0
+                  ? remaining[0]
+                  : null
+          }
+      };
+    }),
+
+  
+  
 
   symbols: ["BTCUSDT"],
   timeframes: ["1min"],

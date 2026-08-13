@@ -3,7 +3,7 @@ import { create } from "zustand";
 const usePanelStore = create((set) => ({
  
 
-  activeLayout: "fourGrid",
+  activeLayout: "twoRows",
 
   setActiveLayout: (layout)=>set((state)=>({
     activeLayout: layout
