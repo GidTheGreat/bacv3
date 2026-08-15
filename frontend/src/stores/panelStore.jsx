@@ -3,7 +3,7 @@ import { create } from "zustand";
 const usePanelStore = create((set) => ({
  
 
-  activeLayout: "twoRows",
+  activeLayout: "monolith",
 
   setActiveLayout: (layout)=>set((state)=>({
     activeLayout: layout

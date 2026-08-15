@@ -19,7 +19,7 @@ import changeLayout from "./panelUtils/layoutManager";
 
 
 function Pane({paneArea}){
-    console.log("PANE RENDER:", paneArea);
+    //console.log("PANE RENDER:", paneArea);
     const activeLayout = usePanelStore(s=>s.activeLayout);
     const setActiveLayout = usePanelStore(s=>s.setActiveLayout);
     const createChart = useChartStore(s=>s.createChart);
@@ -136,7 +136,7 @@ function Pane({paneArea}){
     }
 
     useEffect(() => {
-        console.log("PANE MOUNT:", paneArea);
+        //console.log("PANE MOUNT:", paneArea);
         const hasChart = Object.values(selection).some(
             chart => chart.pane === paneArea
         );
@@ -146,7 +146,7 @@ function Pane({paneArea}){
             createChart(id, paneArea);
         }
         return () => {
-            console.log("PANE UNMOUNT:", paneArea);
+            //console.log("PANE UNMOUNT:", paneArea);
         };
         
     }, [paneArea, selection, createChart]);

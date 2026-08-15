@@ -16,6 +16,7 @@ import { getCapabilities } from "../../registry";
 import {createChart, CandlestickSeries} from 'lightweight-charts'
 import { FootprintSeries } from "./volume/volume";
 import CloseIcon from "@mui/icons-material/Close";
+import DrawingLayer from "../../UI/drawings/drawingLayer";
 
 function ChartSeries({chartId,chartRef}){
     //console.count("in usechart",chartRef)
@@ -23,13 +24,13 @@ function ChartSeries({chartId,chartRef}){
     const activeSeries = useChartStore(s=>s.selection[chartId].activeSeries)
     const setActiveSeries =useChartStore(s=>s.setActiveSeries)
     const chartReady  =useChartStore(s=>s.selection[chartId].ready)
-    console.log("SERIES RENDER:", {
+    /*console.log("SERIES RENDER:", {
         chartId,
         candle,
         chartReady,
         activeSeries,
         chartRef: chartRef.current
-    });
+    });*/
     
     
     useEffect(() => {
@@ -105,10 +106,10 @@ function ChartData({ chartId }) {
 }
 
 function Chart({chartId, destroyChart, pane}){
-  console.log("CHART RENDER:", {
+  /*console.log("CHART RENDER:", {
         chartId,
         pane
-    });
+    });*/
   const containerRef = useRef(null);
   const chartRef = useRef(null) 
   //console.count("chart")
@@ -119,10 +120,10 @@ function Chart({chartId, destroyChart, pane}){
   
   useEffect(
     ()=>{
-      console.log("CHART EFFECT/MOUNT:", {
+      /*console.log("CHART EFFECT/MOUNT:", {
         chartId,
         pane
-    });
+    });*/
       const rect = containerRef.current.getBoundingClientRect();
       const chart = createChart(containerRef.current,
             {
@@ -142,10 +143,10 @@ function Chart({chartId, destroyChart, pane}){
                 },
             })
       chartRef.current = chart;
-       console.log("CHART CREATED:", {
+       /*console.log("CHART CREATED:", {
         chartId,
         chartRef: chartRef.current
-    });
+    });*/
 
       setChartReady(chartId,true)
       const resize = new ResizeObserver((entries) => {
@@ -163,19 +164,19 @@ function Chart({chartId, destroyChart, pane}){
       resize.observe(containerRef.current);
        
       return ()=>{
-        console.log("CHART CLEANUP START:", {
+        /*console.log("CHART CLEANUP START:", {
             chartId,
             pane,
             chartRef: chartRef.current
-        });
+        });*/
         chart.remove();
         resize.disconnect();
         setChartReady(chartId,false);
         chartRef.current=null;
-        console.log("CHART CLEANUP END:", {
+        /*console.log("CHART CLEANUP END:", {
             chartId,
             chartRef: chartRef.current
-        });
+        });*/
       }
     },[]
   )
@@ -213,8 +214,12 @@ function Chart({chartId, destroyChart, pane}){
           minHeight: 0,
           minWidth: 0,
           width: "100%",
+          position:"relative",
         }}
-      />
+      >
+        <DrawingLayer chartId={chartId} paneId={pane} chartRef={chartRef}
+        containerRef={containerRef}/>
+      </Box>
       <ChartSeries chartId={chartId} chartRef={chartRef}/>
       <ChartData chartId={chartId}/>
     </Box>

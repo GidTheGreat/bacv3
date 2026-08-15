@@ -29,11 +29,11 @@ const useChartStore = create((set,get) => ({
   setActiveSeries: (id, series) =>
   set(state => {
 
-    console.log("SET ACTIVE SERIES", {
+    /*console.log("SET ACTIVE SERIES", {
       id,
       series,
       previous: state.selection[id]?.activeSeries,
-    });
+    });*/
 
     return {
       selection: {
@@ -106,10 +106,10 @@ const useChartStore = create((set,get) => ({
       const selection = { ...state.selection };
       delete selection[chartId];
 
-      console.log("STORE destroyChart AFTER", {
+      /*console.log("STORE destroyChart AFTER", {
           chartId,
           selection: selection[chartId],
-      });
+      });*/
 
       const remaining = Object.keys(selection).filter(
           id =>
@@ -117,7 +117,7 @@ const useChartStore = create((set,get) => ({
               selection[id].pane === pane
       );
 
-      console.log("REMAINING:", remaining);
+      //console.log("REMAINING:", remaining);
 
       return {
           selection,

@@ -30,6 +30,8 @@ import GridOnOutlinedIcon from "@mui/icons-material/GridOnOutlined";
 import DeleteSweepOutlinedIcon from "@mui/icons-material/DeleteSweepOutlined";
 import UndoOutlinedIcon from "@mui/icons-material/UndoOutlined";
 import RedoOutlinedIcon from "@mui/icons-material/RedoOutlined";
+import useDrawingStore from "../../stores/drawingStore";
+import useChartStore from "../../stores/chartStore";
 
 const groups = [
   [
@@ -73,6 +75,21 @@ const groups = [
 ];
 
 export default function DrawingToolbar() {
+  const setDrawingState = useDrawingStore(s=>s.setDrawingState);
+  const DrawingState = useDrawingStore(s=>s.DrawingState);
+  const selections = useChartStore(s=>s.selection)
+
+  //console.log(DrawingState)
+  function handleDrawingstate(label){
+    Object.keys(selections).forEach(chartId=>{
+      if (!chartId.toLowerCase().endsWith("default")){
+        const k1 = `${selections[chartId].platform}|${selections[chartId].trade}|${selections[chartId].symbol}`
+        setDrawingState(k1, label)
+        
+      }
+    })
+
+  }
   return (
     <Paper
       sx={{
@@ -81,6 +98,23 @@ export default function DrawingToolbar() {
         display: "flex",
         justifyContent: "center",
         overflowY: "auto",
+        overflowx:"hidden",
+        scrollbarWidth: "thin",
+        scrollbarColor: "rgba(255,255,255,0.2) transparent",
+
+        "&::-webkit-scrollbar": {
+            height: "4px",
+        },
+        "&::-webkit-scrollbar-track": {
+            background: "transparent",
+        },
+        "&::-webkit-scrollbar-thumb": {
+            background: "rgba(255,255,255,0.2)",
+            borderRadius: "4px",
+        },
+        "&::-webkit-scrollbar-thumb:hover": {
+            background: "rgba(255,255,255,0.4)",
+        },
       }}
     >
       <Stack spacing={0.5}>
@@ -95,7 +129,19 @@ export default function DrawingToolbar() {
                 title={label}
                 placement="right"
               >
-                <IconButton size="small">
+                <IconButton size="small"
+                sx={{
+                  color: DrawingState.action==label ? "primary.main" : "inherit",
+                  backgroundColor: DrawingState.action==label ? "action.selected" : "transparent",
+                  "&:hover": {
+                    backgroundColor: DrawingState==label
+                      ? "action.selected"
+                      : "action.hover",
+                  },
+                }}
+                onClick={()=>{
+                  //console.log(DrawingState.action,label,DrawingState==label)
+                  handleDrawingstate(label);}}>
                   {icon}
                 </IconButton>
               </Tooltip>
