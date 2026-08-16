@@ -3,27 +3,8 @@ import useDrawingStore from "../../stores/drawingStore";
 import handlePointers from "./pointersUtil";
 import useChartStore from "../../stores/chartStore";
 import draw from "./draw";
+import { SyncDrawings } from "./syncDrawings";
 
-/*
-useEffect(() => {
-    const chart = chartRef.current;
-    if (!chart) return;
-
-    const handler = () => {
-        // your existing renderer
-        draw(...);
-    };
-
-    const timeScale = chart.timeScale();
-
-    timeScale.subscribeVisibleLogicalRangeChange(handler);
-
-    return () => {
-        timeScale.unsubscribeVisibleLogicalRangeChange(handler);
-    };
-}, []);
-
-*/
 
 export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
     const DrawingState = useDrawingStore(s=>s.DrawingState);
@@ -50,7 +31,9 @@ export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
 
     function relay(pointerData) {
         //console.log(pointerData)
+        
         const canvas = canvasRef.current;
+        //console.log(getComputedStyle(canvas).touchAction);
         const ctx = canvas.getContext("2d");
 
         const { x, y } = translatePointer(canvas, pointerData);
@@ -63,8 +46,11 @@ export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
     const chart = chartRef.current;
     if (!chart) {return};
 
+
+    
+
     const handler = () => {
-            console.log("timescale change")
+            //console.log("timescale change")
             const canvas = canvasRef.current;
             const ctx = canvas.getContext("2d");
             
@@ -73,15 +59,10 @@ export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
 
         const timeScale = chart.timeScale();
         
-        const priceScale = chart.priceScale();
-            //console.log(priceScale)
-        
-        timeScale.subscribeVisibleLogicalRangeChange(handler);
-        //priceScale.subscribeVisibleLogicalRangeChange(handler);
+        chart.panes?.()[0].attachPrimitive(new SyncDrawings(handler))
 
         return () => {
-            timeScale.unsubscribeVisibleLogicalRangeChange(handler);
-            //priceScale.unsubscribeVisibleLogicalRangeChange(handler);
+            
         };
     }, [chartReady,selection.activeSeries]);
 
@@ -115,6 +96,10 @@ export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
                 position: "absolute",
                 inset: 0,
                 border: "2px dashed green",
-                pointerEvents:DrawingState.action =="Cursor"?"none":"auto"
+                pointerEvents:DrawingState.action =="Cursor"?"none":"auto",
+                
             }}></canvas>
 }
+
+/*touchAction:DrawingState.action =="Cursor"?"auto":"none",
+                userSelect:DrawingState.action =="Cursor"?"auto":"none",*/

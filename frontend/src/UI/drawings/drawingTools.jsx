@@ -36,15 +36,13 @@ import useChartStore from "../../stores/chartStore";
 const groups = [
   [
     ["Cursor", <MouseOutlinedIcon />],
-    ["Pan", <PanToolAltOutlinedIcon />],
   ],
 
   [
     ["Trend Line", <TimelineOutlinedIcon />],
     ["Horizontal Line", <HorizontalRuleOutlinedIcon />],
     ["Vertical Line", <HeightOutlinedIcon />],
-    ["Ray", <ShowChartOutlinedIcon />],
-    ["Polyline", <PolylineOutlinedIcon />],
+    
   ],
 
   [
@@ -53,7 +51,7 @@ const groups = [
   ],
 
   [
-    ["Brush", <EditOutlinedIcon />],
+    
     ["Text", <TextFieldsOutlinedIcon />],
   ],
 
@@ -64,12 +62,11 @@ const groups = [
 
   [
     ["Measure", <StraightenOutlinedIcon />],
-    ["Grid", <GridOnOutlinedIcon />],
+    
   ],
 
   [
-    ["Undo", <UndoOutlinedIcon />],
-    ["Redo", <RedoOutlinedIcon />],
+    
     ["Clear Drawings", <DeleteSweepOutlinedIcon />],
   ],
 ];

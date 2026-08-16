@@ -8,6 +8,8 @@ import {
   IconButton,
   TextField,
   Typography,
+  ToggleButton,
+  Popover
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useDockStore } from "../../stores/dockstore";
@@ -17,8 +19,101 @@ import {createChart, CandlestickSeries} from 'lightweight-charts'
 import { FootprintSeries } from "./volume/volume";
 import CloseIcon from "@mui/icons-material/Close";
 import DrawingLayer from "../../UI/drawings/drawingLayer";
+import { FootprintPrimitive } from "./footprintPrimitive";
+import CandlestickChartIcon from "@mui/icons-material/CandlestickChart";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
+import BarChartIcon from "@mui/icons-material/BarChart";
 
-function ChartSeries({chartId,chartRef}){
+import useFootprintStore from "../../stores/footPrintStore";
+
+function VPControls() {
+  const variant = useFootprintStore((s) => s.variant);
+  const setVariant = useFootprintStore((s) => s.setVariant);
+
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
+
+  const id = open ? "footprint-popover" : undefined;
+
+  const handleVariantChange = (variant) => {
+    setVariant(variant);
+    handleClose();
+  };
+
+  const CurrentIcon =
+    variant === "off"
+      ? VisibilityOffIcon
+      : variant === "delta"
+        ? CompareArrowsIcon
+        : BarChartIcon;
+
+  return (
+    <Box sx={{ display: "inline-flex" }}>
+      <IconButton
+        size="small"
+        aria-describedby={id}
+        onClick={handleClick}
+      >
+        <CandlestickChartIcon />
+      </IconButton>
+
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            p: 1,
+            gap: 1,
+          }}
+        >
+          <ToggleButton
+            value="off"
+            selected={variant === "off"}
+            onClick={() => handleVariantChange("off")}
+          >
+            <VisibilityOffIcon />
+          </ToggleButton>
+
+          <ToggleButton
+            value="delta"
+            selected={variant === "delta"}
+            onClick={() => handleVariantChange("delta")}
+          >
+            <CompareArrowsIcon />
+          </ToggleButton>
+
+          <ToggleButton
+            value="profile"
+            selected={variant === "profile"}
+            onClick={() => handleVariantChange("profile")}
+          >
+            <BarChartIcon />
+          </ToggleButton>
+        </Box>
+      </Popover>
+    </Box>
+  );
+}
+
+function ChartSeries({chartId,chartRef, fpRef}){
     //console.count("in usechart",chartRef)
     const candle = useChartStore(s=>s.selection[chartId].candle)
     const activeSeries = useChartStore(s=>s.selection[chartId].activeSeries)
@@ -49,6 +144,7 @@ function ChartSeries({chartId,chartRef}){
                     wickDownColor: "#ef5350",
                 }
             );
+          //series.attachPrimitive(fpRef.current)
         } else {
             series = chartRef.current.addCustomSeries(
                 new FootprintSeries()
@@ -71,7 +167,7 @@ function ChartSeries({chartId,chartRef}){
 
 }
 
-function ChartData({ chartId }) {
+function ChartData({ chartId, fpRef }) {
     const activeSeries = useChartStore(
         s => s.selection[chartId]?.activeSeries
     )
@@ -100,6 +196,7 @@ function ChartData({ chartId }) {
         if (!chartReady || !activeSeries || !renderdata) return
 
         activeSeries.setData(renderdata)
+        //fpRef.current.setData(renderdata)
     }, [chartReady, activeSeries, renderdata])
 
     return null
@@ -111,7 +208,9 @@ function Chart({chartId, destroyChart, pane}){
         pane
     });*/
   const containerRef = useRef(null);
-  const chartRef = useRef(null) 
+  const chartRef = useRef(null);
+
+  //const fpRef = useRef(new FootprintPrimitive())
   //console.count("chart")
   function handleDestroyChart(){
     destroyChart(chartId, pane);
@@ -202,9 +301,14 @@ function Chart({chartId, destroyChart, pane}){
         }}
       >
         <Buttons chartId={chartId} />
+          
+          {//<VPControls/>
+          }
+        
         <IconButton size="small" onClick={handleDestroyChart}>
           <CloseIcon />
         </IconButton>
+        
       </Box>
 
       <Box
@@ -220,8 +324,8 @@ function Chart({chartId, destroyChart, pane}){
         <DrawingLayer chartId={chartId} paneId={pane} chartRef={chartRef}
         containerRef={containerRef}/>
       </Box>
-      <ChartSeries chartId={chartId} chartRef={chartRef}/>
-      <ChartData chartId={chartId}/>
+      <ChartSeries chartId={chartId} chartRef={chartRef} fpRef={null}/>
+      <ChartData chartId={chartId} fpRef={null}/>
     </Box>
   )
 

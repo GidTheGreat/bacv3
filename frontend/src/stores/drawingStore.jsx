@@ -7,27 +7,26 @@ const DEFAULT = {
 const useDrawingStore = create((set) => ({
     DrawingState: { ...DEFAULT },
 
-    Drawings: {
-      "binance|futures trade|BTCUSDT":{
-        "Horizontal Line":[]
-      }
-      
-    },
+    Drawings: {},
 
+    clearDrawings: () => set({
+        Drawings: {}
+    }),
 
     setDrawings: (key, type, entry) =>
-    set(state => ({
-        Drawings: {
-            ...state.Drawings,
-            [key]: {
-                ...state.Drawings[key],
-                [type]: [
-                    ...state.Drawings[key][type],
-                    entry
-                ]
+        set(state => ({
+            Drawings: {
+                ...state.Drawings,
+                [key]: {
+                    ...(state.Drawings[key] ?? {}),
+                    [type]: [
+                        ...(state.Drawings[key]?.[type] ?? []),
+                        entry
+                    ]
+                }
             }
-        }
-    })),
+        })),
+        
     setDrawingState: (key, newAction, details = null) =>
         set((state) => ({
             DrawingState: {
