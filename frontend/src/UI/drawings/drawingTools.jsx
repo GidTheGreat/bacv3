@@ -32,10 +32,12 @@ import UndoOutlinedIcon from "@mui/icons-material/UndoOutlined";
 import RedoOutlinedIcon from "@mui/icons-material/RedoOutlined";
 import useDrawingStore from "../../stores/drawingStore";
 import useChartStore from "../../stores/chartStore";
+import AdsClickIcon from '@mui/icons-material/AdsClick';
 
 const groups = [
   [
     ["Cursor", <MouseOutlinedIcon />],
+    ["Select Drawing", <AdsClickIcon/>]
   ],
 
   [

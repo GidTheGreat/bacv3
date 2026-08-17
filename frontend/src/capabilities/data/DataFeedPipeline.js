@@ -139,10 +139,7 @@ export class DataFeedPipeline {
         tradeType: "futures trade",
     });
 
-    workerPost({
-        type: "addTimeframe",
-        timeframe: "tick",
-    });
+    
     
 
     //workerPost({type:"setData",streamKey, timeframe:"tick", data: [tick]});

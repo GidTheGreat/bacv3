@@ -4,6 +4,7 @@ import handlePointers from "./pointersUtil";
 import useChartStore from "../../stores/chartStore";
 import draw from "./draw";
 import { SyncDrawings } from "./syncDrawings";
+import hitTest from "./hitTest";
 
 
 export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
@@ -50,16 +51,18 @@ export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
     
 
     const handler = () => {
-            //console.log("timescale change")
-            const canvas = canvasRef.current;
-            const ctx = canvas.getContext("2d");
-            
-            draw(ctx,chartRef, k1, chartId, null, null, null);
-        };
-
-        const timeScale = chart.timeScale();
+        //console.log("timescale change")
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
         
-        chart.panes?.()[0].attachPrimitive(new SyncDrawings(handler))
+        draw(ctx,chartRef, k1, chartId, null, null, null);
+    };
+
+    const timeScale = chart.timeScale();
+    
+    chart.panes?.()[0].attachPrimitive(new SyncDrawings(handler))
+
+    
 
         return () => {
             
