@@ -54,6 +54,7 @@ export default function BottomBar() {
 
           } else {
             ochestrator.netWorkMgmt("live feed", url, "connect", "metadata", "ws")
+            
           }
           
         }}
@@ -77,6 +78,28 @@ export default function BottomBar() {
         {ws ? "Connected" : "Disconnected"
         }
       </Button>
+
+      {/*<Button
+        variant="outlined"
+        size="small"
+        onClick={()=>{
+          ochestrator.netWorkMgmt("backfill feed", url, "connect", "metadata", "http")
+          
+        }}
+        startIcon={
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              
+            }}
+          />
+        }
+      >
+        {"http"
+        }
+      </Button>*/}
 
        
       </Stack>

@@ -56,8 +56,15 @@ function getTimestamp(message) {
     return 0;
 }
 
-export function workerPost(message) {
+export function workerPost(message, mode) {
+  //console.log("message ready for deployment",message)
+  let delay=5000;
+  
+  if (mode){
+    delay = mode.toLowerCase().startsWith("hist") ? 60_000 :5000
+  }
     const key = getKey(message);
+    //console.log(delay)
 
     // Unknown messages: preserve normally
     if (!key) {
@@ -89,16 +96,89 @@ export function workerPost(message) {
 
         pending.clear();
         timer = null;
-
+        //console.log("message being sent")
         postMessage(batch);
-    }, 5000);
+    }, delay);
 }
 
 export class DataFeedPipeline {
-  constructor() {
+  constructor(mode) {
     this.cursor = {};
     this.consume = this.consume.bind(this);
     this.footprintPending = new Set();
+    this.mode = mode
+  }
+
+  consumeB(message) {
+    //console.log(message)
+    const parsed =
+      typeof message === "string"
+        ? JSON.parse(message)
+        : message;
+
+    const d = parsed;
+    //console.log(d);
+
+    const price = Number(d.price);
+    const volume = Number(d.quantity);
+    const time = Number(d.transact_time);
+
+    if (
+        !Number.isFinite(price) ||
+        !Number.isFinite(volume) ||
+        !Number.isFinite(time)
+    ) {
+        console.error("BAD HISTORICAL ROW", {
+            d,
+            price,
+            volume,
+            time
+        });
+
+        return;
+    }
+
+    //const price = +d.price;
+    //const volume = +d.quantity;
+
+    const tick = {
+      id: d.agg_trade_id,
+      time: Math.floor(d.transact_time / 1000),
+      value: price,
+      volume,
+      notional: price * volume,
+      aggressor: d.is_buyer_maker ? "seller" : "buyer",
+    };
+
+    const streamKey = `binance|futures trade|BTCUSDT`;
+
+    workerPost({
+        type: "addSymbol",
+        symbol: "BTCUSDT",
+    }, this.mode);
+
+    workerPost({
+        type: "addPlatform",
+        platform: "binance",
+    }, this.mode);
+
+    workerPost({
+        type: "addTradeType",
+        tradeType: "futures trade",
+    },this.mode);
+
+    
+    
+
+    //workerPost({type:"setData",streamKey, timeframe:"tick", data: [tick]});
+
+    if (!this.cursor[streamKey]) {
+      this.cursor[streamKey] = {};
+    }
+
+    for (const [label, seconds] of Object.entries(TIMEFRAMES)) {
+      this.update(streamKey, label, seconds, tick);
+    }
   }
 
   consume(message) {
@@ -127,17 +207,17 @@ export class DataFeedPipeline {
     workerPost({
         type: "addSymbol",
         symbol: d.s,
-    });
+    }, this.mode);
 
     workerPost({
         type: "addPlatform",
         platform: "binance",
-    });
+    }, this.mode);
 
     workerPost({
         type: "addTradeType",
         tradeType: "futures trade",
-    });
+    }, this.mode);
 
     
     
@@ -311,13 +391,13 @@ export class DataFeedPipeline {
       workerPost({
           type: "addTimeframe",
           timeframe: label,
-      });
+      }, this.mode);
       workerPost({
           type: "setData",
           streamKey,
           timeframe: label,
           data: [cursor.candle],
-      });
+      }, this.mode);
       
       return;
     }
@@ -424,7 +504,7 @@ export class DataFeedPipeline {
         streamKey,
         timeframe: label,
         data: [candle],
-    });
+    }, this.mode);
   }
 
   newCursor(tfSeconds, tick) {

@@ -6,7 +6,9 @@ import useChartStore from "../stores/chartStore"
 class OchestratorMain{
     constructor(){
         this.workerController = workersManager
-        this.parseWorkerMsg = this.parseWorkerMsg.bind(this)
+        this.parseWorkerMsg = this.parseWorkerMsg.bind(this);
+        this.parseWorkerMsghttp =
+        this.parseWorkerMsghttp.bind(this);
         this.unsub = appstore.subscribe((state)=>{
             console.log(state)
         })
@@ -34,9 +36,43 @@ class OchestratorMain{
         
     }
 
+    applyToStorehttp(message) {
+        console.log(message)
+        if (!message) return;
+
+        const state = useChartStore.getState();
+
+        switch (message.type) {
+            case "addSymbol":
+                state.addSymbol(message.symbol);
+                break;
+
+            case "addPlatform":
+                state.addPlatform(message.platform);
+                break;
+
+            case "addTradeType":
+                state.addTradeType(message.tradeType);
+                break;
+
+            case "addTimeframe":
+                state.addTimeframe(message.timeframe);
+                break;
+
+            case "setData":
+                state.setData(
+                    message.streamKey,
+                    message.timeframe,
+                    message.data
+                );
+                break;
+        }
+    }
+
     applyToStore(messageEn) {
         //console.log(messageEn)
         const message = messageEn
+        //console.log(messageEn)
         if (!message) return;
             const state = useChartStore.getState();
         message.map(message=>{
@@ -95,10 +131,34 @@ class OchestratorMain{
 
     }
 
+    parseWorkerMsghttp(msg){
+        /*
+        console.log(
+        "WORKER EVENT:",
+        msg.type,
+        "ID:",
+        msg.id,
+        "TIME:",
+        Date.now()
+    )*/
+        switch (msg.type){
+            
+
+            default:{
+                this.applyToStorehttp(msg)
+            }
+        }
+
+    }
+
     netWorkMgmt(id, url, cmd, msg, worker){
         switch (cmd){
             case "connect":{
-                this.workerController.connect(worker, url, id, msg, this.parseWorkerMsg);
+                worker=="http"?this.workerController.connect(worker, url, id, msg, 
+                    this.parseWorkerMsghttp):
+                this.workerController.connect(worker, url, id, msg, 
+                    this.parseWorkerMsg);
+                
                 break;
             }
 

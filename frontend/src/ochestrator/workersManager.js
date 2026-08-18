@@ -24,6 +24,10 @@ class WorkersManager{
                     new URL(path, import.meta.url),
                     { type: "module" }
                 );
+                httpWorker.postMessage(
+                    {
+                        type: "test"
+                    })
                 this.activeWorkers.set("http", 
                     {"worker":httpWorker, "msgRelay":new Set()});
             }
