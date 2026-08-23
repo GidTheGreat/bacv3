@@ -10,6 +10,7 @@ import { getCapabilities } from "../registry";
 import PanelManager from "./panelManager";
 
 
+
 export default function Layout() {
  const ChartManager = getCapabilities("chartManager")[0].component;
 

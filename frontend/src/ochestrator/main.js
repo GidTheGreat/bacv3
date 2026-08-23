@@ -10,12 +10,13 @@ class OchestratorMain{
         this.parseWorkerMsghttp =
         this.parseWorkerMsghttp.bind(this);
         this.unsub = appstore.subscribe((state)=>{
-            console.log(state)
+            //console.log(state)
         })
 
     }
     startUp(){
-        this.workerController.startWorkers()
+        this.workerController.startWorkers(this.parseWorkerMsg,
+            this.parseWorkerMsghttp)
         appstore.getState().setThreadsStatus(true)
 
     }
@@ -37,7 +38,7 @@ class OchestratorMain{
     }
 
     applyToStorehttp(message) {
-        console.log(message)
+        //console.log(message)
         if (!message) return;
 
         const state = useChartStore.getState();
@@ -124,8 +125,19 @@ class OchestratorMain{
                 break;
             }
 
+            case "ready":{
+                //console.log("ws worker ready");
+                //this.workerController.send("live-feed", "ws", "metadata",
+                   //  "connect", null, this.parseWorkerMsg)
+                break;
+            }
+
+            
+
             default:{
-                this.applyToStore(msg)
+                //console.log("why is msg here:",msg);
+                this.applyToStore(msg);
+                break;
             }
         }
 
@@ -142,7 +154,10 @@ class OchestratorMain{
         Date.now()
     )*/
         switch (msg.type){
-            
+            case "ready":{
+                //console.log("http worker ready")
+
+            }
 
             default:{
                 this.applyToStorehttp(msg)

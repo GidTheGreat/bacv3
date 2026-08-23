@@ -19,6 +19,7 @@ import useAppStore from "../stores/appStore";
 export default function BottomBar() {
   console.count("bottom bar")
   const ws = useAppStore(state => state.ws);
+  const notification = useAppStore(state=>state.notification)
   const url = "wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade"
   
   useEffect(
@@ -50,10 +51,10 @@ export default function BottomBar() {
         size="small"
         onClick={()=>{
           if (ws){
-            ochestrator.netWorkMgmt("live feed", url, "close", "metadata", "ws")
+            ochestrator.netWorkMgmt("live-feed", url, "close", "metadata", "ws")
 
           } else {
-            ochestrator.netWorkMgmt("live feed", url, "connect", "metadata", "ws")
+            ochestrator.netWorkMgmt("live-feed", url, "connect", "metadata", "ws")
             
           }
           
@@ -106,7 +107,7 @@ export default function BottomBar() {
 
       {/* Center */}
 
-      
+      <marquee style={{color:"red"}}>{notification}</marquee>
 
       {/* Right */}
 

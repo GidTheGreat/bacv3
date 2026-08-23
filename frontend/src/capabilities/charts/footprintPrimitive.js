@@ -2,13 +2,13 @@
 import useFootprintStore from "../../stores/footPrintStore";
 
 export class FootprintPrimitive {
-    constructor(data = []) {
+    constructor(chartId, data = []) {
         this.data = data;
 
         this.chart = null;
         this.series = null;
         this.requestUpdate = null;
-
+        this.chartId = chartId;
         this._paneViews = [];
     }
 
@@ -30,6 +30,10 @@ export class FootprintPrimitive {
         ];
 
         this.requestUpdate();
+
+        this.unsub = useFootprintStore.subscribe((state)=>{
+            this.requestUpdate();
+        })
     }
 
     detached() {
@@ -39,6 +43,7 @@ export class FootprintPrimitive {
         this.series = null;
         this.requestUpdate = null;
         this._paneViews = [];
+        this.unsub();
     }
 
     paneViews() {
@@ -113,6 +118,31 @@ class FootprintPaneView {
  * ============================================================
  */
 
+function regroup(arr, groupNum){
+    let newArr = []
+    let transArr = []
+    let group = groupNum
+    for (const item of arr){
+        //console.log(item)
+        if (group > 0){
+            transArr.push(item)
+            group-=1
+        } else {
+            newArr.push(transArr)
+            transArr=[]
+            group= groupNum
+            transArr.push(item)
+            group -=1
+            
+        }
+    }
+    newArr.push(transArr)
+    transArr=[]
+    //console.log(newArr)
+    return newArr
+}
+
+
 function formatNotional(value) {
         const abs = Math.abs(value);
 
@@ -127,6 +157,30 @@ function formatNotional(value) {
         return `${Math.round(value)}`;
     }
 
+function heatColor(
+    value,
+    max,
+    side
+) {
+    const ratio =
+        max === 0
+            ? 0
+            : value / max;
+
+    if (ratio > 0.95) {
+        return "#ffffff";
+    }
+
+    const intensity =
+        Math.floor(
+            25 + ratio * 180
+        );
+
+    return side === "buy"
+        ? `rgb(0,${intensity},0)`
+        : `rgb(${intensity},0,0)`;
+}
+
 class FootprintRenderer {
 
     constructor(source) {
@@ -134,17 +188,60 @@ class FootprintRenderer {
     }
 
     
+    drawFooter(y1, x, item, ctx){
+        const footerY =
+                y1 + 12;
+
+        const delta =
+            item.volume_delta ??
+            0;
+        
+        ctx.font =
+            "bold 10px sans-serif";
+
+        ctx.fillStyle =
+                delta >= 0
+                    ? "#00cc88"
+                    : "#ff5555";
+
+        ctx.fillText(
+            `${delta >= 0 ? "▲" : "▼"} ${formatNotional(
+                Math.abs(delta)
+            )}`,
+            x,
+            footerY
+        );
+
+        ctx.fillStyle =
+                "#ffffff";
+
+        ctx.fillText(
+            `Σ ${formatNotional(
+                item.total_volume
+
+            )}`,
+            x,
+            footerY + 12
+        );
+    }
 
     draw(target) {
-    const { chart, series, data } = this.source;
+    const { chart, series, data, chartId } = this.source;
 
-    const variant = useFootprintStore.getState().variant;
+    const footPrintState = useFootprintStore.getState().footPrintState?.[chartId];
 
-    if (variant === "off") return;
-    if (!chart || !series || !data.length) return;
+    const visible = series.priceScale().getVisibleRange();
+    if (!visible) return;
+    const priceSpan = Math.abs(visible.to - visible.from);
+    const paneHeight = chart.panes()[0].getHeight();
 
+    const pixelsPerPrice = paneHeight / priceSpan;
+    const targetPx = 100;
     const timeScale = chart.timeScale();
-    const barSpacing = timeScale.options().barSpacing;
+    const spacing = timeScale.options().barSpacing;
+
+    
+    if (!chart || !series || !data.length) return;
 
     // Future:
     // "notional" -> buy / sell
@@ -171,99 +268,83 @@ class FootprintRenderer {
             if (x === null) continue;
 
             const bins = item.binned_profile;
+            //console.log(item)
 
             if (!bins) continue;
+            const y1 = series.priceToCoordinate(item.low);
+            const y2 = series.priceToCoordinate(item.high);
+            const levels = Object.entries(bins);
 
-            const prices = Object.keys(bins)
-                .map(Number)
-                .sort((a, b) => a - b);
+            const profileRows = levels.map(([price,profile])=>({
+                price: Number(price), buy: profile.buy,
+              sell:profile.sell}))
+            profileRows.sort((a,b)=>b.price-a.price);
+            let aggPerRow = targetPx/pixelsPerPrice;
+            //let aggLength = profileRows.length/aggPerRow;
+            let newRows = regroup(profileRows, aggPerRow);
+            let rowHeight = Math.abs(y2-y1)/newRows.length;
+            //console.log(aggPerRow,newRows.length)
 
-            if (!prices.length) continue;
-
-            /*
-             * Determine vertical size of each price bin.
-             */
-            let binHeight = 10;
-
-            if (prices.length > 1) {
-                const y1 = series.priceToCoordinate(prices[0]);
-                const y2 = series.priceToCoordinate(prices[1]);
-
-                if (y1 !== null && y2 !== null) {
-                    binHeight = Math.max(1, Math.abs(y2 - y1));
+            if (footPrintState?.footer){
+                this.drawFooter(y1, x, item, ctx)
                 }
+            if (footPrintState?.fpStatus === "off") return;
+            let pos = y2;
+            for ( const group of newRows){
+                const maxVolBuySide = newRows.reduce(
+                    (max, group) => Math.max(
+                        max,
+                        group.reduce((sum, val) => sum + val.buy, 0)
+                    ),
+                    0
+                );
+
+                const maxVolSellSide = newRows.reduce(
+                    (max, group) => Math.max(
+                        max,
+                        group.reduce((sum, val) => sum + val.sell, 0)
+                    ),
+                    0
+                );
+
+                const width = spacing * 0.8;
+
+                const sellT = group.reduce((acc,val)=>Math.floor(acc+val.sell),0);
+                const sellColor =
+                            heatColor(
+                                sellT,
+                                maxVolSellSide,
+                                "sell"
+                            );
+                ctx.fillStyle=sellColor;
+                ctx.fillRect(x-width/2,pos,width/4,rowHeight);
+                
+                const buyT = group.reduce((acc,val)=>Math.floor(acc+val.buy),0);
+                const buyColor =
+                            heatColor(
+                                buyT,
+                                maxVolBuySide,
+                                "buy"
+                            );
+                ctx.fillStyle=buyColor;
+                ctx.fillRect(x+width/4,pos,width/4,rowHeight);
+                
+                
+                const availableWidth = width/4;
+                const textWidth = ctx.measureText(String(sellT)).width;
+                if (textWidth < availableWidth){
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillStyle = sellColor === "#ffffff" ? "black" : "white";
+                    ctx.fillText(formatNotional(sellT),x - 3 * width / 8,(pos+rowHeight/2));
+                    
+                    ctx.fillStyle =buyColor === "#ffffff" ? "black" : "white";
+                    ctx.fillText(formatNotional(buyT),x + 3 * width / 8,(pos+rowHeight/2));
+                }
+                pos = pos+rowHeight;
             }
+        
 
-            /*
-             * Equal-width cells on both sides of the candle.
-             */
-            const sideWidth = Math.max(
-                2,
-                Math.min(barSpacing * 0.4, 100)
-            );
-
-            const leftX = x - barSpacing / 2;
-            const rightX = x + barSpacing / 2 - sideWidth;
-
-            for (const price of prices) {
-                const bin = bins[price];
-
-                const y = series.priceToCoordinate(price);
-
-                if (y === null) continue;
-
-                const sell = bin[sellKey] ?? 0;
-                const buy = bin[buyKey] ?? 0;
-
-                /*
-                 * ------------------------------------------------
-                 * SELL CELL
-                 * ------------------------------------------------
-                 */
-
-                ctx.fillStyle = "red";
-
-                ctx.fillRect(
-                    leftX,
-                    y - binHeight / 2,
-                    sideWidth,
-                    binHeight
-                );
-
-                ctx.fillStyle = "white";
-
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-
-                ctx.fillText(
-                    formatNotional(sell),
-                    leftX + sideWidth / 2,
-                    y
-                );
-
-                /*
-                 * ------------------------------------------------
-                 * BUY CELL
-                 * ------------------------------------------------
-                 */
-
-                ctx.fillStyle = "green";
-
-                ctx.fillRect(
-                    rightX,
-                    y - binHeight / 2,
-                    sideWidth,
-                    binHeight
-                );
-
-                ctx.fillStyle = "white";
-
-                ctx.fillText(
-                    formatNotional(buy),
-                    rightX + sideWidth / 2,
-                    y
-                );
-            }
         }
     });
 }

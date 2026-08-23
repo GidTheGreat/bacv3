@@ -1,5 +1,8 @@
 const TIMEFRAMES = {
-    
+    "1min": 60,
+    "5min": 300,
+    "15min": 900,
+    "30min": 1800,
     "1h": 3600,
     "4h": 14400,
 };
@@ -9,9 +12,17 @@ const STREAM_KEY = "binance|futures trade|BTCUSDT";
 export class DataFeedPipeline {
     constructor() {
         this.history = {};
+        for (const tf_label of Object.keys(TIMEFRAMES)){
+            postMessage(
+                {
+          type: "addTimeframe",
+          timeframe: tf_label,
+      }
+            )
+        }
     }
 
-    consumeB(rows) {
+    consumeB(rows, key) {
         // Create independent batch state for every timeframe.
         this.history = {};
 
@@ -22,50 +33,104 @@ export class DataFeedPipeline {
                 cursor: null,
             };
         }
+        if (!key){
+            // Process the entire historical dataset in one pass.
+            for (const row of rows) {
+                const price = Number(row.price);
+                const volume = Number(row.quantity);
+                const time = Number(row.transact_time);
 
-        // Process the entire historical dataset in one pass.
-        for (const row of rows) {
-            const price = Number(row.price);
-            const volume = Number(row.quantity);
-            const time = Number(row.transact_time);
+                if (
+                    !Number.isFinite(price) ||
+                    !Number.isFinite(volume) ||
+                    !Number.isFinite(time)
+                ) {
+                    continue;
+                }
 
-            if (
-                !Number.isFinite(price) ||
-                !Number.isFinite(volume) ||
-                !Number.isFinite(time)
-            ) {
-                continue;
+                const tick = {
+                    time: Math.floor(time / 1000),
+                    value: price,
+                    volume,
+                    notional: price * volume,
+                    aggressor: row.is_buyer_maker
+                        ? "seller"
+                        : "buyer",
+                };
+
+                for (const state of Object.values(this.history)) {
+                    this.processTick(state, tick);
+                }
             }
 
-            const tick = {
-                time: Math.floor(time / 1000),
-                value: price,
-                volume,
-                notional: price * volume,
-                aggressor: row.is_buyer_maker
-                    ? "seller"
-                    : "buyer",
-            };
+            // Close and prepare the final candle of every timeframe.
+            for (const [label, state] of Object.entries(this.history)) {
+                if (state.cursor) {
+                    state.candles.push(
+                        this.finalizeCandle(state.cursor.candle)
+                    );
+                }
 
-            for (const state of Object.values(this.history)) {
-                this.processTick(state, tick);
+                postMessage({
+                    type: "setData",
+                    streamKey: STREAM_KEY,
+                    timeframe: label,
+                    data: state.candles,
+                });
             }
-        }
+        } else {
 
-        // Close and prepare the final candle of every timeframe.
-        for (const [label, state] of Object.entries(this.history)) {
-            if (state.cursor) {
-                state.candles.push(
-                    this.finalizeCandle(state.cursor.candle)
-                );
+            try{
+                //console.log("error block")
+             for (const row of rows) {
+                const price = Number(row.p);
+                const volume = Number(row.q);
+                const time = Number(row.T);
+
+                if (
+                    !Number.isFinite(price) ||
+                    !Number.isFinite(volume) ||
+                    !Number.isFinite(time)
+                ) {
+                    continue;
+                }
+
+                const tick = {
+                    time: Math.floor(time / 1000),
+                    value: price,
+                    volume,
+                    notional: price * volume,
+                    aggressor: row.m
+                        ? "seller"
+                        : "buyer",
+                };
+
+                for (const state of Object.values(this.history)) {
+                    this.processTick(state, tick);
+                }
+            }
+            } catch (error){
+                console.log("rows =", rows);
+        console.log("typeof rows =", typeof rows);
+        console.log("constructor =", rows?.constructor?.name);
+        return;
             }
 
-            postMessage({
-                type: "setData",
-                streamKey: STREAM_KEY,
-                timeframe: label,
-                data: state.candles,
-            });
+            // Close and prepare the final candle of every timeframe.
+            for (const [label, state] of Object.entries(this.history)) {
+                if (state.cursor) {
+                    state.candles.push(
+                        this.finalizeCandle(state.cursor.candle)
+                    );
+                }
+
+                postMessage({
+                    type: "setData",
+                    streamKey: STREAM_KEY,
+                    timeframe: label,
+                    data: state.candles,
+                });
+            }
         }
     }
 

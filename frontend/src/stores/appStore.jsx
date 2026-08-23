@@ -7,6 +7,12 @@ const useAppStore = create((set)=>
 
         ws: false, 
 
+        notification: "ALL SYSTEMS NOMINAL",
+
+        setNotification: (notification)=>set(()=>({
+            notification
+        })),
+
         setThreadsStatus: (running)=>set(
             (state)=>({
                 threadsRunning:running

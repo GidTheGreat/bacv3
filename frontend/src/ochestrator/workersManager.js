@@ -8,7 +8,7 @@ class WorkersManager {
         this.WorkersRunning = false;
     }
 
-    startWorkers() {
+    startWorkers(msgRelayWs, msgRelayHTTP) {
         if (this.activeWorkers.size > 0) return;
 
         const wsWorker = new WsWorker();
@@ -17,17 +17,26 @@ class WorkersManager {
             worker: wsWorker,
             msgRelay: new Set()
         });
+        const workerHandle = this.activeWorkers.get("ws");
+        workerHandle.msgRelay.add(msgRelayWs);
+        this.#workerMsgSub(
+                    workerHandle.worker,
+                    workerHandle.msgRelay
+                );
 
         const httpWorker = new HttpWorker();
-
-        httpWorker.postMessage({
-            type: "test"
-        });
 
         this.activeWorkers.set("http", {
             worker: httpWorker,
             msgRelay: new Set()
         });
+
+        const workerHandle2 = this.activeWorkers.get("http");
+        workerHandle2.msgRelay.add(msgRelayHTTP);
+        this.#workerMsgSub(
+                    workerHandle2.worker,
+                    workerHandle2.msgRelay
+                );
 
         this.WorkersRunning = true;
     }
@@ -109,6 +118,7 @@ class WorkersManager {
         url = null,
         msgRelay = null
     ) {
+        
         const workerHandle = this.activeWorkers.get(worker);
 
         workerHandle.worker.postMessage({
@@ -119,6 +129,7 @@ class WorkersManager {
         });
 
         if (msgRelay) {
+            //console.log("adding relay")
             workerHandle.msgRelay.add(msgRelay);
 
             this.#workerMsgSub(

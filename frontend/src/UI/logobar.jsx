@@ -22,10 +22,15 @@ import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined
 
 import BidAskCathedralLogo from "./logo";
 import { getCapabilities } from "../registry";
+import ReplayButton from "../capabilities/replay/replayButton";
 
 import LayoutControls from "./panelUtils/layoutControls";
+import Journal from "../capabilities/journal/Journal";
+import useMediaQuery from "@mui/material/useMediaQuery";
+
 
 export default function LogoBar() {
+  const isMobile = useMediaQuery("(max-width:600px)");
   const Journal = getCapabilities("journal")[0].component;
   //console.log(Journal)
   return (
@@ -74,7 +79,7 @@ export default function LogoBar() {
               whiteSpace: "nowrap",
             }}
           >
-            BidAsk Cathedral
+            {isMobile ? null : "BidAsk Cathedral"}
           </Typography>
         </Stack>
 
@@ -109,6 +114,8 @@ export default function LogoBar() {
           spacing={0.5}
           sx={{ flexShrink: 0 }}
         >
+          <Journal/>
+          <ReplayButton/>
           <LayoutControls/>
         </Stack>
       </Toolbar>

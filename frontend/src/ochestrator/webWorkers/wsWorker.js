@@ -1,13 +1,14 @@
 import {Queue,scheduleConsumer } from './queue'
 import { DataFeedPipeline } from '../../capabilities/data/DataFeedPipeline';
-console.log("[ws worker] loaded")
+//console.log("[ws worker] loaded")
 
 const queue = new Queue()
 const dfp = new DataFeedPipeline
+const BINANCE_FSTREAM_BASE_URL = "wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade"
 
 postMessage(
     {
-        type: "status",
+        type: "ready",
         message: "[ws worker] ready"
     }
 )
@@ -20,7 +21,7 @@ onmessage = event => {
         case "connect":{
             //console.log(connections)
             if (!connections.has(id)){
-                const socket = new WebSocket(url)
+                const socket = new WebSocket(BINANCE_FSTREAM_BASE_URL)
                 connections.set(id, socket)
                 socket.onopen = ()=>{
                     

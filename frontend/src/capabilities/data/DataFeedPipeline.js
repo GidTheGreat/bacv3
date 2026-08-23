@@ -150,7 +150,7 @@ export class DataFeedPipeline {
       aggressor: d.is_buyer_maker ? "seller" : "buyer",
     };
 
-    const streamKey = `binance|futures trade|BTCUSDT`;
+    //const streamKey = `binance|futures trade|BTCUSDT`;
 
     workerPost({
         type: "addSymbol",

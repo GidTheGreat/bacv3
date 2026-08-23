@@ -3,13 +3,13 @@ import JSZip from "jszip";
 import Papa from "papaparse";
 //import * as dfd from "danfojs";
 
-console.log("[http worker] loaded")
+//console.log("[http worker] loaded")
 
 
 const dfp = new DataFeedPipeline()
 postMessage(
     {
-        type: "status",
+        type: "ready",
         message: "[http worker] ready"
     }
 )
@@ -18,10 +18,36 @@ const BASE_URL =
   'BTCUSDT/' +
   'BTCUSDT-aggTrades-2026-07-01.zip';
    
+const BACKFILL_URL="https://fapi.binance.com/fapi/v1/aggTrades"
+//const data = await p.json()
+//console.log(data)
+                
+const allData = []
+async function backfill() {
+    const endTime = Date.now(); 
+    let startTime = Date.now() - 86400000;
+    
+    while (startTime < endTime){
+        let url = BACKFILL_URL + `?symbol=BTCUSDT&startTime=${startTime}&limit=1000`;
+        //console.log(url);
+        const response = await fetch(url);
+        const current_data = await response.json();
+
+        
+               
+        const latestTime = current_data[current_data.length-1].T;
+        allData.push(...current_data)
+        startTime = latestTime+1;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    dfp.consumeB(allData, "key");
+}
+
+//await backfill()
 
 
 onmessage = async(event) => {
-    console.log(event)
+    //console.log(event)
     const { type, url, id, msg } = event.data;
     switch (type){
             case "connect":{
