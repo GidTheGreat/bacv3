@@ -229,7 +229,7 @@ class FootprintRenderer {
     const { chart, series, data, chartId } = this.source;
 
     const footPrintState = useFootprintStore.getState().footPrintState?.[chartId];
-
+    if (footPrintState?.fpStatus === "off") return;
     const visible = series.priceScale().getVisibleRange();
     if (!visible) return;
     const priceSpan = Math.abs(visible.to - visible.from);
@@ -285,10 +285,9 @@ class FootprintRenderer {
             let rowHeight = Math.abs(y2-y1)/newRows.length;
             //console.log(aggPerRow,newRows.length)
 
-            if (footPrintState?.footer){
-                this.drawFooter(y1, x, item, ctx)
-                }
-            if (footPrintState?.fpStatus === "off") return;
+            
+            this.drawFooter(y1, x, item, ctx)
+            
             let pos = y2;
             for ( const group of newRows){
                 const maxVolBuySide = newRows.reduce(

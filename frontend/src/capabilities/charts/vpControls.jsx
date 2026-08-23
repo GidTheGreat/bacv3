@@ -127,7 +127,7 @@ export default function VPControls({ chartId }) {
               borderColor: "divider",
             }}
           >
-            <Typography>Footer</Typography>
+           {/*<Typography>Footer</Typography>
             <RadioGroup value={footPrintState?.footer ?? false} onChange={
             (event)=>handleChange("footer", event)}>
             <FormControlLabel
@@ -142,7 +142,7 @@ export default function VPControls({ chartId }) {
               label="No"
             />
 
-          </RadioGroup>
+          </RadioGroup>*/}
           </Box>
         </Box>
       </Popover>
