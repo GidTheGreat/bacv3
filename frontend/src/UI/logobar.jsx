@@ -27,6 +27,7 @@ import ReplayButton from "../capabilities/replay/replayButton";
 import LayoutControls from "./panelUtils/layoutControls";
 import Journal from "../capabilities/journal/Journal";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import FetchDataButton from "../capabilities/fetch";
 
 
 export default function LogoBar() {
@@ -114,6 +115,7 @@ export default function LogoBar() {
           spacing={0.5}
           sx={{ flexShrink: 0 }}
         >
+          <FetchDataButton/>
           <Journal/>
           <ReplayButton/>
           <LayoutControls/>

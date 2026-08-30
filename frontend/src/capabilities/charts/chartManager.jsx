@@ -33,6 +33,7 @@ function ChartSeries({chartId,chartRef, fpRef}){
     //console.count("in usechart",chartRef)
     const candle = useChartStore(s=>s.selection[chartId].candle)
     const activeSeries = useChartStore(s=>s.selection[chartId].activeSeries)
+    
     const setActiveSeries =useChartStore(s=>s.setActiveSeries)
     const chartReady  =useChartStore(s=>s.selection[chartId].ready)
     /*console.log("SERIES RENDER:", {
@@ -83,7 +84,7 @@ function ChartSeries({chartId,chartRef, fpRef}){
 
 }
 
-function ChartData({ chartId, fpRef }) {
+function ChartData({ chartId, fpRef, chartRef }) {
     const activeSeries = useChartStore(
         s => s.selection[chartId]?.activeSeries
     )
@@ -105,14 +106,17 @@ function ChartData({ chartId, fpRef }) {
     const data = useChartStore(
         s => s.data?.[k1]?.[tf]
     )
-
     const renderdata = data?.data
-
+    
     useEffect(() => {
         if (!chartReady || !activeSeries || !renderdata) return
-
+        //console.log(renderdata)
         activeSeries.setData(renderdata)
-        fpRef.current.setData(renderdata)
+        activeSeries.priceScale().applyOptions({
+            autoScale: true,
+        });
+        chartRef.current.timeScale().fitContent();
+        //fpRef.current.setData(renderdata)
     }, [chartReady, activeSeries, renderdata])
 
     return null
@@ -241,7 +245,7 @@ function Chart({chartId, destroyChart, pane}){
         containerRef={containerRef}/>
       </Box>
       <ChartSeries chartId={chartId} chartRef={chartRef} fpRef={fpRef}/>
-      <ChartData chartId={chartId} fpRef={fpRef}/>
+      <ChartData chartId={chartId} fpRef={fpRef}  chartRef={chartRef}/>
     </Box>
   )
 

@@ -27,6 +27,11 @@ export default function Buttons({chartId}) {
 
   const [open, setOpen] = useState(false);
 
+  function tradeFilter(field, value){
+    if (field=="trade") return value=="um"?"USD-M":"COIN-M"
+    else return value
+  }
+
   const selectStyle = {
     height: 25,
     width: "100%",
@@ -57,6 +62,7 @@ export default function Buttons({chartId}) {
     };
 
   const Row = ({ label, value, values, field }) => (
+
     <Box sx={labelStyle}>
       <Typography>{label}</Typography>
       <select
@@ -68,7 +74,7 @@ export default function Buttons({chartId}) {
       >
         {values.map((v) => (
           <option key={v} value={v}>
-            {v}
+            {tradeFilter(field,v)}
           </option>
         ))}
       </select>

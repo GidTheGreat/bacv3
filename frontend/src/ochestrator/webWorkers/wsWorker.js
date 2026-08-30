@@ -1,95 +1,71 @@
-import {Queue,scheduleConsumer } from './queue'
-import { DataFeedPipeline } from '../../capabilities/data/DataFeedPipeline';
-//console.log("[ws worker] loaded")
 
-const queue = new Queue()
-const dfp = new DataFeedPipeline
 const BINANCE_FSTREAM_BASE_URL = "wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade"
+let atomicsView;
+let countView;
 
-postMessage(
-    {
-        type: "ready",
-        message: "[ws worker] ready"
-    }
-)
+let aggTradeIdView;
+let timestampView;
+let priceView;
+let quantityView;
+let sideView;
+
+const platform='binance';
+const tradeType = 'um';
+const symbol = 'BTCUSDT';
 
 const connections = new Map()
+
+let localCounter = 0;
+
+function test(){
+    while (true){
+        //console.log(countView[0], countView[0] === localCounter);
+
+        const result = Atomics.wait(countView, 0, localCounter);
+
+        //console.log("wait returned:", result);
+        //console.log("processing");
+        
+        localCounter=countView[0];
+        //console.log(priceView[localCounter],localCounter, countView[0]);
+        //debugger;
+
+    }
+}
+
 onmessage = event => {
-    //console.log(`[ws worker] data receipt ${JSON.stringify(event.data)}`)
-    const { type, url, id, msg } = event.data
+    
+    const { type, payload } = event.data
     switch (type){
-        case "connect":{
-            //console.log(connections)
-            if (!connections.has(id)){
-                const socket = new WebSocket(BINANCE_FSTREAM_BASE_URL)
-                connections.set(id, socket)
-                socket.onopen = ()=>{
-                    
-                    postMessage(
-                        {
-                        type: "socket open",
-                        id 
-                        }
-                    )
-                }
-
-                socket.onclose = ()=>{
-                    connections.delete(id)
-                    postMessage(
-                        {
-                            type: "socket closed",
-                            id
-                        }
-                    )
-                }
-
-                socket.onerror = (error)=> {
-                    connections.delete(id)
-                    postMessage(
-                        {
-                            type: "socket error",
-                            id,
-                            msg: error
-                        }
-                    )
-                }
-
-                socket.onmessage = (event)=>{
-                    queue.enqueue(event.data);
-                    scheduleConsumer(queue, dfp.consume);
-                    /*
-                    postMessage(
-                        {
-                            type: "data receipt",
-                            id
-                        }
-                    )*/
-                }
-
-
-            }
-            //console.log(connections)
-            break;
-            
-        }
-
-        case "close":{
-            //console.log(connections)
-            const socket = connections.get(id);
-            if (socket){
-                socket.close();
-            }
-            //console.log(connections)
+        case "status":{
+            postMessage({
+                type: "status",
+                worker: "ws",
+                payload: "[ws worker] loaded succesfully"
+            })
             break;
         }
 
-        case "send":{
-            const socket = connections.get(id);
-            if (socket){
-                socket.send(msg);
+        case "buffer":{
+            /*
+            const key = `${platform}|${tradeType}|${symbol}`;
+            const buffer= payload.get(key);
+            atomicsView = new Uint8Array(buffer, 1, 1);
+            countView = new Int32Array(buffer, 4, 1);
 
-            }
-            
+            aggTradeIdView = new BigUint64Array(buffer, 16, 1_000_000);
+            timestampView = new Float64Array(buffer, 8_000_016, 1_000_000);
+            priceView = new Float64Array(buffer, 16_000_016, 1_000_000);
+            quantityView = new Float64Array(buffer, 24_000_016, 1_000_000);
+            sideView = new Uint8Array(buffer, 32_000_016, 1_000_000);
+            test();*/
+            postMessage(
+                {
+                    type: "buffer",
+                    worker: "ws",
+                    payload: "[ws worker] received buffer"
+                }
+            )
             break;
         }
     }

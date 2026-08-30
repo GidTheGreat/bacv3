@@ -1,26 +1,10 @@
-import { DataFeedPipeline } from '../../capabilities/data/histFeedPipeline';
-import JSZip from "jszip";
-import Papa from "papaparse";
-//import * as dfd from "danfojs";
 
-//console.log("[http worker] loaded")
+import binanceFetch, { getCandles } from "./binanceFetch"
 
-
-const dfp = new DataFeedPipeline()
-postMessage(
-    {
-        type: "ready",
-        message: "[http worker] ready"
-    }
-)
-const BASE_URL =
-  'https://data.binance.vision/data/futures/um/daily/aggTrades/' +
-  'BTCUSDT/' +
-  'BTCUSDT-aggTrades-2026-07-01.zip';
    
 const BACKFILL_URL="https://fapi.binance.com/fapi/v1/aggTrades"
-//const data = await p.json()
-//console.log(data)
+
+
                 
 const allData = []
 async function backfill() {
@@ -43,56 +27,49 @@ async function backfill() {
     dfp.consumeB(allData, "key");
 }
 
-//await backfill()
-
 
 onmessage = async(event) => {
     //console.log(event)
-    const { type, url, id, msg } = event.data;
+    const { type, payload } = event.data;
     switch (type){
-            case "connect":{
-                
-                const response = await fetch(BASE_URL);
-
-                let buffer = await response.arrayBuffer();
-
-                let zip = await JSZip.loadAsync(buffer);
-                let csv = await zip.file("BTCUSDT-aggTrades-2026-07-01.csv").async("string");
-                console.log("STARTING PARSE", performance.now());
-                
-                const rows = Papa.parse(csv, {
-                    header: true,
-                    dynamicTyping: true,
-                    skipEmptyLines: true,
-                }).data;
-                console.log("consuming")
-                dfp.consumeB(rows);
-
-                
+            case "status":{
+                postMessage({
+                    type: "status",
+                    worker: "http",
+                    payload: "httpWorker loaded succesfully"
+                })
                 break;
                 
             }
-    
-            case "close":{
-                //console.log(connections)
-                const socket = connections.get(id);
-                if (socket){
-                    socket.close();
-                }
-                //console.log(connections)
-                break;
-            }
-    
-            case "send":{
-                const socket = connections.get(id);
-                if (socket){
-                    socket.send(msg);
-    
-                }
+
+            case "fetch":{
+                if (payload.exchange=="binance"){
+                    
+                    await binanceFetch(payload.exchange, payload.symbol, payload.market, 
+                    payload.timeframe, payload.start, payload.end)}
+                    getCandles(payload.exchange, payload.symbol, payload.market, payload.tfs);
                 
+
                 break;
+                
             }
+
+            case "candles":{
+                getCandles(payload.exchange, payload.symbol, payload.market, payload.tfs);
+            }
+
+            case "buffer":{
+               
+                postMessage(
+                    {
+                        type: "buffer",
+                        worker: "http",
+                        payload: "[httpWorker] received buffer"
+                    }
+            )
+            break;
         }
     
+        }
     
 }

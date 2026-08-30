@@ -13,12 +13,6 @@ const useAppStore = create((set)=>
             notification
         })),
 
-        setThreadsStatus: (running)=>set(
-            (state)=>({
-                threadsRunning:running
-            })
-        ),
-
         setWs: () => set(
                 (state) => {
                     if (state.ws) {

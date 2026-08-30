@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 const DEFAULT = {symbol: "BTCUSDT",
       platform: "binance",
-      trade: "futures trade",
+      trade: "um",
       timeframe: "1min",
       candle: "japanese",
       pane:"",
@@ -134,9 +134,9 @@ const useChartStore = create((set,get) => ({
   
 
   symbols: ["BTCUSDT"],
-  timeframes: ["1min"],
+  timeframes: ["1min","5min","15min","30min", "1h", "4h"],
   platforms: ["binance"],
-  trade_types: ["futures trade"],
+  trade_types: ["um","cm"],
   candle_types: ["japanese", "volume footprint"],
 
   // symbols
@@ -146,6 +146,8 @@ const useChartStore = create((set,get) => ({
         ? state.symbols
         : [...state.symbols, symbol]
     })),
+
+  
 
   removeSymbol: (symbol) =>
     set((state) => ({
@@ -201,8 +203,8 @@ const useChartStore = create((set,get) => ({
         ...(state.selection[chartId] ?? {
           symbol: "BTCUSDT",
           platform: "binance",
-          trade: "futures trade",
-          timeframe: "tick",
+          trade: "um",
+          timeframe: "1min",
         }),
         ...patch,
       },

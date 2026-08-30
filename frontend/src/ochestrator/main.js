@@ -1,193 +1,94 @@
-import workersManager from "./workersManager"
-import appstore from "../stores/appStore"
-import useChartStore from "../stores/chartStore"
+import workersManager from "./workersManager";
+import appstore from "../stores/appStore";
+import useChartStore from "../stores/chartStore";
 
 
 class OchestratorMain{
     constructor(){
-        this.workerController = workersManager
-        this.parseWorkerMsg = this.parseWorkerMsg.bind(this);
-        this.parseWorkerMsghttp =
-        this.parseWorkerMsghttp.bind(this);
-        this.unsub = appstore.subscribe((state)=>{
+        this.workerController = workersManager;
+        this.stateUpdate = this.stateUpdate.bind(this);
+        this.activeTfs = new Map();
+        this.unsubApp = appstore.subscribe((state)=>{
             //console.log(state)
+        })
+
+        this.unsubChart = useChartStore.subscribe((state)=>{
+            //window.dataSize= new Blob(JSON.stringify(state.data)).size;
+            const selections = state.selection;
+            Object.keys(selections).map((chartId)=>{
+                this.updateActiveTfs(selections[chartId].platform, selections[chartId].trade
+                    , selections[chartId].symbol, selections[chartId].timeframe)
+                
+            })
         })
 
     }
     startUp(){
-        this.workerController.startWorkers(this.parseWorkerMsg,
-            this.parseWorkerMsghttp)
-        appstore.getState().setThreadsStatus(true)
+        this.workerController.startUp(this.parseWorkerMsg);
 
     }
 
     cleanUp(){
-        this.workerController.stopWorkers()
-        appstore.getState().setThreadsStatus(false)
+        this.workerController.shutDown();
         appstore.getState().setWs();
-        this.unsub()
-
-
+        this.unsubApp();
+        this.unsubChart();
     }
 
-    send(id, worker, payload ){
-        if (this.workerController.WorkersRunning){
-            this.workerController.send(id, worker, payload, console.log)
-        }
-        
-    }
-
-    applyToStorehttp(message) {
-        //console.log(message)
-        if (!message) return;
-
-        const state = useChartStore.getState();
-
-        switch (message.type) {
-            case "addSymbol":
-                state.addSymbol(message.symbol);
-                break;
-
-            case "addPlatform":
-                state.addPlatform(message.platform);
-                break;
-
-            case "addTradeType":
-                state.addTradeType(message.tradeType);
-                break;
-
-            case "addTimeframe":
-                state.addTimeframe(message.timeframe);
-                break;
-
-            case "setData":
-                state.setData(
-                    message.streamKey,
-                    message.timeframe,
-                    message.data
-                );
-                break;
-        }
-    }
-
-    applyToStore(messageEn) {
-        //console.log(messageEn)
-        const message = messageEn
-        //console.log(messageEn)
-        if (!message) return;
-            const state = useChartStore.getState();
-        message.map(message=>{
-            switch (message.type) {
-                case "addSymbol":
-                    state.addSymbol(message.symbol);
-                    break;
-
-                case "addPlatform":
-                    state.addPlatform(message.platform);
-                    break;
-
-                case "addTradeType":
-                    state.addTradeType(message.tradeType);
-                    break;
-
-                case "addTimeframe":
-                    state.addTimeframe(message.timeframe);
-                    break;
-
-                case "setData":
-                    state.setData(
-                        message.streamKey,
-                        message.timeframe,
-                        message.data
-                    );
-                    break;
-            }})
-        }
-
-    parseWorkerMsg(msg){
-        /*
-        console.log(
-        "WORKER EVENT:",
-        msg.type,
-        "ID:",
-        msg.id,
-        "TIME:",
-        Date.now()
-    )*/
-        switch (msg.type){
-            case "socket open":{
-                appstore.getState().setWs();
-                break;
+    updateActiveTfs(exchange, market, symbol, tf){
+        //console.log(platform,trade, symbol, tf);
+        const key = `${exchange}|${market}|${symbol}`;
+        if (!this.activeTfs.get(key)){
+            this.activeTfs.set(key, new Set());
+            this.activeTfs.get(key).add(tf);
+            //console.log("initiating calc for tf:",tf)
+        } else {
+            if (Array.from(this.activeTfs.get(key)).includes(tf)){
+                //console.log("tf already present");
+            } else {
+                this.activeTfs.get(key).add(tf);
+                this.send("candles",{exchange, market, symbol},"http", [tf])
+                //console.log("initiating calc for tf:",tf)
             }
-
-            case "socket closed":{
-                appstore.getState().setWs();
-                break;
-            }
-
-            case "ready":{
-                //console.log("ws worker ready");
-                //this.workerController.send("live-feed", "ws", "metadata",
-                   //  "connect", null, this.parseWorkerMsg)
-                break;
-            }
-
             
-
-            default:{
-                //console.log("why is msg here:",msg);
-                this.applyToStore(msg);
-                break;
-            }
         }
-
+        
+        //console.log(this.activeTfs)
     }
 
-    parseWorkerMsghttp(msg){
-        /*
-        console.log(
-        "WORKER EVENT:",
-        msg.type,
-        "ID:",
-        msg.id,
-        "TIME:",
-        Date.now()
-    )*/
-        switch (msg.type){
-            case "ready":{
-                //console.log("http worker ready")
-
-            }
-
-            default:{
-                this.applyToStorehttp(msg)
-            }
+    stateUpdate(msg){
+        //console.log(msg)
+        if (msg.store =="chartStore"){
+            useChartStore.getState().addSymbol(
+                msg.k1.split("|")[2]
+            )
+            
+            useChartStore.getState().setData(
+                msg.k1, msg.tf, [msg.candle]
+            )
+        } else if (msg.store =="appStore"){
+            //console.log("setting state")
+            appstore.getState().setNotification(msg.notification)
         }
-
     }
 
-    netWorkMgmt(id, url, cmd, msg, worker){
-        switch (cmd){
-            case "connect":{
-                worker=="http"?this.workerController.connect(worker, url, id, msg, 
-                    this.parseWorkerMsghttp):
-                this.workerController.connect(worker, url, id, msg, 
-                    this.parseWorkerMsg);
-                
-                break;
+    send(type, payload, workerKey, chartTfs=null){
+        if (!chartTfs){
+            let tfs = this.activeTfs.get(`${payload.exchange}|${payload.market}|${payload.symbol}`); 
+            if (!tfs){
+                this.updateActiveTfs(payload.exchange, payload.market, payload.symbol, "1min")
             }
-
-            case "close":{
-                this.workerController.send(id, worker, msg, cmd)
-            }
-
+            tfs = this.activeTfs.get(`${payload.exchange}|${payload.market}|${payload.symbol}`);
+            this.workerController.send(type, {...payload,tfs:[...tfs]}, this.stateUpdate, workerKey);
+        } else {
+            this.workerController.send(type, {...payload,tfs:[...chartTfs]}, this.stateUpdate, workerKey);
         }
+        
+       
         
     }
 
-    doWork(){
-
-    }
+    
 }
 
 export default new OchestratorMain()

@@ -10,6 +10,11 @@ export default defineConfig({
   ],
   server: {
     host: true,
+    headers: {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+        },
+    
     proxy: {
       "/ws": {
         target: "ws://localhost:8000",
@@ -22,4 +27,11 @@ export default defineConfig({
       },
     },
   },
+
+  preview: {
+        headers: {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+        },
+    },
 })
