@@ -162,7 +162,7 @@ function ChartControls({chartId,handleDestroyChart}){
             },
             
           }}>
-            <VPControls />
+            <VPControls chartId={chartId} />
           </Box>
 
         </Tooltip>
@@ -261,7 +261,7 @@ function Chart({chartId, destroyChart, pane}){
   const containerRef = useRef(null);
   const chartRef = useRef(null);
 
-  const fpRef = useRef(new FootprintPrimitive())
+  const fpRef = useRef(new FootprintPrimitive(chartId))
   //console.count("chart")
   function handleDestroyChart(){
     destroyChart(chartId, pane);

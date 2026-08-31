@@ -251,7 +251,7 @@ export async function getCandles(exchange, symbol, market, tfs){
             for (const candle of candles(tf, priceView, timestampView, quantityView, sideView)){
 
                 trans_arr.push(candle)
-                if ((trans_arr.length%100)==0){
+                if ((trans_arr.length%1000)==0){
                     await new Promise(resolve=>{
                         setTimeout(()=>{
                             postMessage({
@@ -262,7 +262,7 @@ export async function getCandles(exchange, symbol, market, tfs){
                             })
                             trans_arr=[]
                             resolve("");
-                        },6_000)
+                        },1_000)
                     })
                     debugger;
                 }

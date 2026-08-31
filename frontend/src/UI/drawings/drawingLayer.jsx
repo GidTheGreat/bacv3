@@ -98,7 +98,7 @@ export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
                 zIndex: 9998,
                 position: "absolute",
                 inset: 0,
-                border: "2px dashed green",
+                
                 pointerEvents:DrawingState.action =="Cursor"?"none":"auto",
                 
             }}></canvas>

@@ -31,7 +31,7 @@ export default function VPControls({ chartId }) {
 
   const open = Boolean(anchorEl);
   const id = open ? "footprint-popover" : undefined;
-  useEffect(()=>{console.log(footPrintState)},[footPrintState])
+  //useEffect(()=>{console.log(footPrintState)},[footPrintState])
 
   const handleChange = (property, event) => {
     setFootPrintState(chartId, property, event.target.value)

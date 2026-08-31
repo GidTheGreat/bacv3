@@ -18,22 +18,19 @@ export class FootprintPrimitive {
         this.series = param.series;
         this.requestUpdate = param.requestUpdate;
 
-        this.unsubscribe = useFootprintStore.subscribe(
-            (state) => state.variant,
-            () => {
-                this.requestUpdate?.();
-            }
-        );
-
         this._paneViews = [
             new FootprintPaneView(this),
         ];
 
         this.requestUpdate();
-
-        this.unsubFp = useFootprintStore.subscribe((state)=>{
-            this.requestUpdate();
-        })
+        
+        this.unsubFp = useFootprintStore.subscribe(
+            (state) => state.footPrintState?.[this.chartId],
+            () => {
+                
+                this.requestUpdate?.();
+            }
+        );
         this.unsubChart = this.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
             if (!range) return;
 
@@ -245,6 +242,7 @@ class FootprintRenderer {
     if (!newData) return;
     //console.log(newData.length);
     const footPrintState = useFootprintStore.getState().footPrintState?.[chartId];
+    //console.log(footPrintState)
     if (footPrintState?.fpStatus === "off") return;
     const visible = series.priceScale().getVisibleRange();
     if (!visible) return;

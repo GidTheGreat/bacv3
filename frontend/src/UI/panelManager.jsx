@@ -155,7 +155,6 @@ function Pane({paneArea}){
         <Box  sx={{
             width:"100%",
             height:"100%",
-            border: "2px red dashed",
             gridArea: paneArea,
             display: "flex", 
             flexDirection: "column"
@@ -171,7 +170,7 @@ function Pane({paneArea}){
                     px: 1,
                     boxSizing: "border-box",
                     borderRadius:"90px",
-                    border: "2px solid yellow"
+                    
                 }}
                 >
                 {/* chart identity */}
@@ -282,7 +281,7 @@ export default function PanelManager(){
     return (
         <Box 
         sx={{
-            border: "2px black solid",
+            
             width:"100%",
             height:"100%",
             borderRadius:"10px",
