@@ -59,29 +59,8 @@ export default function VPControls({ chartId }) {
           horizontal: "left",
         }}
       >
-        <Box sx={{
-              mt: 1,
-              pt: 1,
-              borderTop: "1px solid",
-              borderColor: "divider",
-            }}>
-              <Typography>Display Value</Typography>
-          <RadioGroup value={footPrintState?.notional ?? true} onChange={
-            (event)=>handleChange("notional", event)}>
-            <FormControlLabel
-              value={true}
-              control={<Radio />}
-              label="Notional"
-            />
-
-            <FormControlLabel
-              value={false}
-              control={<Radio />}
-              label="Quantity"
-            />
-
-          </RadioGroup>
-        </Box>
+        
+              
         <Box sx={{
               mt: 1,
               pt: 1,
@@ -98,11 +77,11 @@ export default function VPControls({ chartId }) {
               label="Off"
             />
 
-            <FormControlLabel
+            {/*<FormControlLabel
               value="delta"
               control={<Radio />}
               label="Delta"
-            />
+            />*/}
 
             <FormControlLabel
               value="full"
@@ -115,7 +94,7 @@ export default function VPControls({ chartId }) {
             <Box sx={{ mt: 1 }}>
               {/* VA % control */}
               {/* POC checkbox */}
-              VALUE AREA
+              
             </Box>
           )}
 

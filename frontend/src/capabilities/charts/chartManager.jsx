@@ -15,10 +15,12 @@ import {
   Radio
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import Tooltip from '@mui/material/Tooltip';
+import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 
 import { getCapabilities } from "../../registry";
-import {createChart, CandlestickSeries} from 'lightweight-charts'
-import { FootprintSeries } from "./volume/volume";
+import {createChart, CandlestickSeries} from 'lightweight-charts';
 import CloseIcon from "@mui/icons-material/Close";
 import DrawingLayer from "../../UI/drawings/drawingLayer";
 import { FootprintPrimitive } from "./footprintPrimitive";
@@ -115,12 +117,141 @@ function ChartData({ chartId, fpRef, chartRef }) {
         activeSeries.priceScale().applyOptions({
             autoScale: true,
         });
-        chartRef.current.timeScale().fitContent();
-        //fpRef.current.setData(renderdata)
+        //chartRef.current.timeScale().fitContent();
+        fpRef.current.setData(renderdata)
     }, [chartReady, activeSeries, renderdata])
 
     return null
 }
+
+function ChartControls({chartId,handleDestroyChart}){
+  return (
+    <>
+      
+        <Box  sx={{
+            position: 'absolute',
+            left: 5,
+            top: 10,
+            zIndex: 10,
+            borderRadius: 50,
+            backgroundColor: 'background.paper',
+                opacity: 0.75,
+
+            '&:hover': {
+              opacity: 1,
+              backgroundColor: 'background.paper',
+            },
+            
+          }}>
+            <Buttons chartId={chartId} />
+          </Box>
+
+        <Tooltip title="Toggle Footprint">
+          <Box size="small" sx={{
+            position: 'absolute',
+            right: 100,
+            top: 10,
+            zIndex: 10,
+            borderRadius: 50,
+            backgroundColor: 'background.paper',
+                opacity: 0.75,
+
+            '&:hover': {
+              opacity: 1,
+              backgroundColor: 'background.paper',
+            },
+            
+          }}>
+            <VPControls />
+          </Box>
+
+        </Tooltip>
+        
+        <Tooltip title="Destroy Chart">
+          <IconButton size="small" sx={{
+            position: 'absolute',
+            right: 60,
+            top: 10,
+            zIndex: 10,
+            backgroundColor: 'background.paper',
+                opacity: 0.75,
+
+            '&:hover': {
+              opacity: 1,
+              backgroundColor: 'background.paper',
+            },
+            
+          }}
+          onClick={handleDestroyChart}>
+            <CloseIcon />
+          </IconButton>
+        </Tooltip>
+        
+      
+    </>
+  )
+}
+
+function ChartScroll({chartRef}){
+  return (
+    <>
+      <Tooltip title="Fit Content">
+        <IconButton
+          size="small"
+          aria-label="Fit content"
+          sx={{
+              position: 'absolute',
+              right: 100,
+              bottom: 30,
+              zIndex: 10,
+              backgroundColor: 'background.paper',
+              opacity: 0.75,
+
+              '&:hover': {
+                opacity: 1,
+                backgroundColor: 'background.paper',
+              },
+            }}
+          onClick={
+              ()=>{
+                chartRef.current.timeScale().fitContent();
+              }
+            }
+        >
+          <ZoomOutMapIcon />
+        </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Go to Latest">
+        <IconButton
+            size="small"
+            aria-label="Go to latest"
+            sx={{
+              position: 'absolute',
+              right: 60,
+              bottom: 30,
+              zIndex: 10,
+              backgroundColor: 'background.paper',
+              opacity: 0.75,
+
+              '&:hover': {
+                opacity: 1,
+                backgroundColor: 'background.paper',
+              },
+            }}
+            onClick={
+              ()=>{
+                chartRef.current.timeScale().scrollToRealTime();
+              }
+            }
+          >
+            <KeyboardDoubleArrowRightIcon />
+          </IconButton>
+          </Tooltip>
+    </>
+  )
+}
+
 
 function Chart({chartId, destroyChart, pane}){
   /*console.log("CHART RENDER:", {
@@ -212,24 +343,7 @@ function Chart({chartId, destroyChart, pane}){
         flexDirection: "column",
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          height: "20px",
-          flexShrink: 0,
-        }}
-      >
-        <Buttons chartId={chartId} />
-          
-          {<VPControls/>
-          }
-        
-        <IconButton size="small" onClick={handleDestroyChart}>
-          <CloseIcon />
-        </IconButton>
-        
-      </Box>
+      
 
       <Box
         ref={containerRef}
@@ -241,6 +355,9 @@ function Chart({chartId, destroyChart, pane}){
           position:"relative",
         }}
       >
+        <ChartControls chartId={chartId} handleDestroyChart={handleDestroyChart}/>
+        
+        <ChartScroll chartRef={chartRef}/>
         <DrawingLayer chartId={chartId} paneId={pane} chartRef={chartRef}
         containerRef={containerRef}/>
       </Box>

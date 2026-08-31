@@ -1,3 +1,4 @@
+import { keyframes } from "@emotion/react";
 import JSZip from "jszip";
 import Papa from "papaparse";
 
@@ -14,12 +15,49 @@ const timeframes = {
   "4h": 14400,
 };
 
-//console.log(new Date(times[999]))
+function binsHelper(bins, price, quantity, side, sideKey){
+    if (bins[price]){
+        if (side== 0 && sideKey=="buy"){
+            return bins[price]["buy"]+=(price*quantity)
+        } else if (side== 1 && sideKey=="sell"){
+            return bins[price]["sell"]+=(price*quantity)
+        } else if (side== 0 && sideKey=="sell"){
+            return bins[price]["sell"]
+        } else if (side== 1 && sideKey=="buy"){
+            return bins[price]["buy"]
+        }
+    } else {
+        if (side== 0 && sideKey=="buy"){
+            return (price*quantity)
+        } else if (side== 1 && sideKey=="sell"){
+            return (price*quantity)
+        } else if (side== 0 && sideKey=="sell"){
+            return 0
+        } else if (side== 1 && sideKey=="buy"){
+            return 0
+        }
+    }
+}
 
-function* candles(tf, priceView, timestampView){
+function totalsHelper(bins){
+    const flattedBins= []
+    Object.entries(bins).forEach(([key, values])=>{
+        flattedBins.push(values);});
+    
+    const totalBuyVolume = flattedBins.reduce((acc,val)=>acc+val.buy,0);
+    const totalSellVolume = flattedBins.reduce((acc,val)=>acc+val.sell,0);
+    const totalDelta = totalBuyVolume - totalSellVolume;
+    const totalVolume = totalBuyVolume+totalSellVolume;
+    
+    return [totalDelta, totalVolume]
+
+
+}
+
+function* candles(tf, priceView, timestampView, quantityView, sideView){
     let cursor = null;
     let current_bucket = null;
-    let candles = {[tf]:{}};
+    let candles = {[tf]:{binnedProfile:{},totalVolume:null,totalDelta:null}};
 
     //console.log(candles, priceView, timestampView);
     //debugger;
@@ -27,32 +65,52 @@ function* candles(tf, priceView, timestampView){
     for (let i=0; i<priceView.length; i++){
         if (!cursor){
             cursor = timestampView[i]
-            current_bucket = Math.floor(timestampView[i]/(tf_sec*1000))
-            candles[tf]["time"] = timestampView[i]/1000
-            candles[tf]["open"] = priceView[i]
+            current_bucket = Math.floor(timestampView[i]/(tf_sec*1000));
+            candles[tf]["time"] = timestampView[i]/1000;
+            candles[tf]["open"] = priceView[i];
+            candles[tf]["binnedProfile"][priceView[i]]={
+                "buy":sideView[i]==1 ? 0: quantityView[i]*priceView[i],
+                "sell":sideView[i]==1 ? quantityView[i]*priceView[i] : 0,
+                
+            }
             continue
         }
         if (Math.floor(timestampView[i]/(tf_sec*1000)) != current_bucket){
-            /*console.log(
-            "\ncandles:",candles[tf],
-            "curent time in h:",new Date(timestampView[i]))*/
+            const [totalDelta, totalVolume] = totalsHelper(candles[tf]["binnedProfile"]);
+            candles[tf]["totalDelta"] = totalDelta;
+            candles[tf]["totalVolume"] = totalVolume;
             yield candles[tf]
-            candles[tf] = {}
+            candles[tf] = {binnedProfile:{},totalVolume:null,totalDelta:null};
             candles[tf]["open"] = priceView[i]
             current_bucket = Math.floor(timestampView[i]/(tf_sec*1000))
             cursor = timestampView[i]
             candles[tf]["time"] = timestampView[i]/1000
+            candles[tf]["binnedProfile"][priceView[i]]={
+                "buy":sideView[i]==1 ? 0: quantityView[i]*priceView[i],
+                "sell":sideView[i]==1 ? quantityView[i]*priceView[i] : 0,
+                
+            }
         }
             candles[tf]["close"] = priceView[i]
             candles[tf]["high"] = candles[tf]["high"] ?
-            Math.max(candles[tf]["high"] ,priceView[i]) : priceView[i]
+            Math.max(candles[tf]["high"] ,priceView[i]) : priceView[i];
             
             candles[tf]["low"] = candles[tf]["low"] ?
-            Math.min(candles[tf]["low"] ,priceView[i]) : priceView[i]
+            Math.min(candles[tf]["low"] ,priceView[i]) : priceView[i];
+
+            
+            candles[tf]["binnedProfile"][priceView[i]]={
+                "buy": binsHelper(candles[tf]["binnedProfile"], priceView[i], quantityView[i], sideView[i], "buy"),
+                "sell":binsHelper(candles[tf]["binnedProfile"], priceView[i], quantityView[i], sideView[i], "sell"),
+                
+            }
         
     }
 
     if (cursor !== null) {
+        const [totalDelta, totalVolume] = totalsHelper(candles[tf]["binnedProfile"]);
+        candles[tf]["totalDelta"] = totalDelta;
+        candles[tf]["totalVolume"] = totalVolume;
         yield candles[tf];
     }
     
@@ -144,8 +202,10 @@ export default async function binanceFetch(exchange, symbol, tradeType, tf, star
 
         lengthView[0] = length;
         for (let i=0; i < m.length; i++){
-            priceView[i] = m[i].price
-            timestampView[i] = m[i].transact_time
+            priceView[i] = m[i].price;
+            timestampView[i] = m[i].transact_time;
+            quantityView[i] = m[i].quantity;
+            sideView[i] = m[i].is_buyer_maker ? 1 : 0;
         }
         buffer = null;
         zip=null;
@@ -165,11 +225,13 @@ export default async function binanceFetch(exchange, symbol, tradeType, tf, star
     
 }
 
-export function getCandles(exchange, symbol, market, tfs){
+
+
+export async function getCandles(exchange, symbol, market, tfs){
     if (buffers.size<1) return;
 
     for (const [ bufferKey,buffer ] of buffers.entries()){
-        console.log(bufferKey, buffer);
+        //console.log(bufferKey, buffer);
         const chartKey = `${exchange}|${market}|${symbol}`
         if (!bufferKey.startsWith(chartKey)) continue;
 
@@ -185,18 +247,40 @@ export function getCandles(exchange, symbol, market, tfs){
         const quantityView = new Float64Array(buffer, (length*8*2)+16, length);
         const sideView = new Uint8Array(buffer, (length*8*3)+16, length);
         for (const tf of tfs){
-            for (const candle of candles(tf, priceView, timestampView)){
-                postMessage(
-                    {
+            let trans_arr = []
+            for (const candle of candles(tf, priceView, timestampView, quantityView, sideView)){
+
+                trans_arr.push(candle)
+                if ((trans_arr.length%100)==0){
+                    await new Promise(resolve=>{
+                        setTimeout(()=>{
+                            postMessage({
+                                store: "chartStore",
+                                k1: chartKey,
+                                tf: tf,
+                                trans_arr
+                            })
+                            trans_arr=[]
+                            resolve("");
+                        },6_000)
+                    })
+                    debugger;
+                }
+                
+                 
+            }
+            if (trans_arr){
+                postMessage({
                         store: "chartStore",
                         k1: chartKey,
                         tf: tf,
-                        candle
-                    }
-                )  
-                //debugger; 
+                        trans_arr
+                    })
+                    trans_arr=[];
             }
+
         }
+        
     }
 
 }

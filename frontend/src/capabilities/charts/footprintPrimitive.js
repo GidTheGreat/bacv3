@@ -31,9 +31,17 @@ export class FootprintPrimitive {
 
         this.requestUpdate();
 
-        this.unsub = useFootprintStore.subscribe((state)=>{
+        this.unsubFp = useFootprintStore.subscribe((state)=>{
             this.requestUpdate();
         })
+        this.unsubChart = this.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+            if (!range) return;
+
+            this.from = Math.max(0, Math.floor(range.from));;
+            this.to   = Math.min(this.data.length, Math.ceil(range.to));;
+
+           //console.log(this.from, this.to)
+        });
     }
 
     detached() {
@@ -43,7 +51,8 @@ export class FootprintPrimitive {
         this.series = null;
         this.requestUpdate = null;
         this._paneViews = [];
-        this.unsub();
+        this.unsubFp();
+        this.unsubChart();
     }
 
     paneViews() {
@@ -193,7 +202,7 @@ class FootprintRenderer {
                 y1 + 12;
 
         const delta =
-            item.volume_delta ??
+            item.totalDelta ??
             0;
         
         ctx.font =
@@ -217,7 +226,7 @@ class FootprintRenderer {
 
         ctx.fillText(
             `Σ ${formatNotional(
-                item.total_volume
+                item.totalVolume
 
             )}`,
             x,
@@ -226,8 +235,15 @@ class FootprintRenderer {
     }
 
     draw(target) {
-    const { chart, series, data, chartId } = this.source;
-
+    const { chart, series, data, chartId, from, to } = this.source;
+    let newData;
+    if (from && to){
+        newData= data.slice(from,to);
+    } else {
+        newData = data;
+    }
+    if (!newData) return;
+    //console.log(newData.length);
     const footPrintState = useFootprintStore.getState().footPrintState?.[chartId];
     if (footPrintState?.fpStatus === "off") return;
     const visible = series.priceScale().getVisibleRange();
@@ -243,32 +259,16 @@ class FootprintRenderer {
     
     if (!chart || !series || !data.length) return;
 
-    // Future:
-    // "notional" -> buy / sell
-    // "volume"   -> buy_volume / sell_volume
-    const metric = "notional";
-
-    const valueKeys = {
-        notional: {
-            buy: "buy",
-            sell: "sell",
-        },
-        volume: {
-            buy: "buy_volume",
-            sell: "sell_volume",
-        },
-    };
-
-    const { buy: buyKey, sell: sellKey } = valueKeys[metric];
+    
 
     target.useMediaCoordinateSpace(({ context: ctx }) => {
-        for (const item of data) {
+        for (const item of newData) {
             const x = timeScale.timeToCoordinate(item.time);
 
             if (x === null) continue;
 
-            const bins = item.binned_profile;
-            //console.log(item)
+            const bins = item.binnedProfile;
+            //console.log(item,bins)
 
             if (!bins) continue;
             const y1 = series.priceToCoordinate(item.low);

@@ -2,6 +2,46 @@ import workersManager from "./workersManager";
 import appstore from "../stores/appStore";
 import useChartStore from "../stores/chartStore";
 
+function roughSize(obj) {
+    const seen = new WeakSet();
+
+    function size(value) {
+        if (value === null) return 8;
+
+        switch (typeof value) {
+            case "boolean":
+                return 8;
+
+            case "number":
+                return 8;
+
+            case "bigint":
+                return 16;
+
+            case "string":
+                return 2 * value.length + 16;
+
+            case "object": {
+                if (seen.has(value)) return 0;
+                seen.add(value);
+
+                let total = 32; // object overhead
+
+                for (const key of Object.keys(value)) {
+                    total += 2 * key.length + 16; // property/key overhead
+                    total += size(value[key]);
+                }
+
+                return total;
+            }
+
+            default:
+                return 0;
+        }
+    }
+
+    return size(obj);
+}
 
 class OchestratorMain{
     constructor(){
@@ -13,7 +53,7 @@ class OchestratorMain{
         })
 
         this.unsubChart = useChartStore.subscribe((state)=>{
-            //window.dataSize= new Blob(JSON.stringify(state.data)).size;
+            window.dataSize= roughSize(state.data) 
             const selections = state.selection;
             Object.keys(selections).map((chartId)=>{
                 this.updateActiveTfs(selections[chartId].platform, selections[chartId].trade
@@ -64,7 +104,7 @@ class OchestratorMain{
             )
             
             useChartStore.getState().setData(
-                msg.k1, msg.tf, [msg.candle]
+                msg.k1, msg.tf, msg.trans_arr
             )
         } else if (msg.store =="appStore"){
             //console.log("setting state")
