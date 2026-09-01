@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Settings, X } from "lucide-react";
 import { createPortal } from "react-dom";
 
@@ -24,6 +24,33 @@ export default function Buttons({chartId}) {
   const platforms = useChartStore((s) => s.platforms);
   const trade_types = useChartStore((s) => s.trade_types);
   const candle_types = useChartStore((s) => s.candle_types);
+
+  const addSymbol = useChartStore(
+        s => s.addSymbol
+    )
+  async function fetchSymbols(){
+    //console.log(market, market=="cm")
+    if (selection.platform=="binance"){
+      if (selection.trade=="um"){
+        const resp = await fetch("https://fapi.binance.com/fapi/v1/exchangeInfo");
+        const exchangeInfo = await resp.json();
+        const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
+        modifySelection(chartId, { symbol: symbols[0] })
+        addSymbol(symbols);
+      } else if (selection.trade=="cm"){
+        const resp = await fetch("https://dapi.binance.com/dapi/v1/exchangeInfo");
+        
+        const exchangeInfo = await resp.json();
+        
+        const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
+        modifySelection(chartId, { symbol: symbols[0] })
+        addSymbol(symbols);
+      }
+        
+    }
+  }
+
+  useEffect(()=>{fetchSymbols()},[selection.platform,selection.trade])
 
   const [open, setOpen] = useState(false);
 

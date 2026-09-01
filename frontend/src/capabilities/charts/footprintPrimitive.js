@@ -25,9 +25,9 @@ export class FootprintPrimitive {
         this.requestUpdate();
         
         this.unsubFp = useFootprintStore.subscribe(
-            (state) => state.footPrintState?.[this.chartId],
-            () => {
-                
+            (state) =>  {
+                if (!state.footPrintState?.[this.chartId]) return;
+            
                 this.requestUpdate?.();
             }
         );
@@ -42,8 +42,6 @@ export class FootprintPrimitive {
     }
 
     detached() {
-        this.unsubscribe?.();
-        this.unsubscribe = null;
         this.chart = null;
         this.series = null;
         this.requestUpdate = null;

@@ -23,14 +23,14 @@ function longShort(ctx, x, y, pointerType, chartRef, k1, chartId,type) {
         const ts= chartRef.current.timeScale();
 
         const time = ts.coordinateToTime(x);
-        /*
+        
         if (!time) {
             useDrawingStore
             .getState()
             .setDrawingState(k1, "Cursor");
 
             return;
-        };*/
+        };
 
         const price = activeSeries
             .coordinateToPrice(y);
@@ -156,7 +156,7 @@ function DrawHorizontalLine(ctx, x, y, pointerType, chartRef, k1, chartId) {
             .setDrawingState(k1, "Cursor");
         
         useDrawingStore.getState().setDrawings(k1,"Horizontal Line", 
-            { price,id: Math.floor(Math.random()*1_000_000_000)})
+            { price,id: Math.floor(Math.random()*1_000_000_000), selected: false})
     }
 }
 

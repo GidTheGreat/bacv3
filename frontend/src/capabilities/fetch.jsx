@@ -82,12 +82,14 @@ export default function FetchDataButton({
 
   const [ symbols, setSymbols] = useState(["BTCUSDT"])
 
-  const today = new Date().toISOString().slice(0, 10);
+  const todayP = new Date()
+  todayP.setDate(todayP.getDate()-2)
+  const today= todayP.toISOString().slice(0, 10);
 
   const [dateVals, setDateVals] = useState({
-    start: "2026-08-03",
+    start: "2026-08-06",
     end: "2026-08-06",
-    range: 3
+    range: 0
   });
 
   const [endMonth, setEndMonth] = useState(today.slice(0, 7));
@@ -99,6 +101,7 @@ export default function FetchDataButton({
         const resp = await fetch("https://fapi.binance.com/fapi/v1/exchangeInfo");
         const exchangeInfo = await resp.json();
         const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
+        setSymbol(symbols[0])
         setSymbols(symbols);
       } else if (market=="cm"){
         const resp = await fetch("https://dapi.binance.com/dapi/v1/exchangeInfo");
@@ -106,7 +109,7 @@ export default function FetchDataButton({
         const exchangeInfo = await resp.json();
         
         const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
-        
+        setSymbol(symbols[0])
         setSymbols(symbols);
       }
         
@@ -315,9 +318,9 @@ export default function FetchDataButton({
                       type="number"
                       style={inputStyle}
                       value={dateVals.range}
-                      min={1}
-                      max={7}
-                      onKeyDown={(e)=>e.preventDefault()}
+                      min={0}
+                      
+                      onKeyDown={(e)=>e}
                       onChange={(e) => handleDateChange("range", e.target.value)}
                     />
                   </div>

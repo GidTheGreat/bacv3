@@ -141,11 +141,16 @@ const useChartStore = create((set,get) => ({
 
   // symbols
   addSymbol: (symbol) =>
-    set((state) => ({
-      symbols: state.symbols.includes(symbol)
+    set((state) => {
+      if (Array.isArray(symbol)){
+        return {symbols:symbol}
+      } else return {
+        symbols: state.symbols.includes(symbol)
         ? state.symbols
         : [...state.symbols, symbol]
-    })),
+      }
+      
+    }),
 
   
 

@@ -12,7 +12,8 @@ import {
   Popover,
   FormControlLabel,
   RadioGroup,
-  Radio
+  Radio,
+  Stack
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
@@ -86,7 +87,93 @@ function ChartSeries({chartId,chartRef, fpRef}){
 
 }
 
-function ChartData({ chartId, fpRef, chartRef }) {
+function noData({ symbol, tf }) {
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        left: 24,
+        top: 24,
+        zIndex: 10,
+        width: 320,
+        p: 2,
+        borderRadius: 2,
+        backgroundColor: 'background.paper',
+        border: 1,
+        borderColor: 'divider',
+        boxShadow: 3,
+        opacity: 0.9,
+        backdropFilter: 'blur(6px)',
+        transition: 'opacity 0.2s ease, box-shadow 0.2s ease',
+
+        '&:hover': {
+          opacity: 1,
+          boxShadow: 6,
+        },
+      }}
+    >
+      <Typography
+        variant="subtitle1"
+        fontWeight={600}
+        sx={{ mb: 0.5 }}
+      >
+        No data available
+      </Typography>
+
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{ mb: 2 }}
+      >
+        {symbol} · {tf}
+      </Typography>
+
+      <Stack spacing={1.25}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2,
+          }}
+        >
+          <Typography variant="body2">
+            Historical data
+          </Typography>
+
+          <Button
+            variant="outlined"
+            size="small"
+          >
+            Fetch
+          </Button>
+        </Box>
+
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2,
+          }}
+        >
+          <Typography variant="body2">
+            Live data
+          </Typography>
+
+          <Button
+            variant="contained"
+            size="small"
+          >
+            Stream
+          </Button>
+        </Box>
+      </Stack>
+    </Box>
+  );
+}
+
+function ChartData({ chartId, fpRef, chartRef, containerRef }) {
     const activeSeries = useChartStore(
         s => s.selection[chartId]?.activeSeries
     )
@@ -111,7 +198,9 @@ function ChartData({ chartId, fpRef, chartRef }) {
     const renderdata = data?.data
     
     useEffect(() => {
-        if (!chartReady || !activeSeries || !renderdata) return
+
+        if (!chartReady || !activeSeries || !renderdata) {
+          return;}
         //console.log(renderdata)
         activeSeries.setData(renderdata)
         activeSeries.priceScale().applyOptions({
@@ -124,7 +213,10 @@ function ChartData({ chartId, fpRef, chartRef }) {
     return null
 }
 
+
+
 function ChartControls({chartId,handleDestroyChart}){
+  
   return (
     <>
       
@@ -149,7 +241,7 @@ function ChartControls({chartId,handleDestroyChart}){
         <Tooltip title="Toggle Footprint">
           <Box size="small" sx={{
             position: 'absolute',
-            right: 100,
+            right: 60,
             top: 10,
             zIndex: 10,
             borderRadius: 50,
@@ -170,7 +262,7 @@ function ChartControls({chartId,handleDestroyChart}){
         <Tooltip title="Destroy Chart">
           <IconButton size="small" sx={{
             position: 'absolute',
-            right: 60,
+            right: 10,
             top: 10,
             zIndex: 10,
             backgroundColor: 'background.paper',
@@ -201,7 +293,7 @@ function ChartScroll({chartRef}){
           aria-label="Fit content"
           sx={{
               position: 'absolute',
-              right: 100,
+              right: 60,
               bottom: 30,
               zIndex: 10,
               backgroundColor: 'background.paper',
@@ -228,7 +320,7 @@ function ChartScroll({chartRef}){
             aria-label="Go to latest"
             sx={{
               position: 'absolute',
-              right: 60,
+              right: 10,
               bottom: 30,
               zIndex: 10,
               backgroundColor: 'background.paper',
@@ -266,7 +358,7 @@ function Chart({chartId, destroyChart, pane}){
   function handleDestroyChart(){
     destroyChart(chartId, pane);
   }
-  const setChartReady = useChartStore(s=>s.setChartReady)
+  const setChartReady = useChartStore(s=>s.setChartReady);
   
   useEffect(
     ()=>{
@@ -356,13 +448,16 @@ function Chart({chartId, destroyChart, pane}){
         }}
       >
         <ChartControls chartId={chartId} handleDestroyChart={handleDestroyChart}/>
-        
+        {//!dataState.data && <NoData symbol={dataState.symbol} tf={dataState.tf}/>
+        }
         <ChartScroll chartRef={chartRef}/>
         <DrawingLayer chartId={chartId} paneId={pane} chartRef={chartRef}
         containerRef={containerRef}/>
       </Box>
       <ChartSeries chartId={chartId} chartRef={chartRef} fpRef={fpRef}/>
-      <ChartData chartId={chartId} fpRef={fpRef}  chartRef={chartRef}/>
+      <ChartData chartId={chartId} fpRef={fpRef}  chartRef={chartRef}
+       containerRef={containerRef}/>
+      
     </Box>
   )
 

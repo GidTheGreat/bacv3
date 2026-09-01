@@ -1,39 +1,125 @@
-import { IconButton } from "@mui/material";
-import Replay from '@mui/icons-material/Replay';
-import { useEffect, useState } from "react";
+import {
+  IconButton,
+  Popover,
+  Box,
+  Typography,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "@mui/material";
+
+import Replay from "@mui/icons-material/Replay";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
-import { Popover, Box, Typography, Button  } from '@mui/material';
+
+import { useEffect, useRef, useState } from "react";
 
 import useReplayStore from "../../stores/replayStore";
 import useChartStore from "../../stores/chartStore";
 
 export default function ReplayButton() {
-  const replayState = useReplayStore(s=>s.replayState);
-  const setReplayState = useReplayStore(s=>s.setReplayState);
-  const selection = useChartStore(s=>s.selection);
+  const replayState = useReplayStore((s) => s.replayState);
+  const setReplayState = useReplayStore((s) => s.setReplayState);
 
-  const [ replayKey, setReplayKey] = useState({
-    platform: "binance", symbol: "BTCUSDT", trade: "futures trade"
-  })
-  const platforms= new Set();
-  const symbols = new Set();
-  const trade_types = new Set();
-  
-  for (const chart of Object.keys(selection)){
-    selection[chart].platform ? platforms.add(selection[chart].platform) : null;
-    selection[chart].symbol ? symbols.add(selection[chart].symbol) : null;
-    selection[chart].trade ? trade_types.add(selection[chart].trade) : null;
-  }
+  const replayKey = useReplayStore((s) => s.replayKey);
+  const setReplayKey = useReplayStore((s) => s.setReplayKey);
 
-  //console.log(platforms,symbols,trade_types)
+  const selection = useChartStore((s) => s.selection);
+
+  const platformRef = useRef(null);
+  const symbolRef = useRef(null);
+  const tradeRef = useRef(null);
+
+  const progressRef = useRef(null);
+  const draggingRef = useRef(false);
 
   const [anchorEl, setAnchorEl] = useState(null);
 
+  /*
+   * Build the available selections.
+   */
+  const platforms = new Set();
+  const symbols = new Set();
+  const trade_types = new Set();
+
+  for (const chart of Object.keys(selection)) {
+    if (chart.startsWith("default")) continue;
+
+    selection[chart].platform &&
+      platforms.add(selection[chart].platform);
+
+    selection[chart].symbol &&
+      symbols.add(selection[chart].symbol);
+
+    selection[chart].trade &&
+      trade_types.add(selection[chart].trade);
+  }
+
+  const replayKeyJoin =
+    `${replayKey.platform}|${replayKey.trade}|${replayKey.symbol}`;
+
+  const currentReplay = replayState?.[replayKeyJoin];
+
+  /*
+   * Progress / cursor interaction
+   *
+   * x position -> cursor
+   *
+   * left edge  = 0
+   * right edge = 300
+   */
+  const updateCursorFromPointer = (event) => {
+    const element = progressRef.current;
+
+    if (!element) return;
+
+    const rect = element.getBoundingClientRect();
+
+    let ratio = (event.clientX - rect.left) / rect.width;
+
+    ratio = Math.max(0, Math.min(1, ratio));
+
+    const cursor = Math.round(ratio * 300);
+
+    setReplayState(
+      replayKeyJoin,
+      "cursor",
+      cursor
+    );
+  };
+
+  const handlePointerDown = (event) => {
+    draggingRef.current = true;
+
+    // Capture the pointer so dragging can continue
+    // even if the pointer leaves the progress region.
+    event.currentTarget.setPointerCapture(event.pointerId);
+
+    updateCursorFromPointer(event);
+  };
+
+  const handlePointerMove = (event) => {
+    if (!draggingRef.current) return;
+
+    updateCursorFromPointer(event);
+  };
+
+  const handlePointerUp = (event) => {
+    draggingRef.current = false;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const handlePointerCancel = () => {
+    draggingRef.current = false;
+  };
+
   const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
+    // pointerdown already updates the cursor, so no
+    // separate click calculation is actually necessary.
   };
 
   const handleClose = () => {
@@ -41,127 +127,361 @@ export default function ReplayButton() {
   };
 
   const open = Boolean(anchorEl);
-  const id = open ? 'simple-popover' : undefined;
+  const id = open ? "replay-popover" : undefined;
 
-  const replayKeyJoin = `${replayKey.platform}|${replayKey.trade}|${replayKey.symbol}`
-  const activeIcon = replayState[replayKeyJoin].playing ? <PauseIcon/> : <PlayArrowIcon/>
-  
+  const activeIcon = currentReplay?.playing
+    ? <PauseIcon />
+    : <PlayArrowIcon />;
 
-  useEffect(()=>{
-    //console.log(replayState[replayKeyJoin].cursor)
-},[replayState])
+  /*
+   * Cursor percentage for the visual progress bar.
+   */
+  const cursor = currentReplay?.cursor ?? 0;
+  const progress = (cursor / 300) * 100;
+
+  /*useEffect(() => {
+    console.log(replayKey, replayState);
+  }, [replayState, replayKey]);*/
+
   return (
-    <div>
-      <IconButton aria-describedby={id} variant="contained" onClick={handleClick}>
+    <Box>
+      <IconButton
+        aria-describedby={id}
+        onClick={(event) => setAnchorEl(event.currentTarget)}
+        sx={{
+          color: "text.secondary",
+
+          "&:hover": {
+            color: "primary.main",
+            backgroundColor: "action.hover",
+          },
+        }}
+      >
         <Replay />
       </IconButton>
+
       <Popover
         id={id}
         open={open}
         anchorEl={anchorEl}
         onClose={handleClose}
         anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 1,
+              p: 1.5,
+              width: 330,
+              borderRadius: 1.5,
+              backgroundColor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: 8,
+            },
+          },
         }}
       >
-        <Box sx={{
-            
+        <Box
+          sx={{
             display: "flex",
-            flexDirection: "column"
-        }}>
-            <Box sx={{
-                display:"flex",
-                flexDirection:"row"
-            }}>
-                <select style={{
-                    backgroundColor:"blue"
-                }} onChange={(e)=>{
-                        setReplayKey(replayKey=>({
-                            ...replayKey,
-                            platform: e.target.value
-                        }))
-                    }}
-                    value={replayKey.platform ?? ""}
-                    >
-                {Array.from(platforms).map(
-                    platform=><option value={platform} 
-                    key={platform}>{platform}</option>)}
-                
-                </select>
+            flexDirection: "column",
+            gap: 1.5,
+          }}
+        >
 
-                <select onChange={(e)=>{
-                        setReplayKey(replayKey=>({
-                            ...replayKey,
-                            trade: e.target.value
-                        }))
-                    }}
-                    value={replayKey.trade ?? ""}
-                    >
-                    {Array.from(trade_types).map(
-                    trade=><option value={trade} 
-                    key={trade}>{trade}</option>)}
-                </select>
+          {/* Selection controls */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1.2fr",
+              gap: 0.75,
 
-                <select onChange={(e)=>{
-                        setReplayKey(replayKey=>({
-                            ...replayKey,
-                            symbol: e.target.value
-                        }))
-                    }}
-                    value={replayKey.symbol ?? ""}>
-                    {Array.from(symbols).map(
-                    symbol=><option value={symbol} 
-                    key={symbol}>{symbol}</option>)}
-                </select>
-            </Box>
-           
-            <Box  sx={{
-                display:"flex",
-                flexDirection:"row",
-                alignItems: "center",
-                justifyContent: "space-evenly"
-            }}>
-                <IconButton onClick={()=>{
-                    setReplayState(replayKeyJoin, "cursor",
-                         Math.max(0,replayState[replayKeyJoin].cursor-1)) 
-                }}>
-                    <SkipPreviousIcon/>
-                </IconButton>
-                
-                <IconButton onClick={()=>{
-                    const value = replayState[replayKeyJoin].playing ? false : true;
-                    //console.log("changing playing state to:", value)
-                    setReplayState(replayKeyJoin, "playing", value) 
-                }}>
-                    {activeIcon}
-                </IconButton>
-                
-                
-                <IconButton onClick={()=>{
-                    setReplayState(replayKeyJoin, "cursor",
-                         Math.min(300,replayState[replayKeyJoin].cursor+1)) 
-                }}>
-                    <SkipNextIcon/>
-                </IconButton>
-                
+              "& select": {
+                width: "100%",
+                minWidth: 0,
+                height: 32,
+                padding: "0 7px",
+                borderRadius: 1,
+                border: "1px solid",
+                borderColor: "divider",
+                backgroundColor: "background.default",
+                color: "text.primary",
+                outline: "none",
+                fontSize: 12,
+                cursor: "pointer",
 
-            </Box>
+                "&:focus": {
+                  borderColor: "primary.main",
+                },
+              },
+            }}
+          >
+            <select
+              ref={platformRef}
+              value={replayKey.platform ?? ""}
+              onChange={(e) =>
+                setReplayKey({
+                  platform: e.target.value,
+                })
+              }
+              onClick={(e) => {
+                const options = e.currentTarget.options;
 
-            <Box sx={{
-                display:"flex",
-                flexDirection:"row",
-                alignItems: "center",
-                justifyContent: "space-evenly",
-                border: "2px red"
-            }}>
-                
-              
-            </Box>
-            
+                if (
+                  options.length === 1 &&
+                  e.currentTarget.selectedOptions[0].value !==
+                    replayKey.platform
+                ) {
+                  setReplayKey({
+                    platform:
+                      e.currentTarget.selectedOptions[0].value,
+                  });
+                }
+              }}
+            >
+              {Array.from(platforms).map((platform) => (
+                <option value={platform} key={platform}>
+                  {platform}
+                </option>
+              ))}
+            </select>
+
+            <select
+              ref={tradeRef}
+              value={replayKey.trade ?? ""}
+              onChange={(e) =>
+                setReplayKey({
+                  trade: e.target.value,
+                })
+              }
+              onClick={(e) => {
+                const options = e.currentTarget.options;
+
+                if (
+                  options.length === 1 &&
+                  e.currentTarget.selectedOptions[0].value !==
+                    replayKey.trade
+                ) {
+                  setReplayKey({
+                    trade:
+                      e.currentTarget.selectedOptions[0].value,
+                  });
+                }
+              }}
+            >
+              {Array.from(trade_types).map((trade) => (
+                <option value={trade} key={trade}>
+                  {trade}
+                </option>
+              ))}
+            </select>
+
+            <select
+              ref={symbolRef}
+              value={replayKey.symbol ?? ""}
+              onChange={(e) =>
+                setReplayKey({
+                  symbol: e.target.value,
+                })
+              }
+              onClick={(e) => {
+                const options = e.currentTarget.options;
+
+                if (
+                  options.length === 1 &&
+                  e.currentTarget.selectedOptions[0].value !==
+                    replayKey.symbol
+                ) {
+                  setReplayKey({
+                    symbol:
+                      e.currentTarget.selectedOptions[0].value,
+                  });
+                }
+              }}
+            >
+              {Array.from(symbols).map((symbol) => (
+                <option value={symbol} key={symbol}>
+                  {symbol}
+                </option>
+              ))}
+            </select>
+          </Box>
+
+          {/* Progress / cursor region */}
+          <Box
+            ref={progressRef}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
+            sx={{
+              position: "relative",
+              height: 32,
+              display: "flex",
+              alignItems: "center",
+              cursor: "ew-resize",
+              touchAction: "none",
+              userSelect: "none",
+            }}
+          >
+            {/* Track */}
+            <Box
+              sx={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: "action.hover",
+              }}
+            />
+
+            {/* Progress */}
+            <Box
+              sx={{
+                position: "absolute",
+                left: 0,
+                width: `${progress}%`,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: "primary.main",
+                pointerEvents: "none",
+              }}
+            />
+
+            {/* Cursor handle */}
+            <Box
+              sx={{
+                position: "absolute",
+                left: `${progress}%`,
+                top: "50%",
+                width: 14,
+                height: 14,
+                borderRadius: "50%",
+                backgroundColor: "primary.main",
+                border: "2px solid",
+                borderColor: "background.paper",
+                boxShadow: 2,
+                transform: "translate(-50%, -50%)",
+                pointerEvents: "none",
+              }}
+            />
+
+            {/* Cursor number */}
+            <Typography
+              variant="caption"
+              sx={{
+                position: "absolute",
+                right: 0,
+                top: -3,
+                fontSize: 10,
+                color: "text.secondary",
+              }}
+            >
+              {cursor}/300
+            </Typography>
+          </Box>
+
+          {/* Playback controls */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1,
+            }}
+          >
+            <IconButton
+              size="small"
+              onClick={() =>
+                setReplayState(
+                  replayKeyJoin,
+                  "cursor",
+                  Math.max(
+                    0,
+                    (currentReplay?.cursor ?? 0) - 1
+                  )
+                )
+              }
+            >
+              <SkipPreviousIcon fontSize="small" />
+            </IconButton>
+
+            <IconButton
+              onClick={() => {
+                const value =
+                  currentReplay?.playing ? false : true;
+
+                setReplayState(
+                  replayKeyJoin,
+                  "playing",
+                  value
+                );
+              }}
+              sx={{
+                width: 42,
+                height: 42,
+                border: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              {activeIcon}
+            </IconButton>
+
+            <IconButton
+              size="small"
+              onClick={() =>
+                setReplayState(
+                  replayKeyJoin,
+                  "cursor",
+                  Math.min(
+                    300,
+                    (currentReplay?.cursor ?? 0) + 1
+                  )
+                )
+              }
+            >
+              <SkipNextIcon fontSize="small" />
+            </IconButton>
+          </Box>
+
+          {/* Speed */}
+          <ToggleButtonGroup
+            exclusive
+            fullWidth
+            size="small"
+            value={currentReplay?.speed ?? 1}
+            onChange={(event, value) => {
+              if (value !== null) {
+                setReplayState(
+                  replayKeyJoin,
+                  "speed",
+                  value
+                );
+              }
+            }}
+            sx={{
+              "& .MuiToggleButton-root": {
+                flex: 1,
+                minWidth: 0,
+                py: 0.5,
+                fontSize: 11,
+                borderColor: "divider",
+              },
+            }}
+          >
+            <ToggleButton value={1}>1x</ToggleButton>
+            <ToggleButton value={2}>2x</ToggleButton>
+            <ToggleButton value={4}>4x</ToggleButton>
+            <ToggleButton value={8}>8x</ToggleButton>
+            <ToggleButton value={16}>16x</ToggleButton>
+          </ToggleButtonGroup>
+
         </Box>
-        
       </Popover>
-    </div>
+    </Box>
   );
 }

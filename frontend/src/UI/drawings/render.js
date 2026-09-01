@@ -120,7 +120,7 @@ export function renderDrawing(ctx, chartId, drawing, chartRef) {
         }
 
         case "Long Position": {
-            if (!points.start) return;
+            if (!points.start.time) return;
 
             const ts = chartRef.current.timeScale();
 
@@ -152,7 +152,7 @@ export function renderDrawing(ctx, chartId, drawing, chartRef) {
             break;
         }
         case "Short Position": {
-            if (!points.start) return;
+            if (!points.start.time) return;
 
             const ts = chartRef.current.timeScale();
 
@@ -290,6 +290,64 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
                     ctx.stroke();
 
+                } else if (drawing== "Long Position"){
+                    if (!drawing_details.start) return;
+
+                    const ts = chartRef.current.timeScale();
+
+                    const x = ts.timeToCoordinate(drawing_details.start.time);
+                    const entry = activeSeries.priceToCoordinate(drawing_details.start.price);
+
+                    if (x == null || entry == null) return;
+
+                    const width = 120;
+                    const riskHeight = 30;
+                    const profitHeight = riskHeight * 2;
+
+                    ctx.fillStyle = "rgba(0, 180, 0, 0.2)";
+                    ctx.fillRect(
+                        x,
+                        entry - profitHeight,
+                        width,
+                        profitHeight
+                    );
+
+                    ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
+                    ctx.fillRect(
+                        x,
+                        entry,
+                        width,
+                        riskHeight
+                    );
+                } else if (drawing== "Short Position"){
+                    if (!drawing_details.start) return;
+
+                    const ts = chartRef.current.timeScale();
+
+                    const x = ts.timeToCoordinate(drawing_details.start.time);
+                    const entry = activeSeries.priceToCoordinate(drawing_details.start.price);
+
+                    if (x == null || entry == null) return;
+
+                    const width = 120;
+                    const riskHeight = 30;
+                    const profitHeight = riskHeight * 2;
+
+                    ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
+                    ctx.fillRect(
+                        x,
+                        entry - riskHeight,
+                        width,
+                        riskHeight
+                    );
+
+                    ctx.fillStyle = "rgba(0, 180, 0, 0.2)";
+                    ctx.fillRect(
+                        x,
+                        entry,
+                        width,
+                        profitHeight
+                    );
                 }
             }
      

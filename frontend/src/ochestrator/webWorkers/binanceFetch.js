@@ -264,7 +264,7 @@ export async function getCandles(exchange, symbol, market, tfs){
                             resolve("");
                         },1_000)
                     })
-                    debugger;
+                    //debugger;
                 }
                 
                  
