@@ -250,7 +250,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                         ctx.moveTo(0, y);
                         ctx.lineTo(ctx.canvas.width, y);
                         ctx.stroke();
-
+                            
                         ctx.restore();
                         
                 } else if  (drawing== "Vertical Line"){
@@ -354,27 +354,69 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                     const x = ts.timeToCoordinate(drawing_details.start.time);
                     const entry = activeSeries.priceToCoordinate(drawing_details.start.price);
 
+                    const target = activeSeries.priceToCoordinate(drawing_details.target.price);
+                    const risk =activeSeries.priceToCoordinate(drawing_details.risk.price);
+
                     if (x == null || entry == null) return;
 
                     const width = 120;
-                    const riskHeight = 30;
-                    const profitHeight = riskHeight * 2;
-
+                    const rewardToRisk= ((drawing_details.target.price-drawing_details.start.price)/
+                        (drawing_details.start.price-drawing_details.risk.price)
+                    );
+                    if (drawing_details.selected){ 
+                            console.log(`${drawing}`,drawing_details.selected)
+                           // ctx.strokeStyle= "#2196f3"
+                           };
                     ctx.fillStyle = "rgba(0, 180, 0, 0.2)";
+                    
                     ctx.fillRect(
                         x,
-                        entry - profitHeight,
+                        target,
                         width,
-                        profitHeight
+                        entry - target
                     );
-
+                    
                     ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
                     ctx.fillRect(
                         x,
                         entry,
                         width,
-                        riskHeight
+                        risk - entry
                     );
+                    ctx.save();
+
+                    ctx.font = "12px Arial";
+                    ctx.textBaseline = "middle";
+
+                    // Entry label
+                    ctx.fillStyle = "#00e5ff";
+                    ctx.fillText(
+                        `${drawing_details.start.price.toFixed(2)}  |  Reward:Risk  ${rewardToRisk.toFixed(2)}`,
+                        x + 6,
+                        entry
+                    );
+
+                    // Target price — near the top of green zone
+                    ctx.fillStyle = "#008000";
+                    ctx.textAlign = "right";
+                    ctx.fillText(
+                        `${drawing_details.target.price.toFixed(2)}`,
+                        x + width - 6,
+                        target + 12
+                    );
+
+                    // Risk price — near the bottom of red zone
+                    ctx.fillStyle = "#cc0000";
+                    ctx.fillText(
+                        drawing_details.risk.price.toFixed(2),
+                        x + width - 6,
+                        risk - 12
+                    );
+
+                    ctx.restore();
+                                        
+                    
+                    
                 } else if (drawing== "Short Position"){
                     if (!drawing_details.start) return;
 
@@ -382,31 +424,72 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
 
                     const x = ts.timeToCoordinate(drawing_details.start.time);
                     const entry = activeSeries.priceToCoordinate(drawing_details.start.price);
-
+                    const target = activeSeries.priceToCoordinate(drawing_details.target.price);
+                    const risk =activeSeries.priceToCoordinate(drawing_details.risk.price);
+                    const rewardToRisk= ((drawing_details.target.price-drawing_details.start.price)/
+                        (drawing_details.start.price-drawing_details.risk.price)
+                    );
                     if (x == null || entry == null) return;
 
                     const width = 120;
-                    const riskHeight = 30;
-                    const profitHeight = riskHeight * 2;
-
+                    
+                    if (drawing_details.selected){ 
+                            console.log(`${drawing}`,drawing_details.selected)
+                           // ctx.strokeStyle= "#2196f3"
+                           };
                     ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
-                    ctx.fillRect(
-                        x,
-                        entry - riskHeight,
-                        width,
-                        riskHeight
-                    );
-
-                    ctx.fillStyle = "rgba(0, 180, 0, 0.2)";
                     ctx.fillRect(
                         x,
                         entry,
                         width,
-                        profitHeight
+                        risk-entry
                     );
+
+                    ctx.fillStyle = "rgba(0, 180, 0, 0.2)";
+                    ctx.fillRect(
+                    x,
+                    target,
+                    width,
+                    entry - target
+                    );
+
+                    ctx.save();
+
+                    ctx.font = "12px Arial";
+                    ctx.textBaseline = "middle";
+
+                    // Entry + R:R
+                    ctx.fillStyle = "#00e5ff";
+                    ctx.textAlign = "left";
+                    ctx.fillText(
+                        `${drawing_details.start.price.toFixed(2)}  |  Reward:Risk  ${rewardToRisk.toFixed(2)}`,
+                        x + 6,
+                        entry
+                    );
+
+                    // Target price — upper green zone
+                    ctx.fillStyle = "#008000";
+                    ctx.textAlign = "right";
+                    ctx.fillText(
+                        drawing_details.target.price.toFixed(2),
+                        x + width - 6,
+                        target + 12
+                    );
+
+                    // Risk price — lower red zone
+                    ctx.fillStyle = "#cc0000";
+                    ctx.fillText(
+                        drawing_details.risk.price.toFixed(2),
+                        x + width - 6,
+                        risk - 12
+                    );
+
+                    ctx.restore();
+
                 }
             }
      
     }
+
 ctx.restore();
 }

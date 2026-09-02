@@ -1,7 +1,7 @@
 import useDrawingStore from "../../stores/drawingStore";
 import useChartStore from "../../stores/chartStore";
 import { renderDrawing} from "./render";
-import { DrawHorizontalLine, DrawVerticalLine, CircleTrendRect } from "./graphic";
+import { DrawHorizontalLine, DrawVerticalLine, CircleTrendRect, longShort, WriteText } from "./graphic";
 
  
 
@@ -107,10 +107,19 @@ function hitTestDrawing(chartRef, activeSeries, drawingType, drawing, x, y){
 
             return distance <= 6;
         }
+        case "Short Position":
+        case "Long Position":
+            const drawingTy = activeSeries.priceToCoordinate(drawing.target.price);
+            const drawingRx = activeSeries.priceToCoordinate(drawing.risk.price);
+            if (Math.abs(y - drawingTy) <= 10){
+                return "target"
+            } else if (Math.abs(y - drawingRx) <= 10){
+                return "risk" }
+        
     }
 }
 
-let activeSelection = {type:null, id:null, k1:null};
+let activeSelection = {type:null, id:null, k1:null, hit:null};
 export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
     //console.log("[hit test] execeuting,received args: ",ctx, chartRef, k1, chartId, pointerType, x, y)
     if (!useDrawingStore.getState().Drawings) return;
@@ -128,7 +137,7 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
                     drawingType, drawing, x, y) 
                 if (hit) {
                     setSelected(k1, drawingType, id);
-                    activeSelection = {type:drawingType, id:id, k1:k1};
+                    activeSelection = {type:drawingType, id:id, k1:k1, hit:hit};
                     console.log(activeSelection)
                     };
             }
@@ -142,7 +151,9 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
                     setSelected(k1, drawingType, id);
                     CircleTrendRect(ctx, x, y, pointerType, chartRef, k1, chartId,
                      activeSelection.type, activeSelection.id);
-                    activeSelection = {type:null, id:null, k1:null};
+                    longShort(ctx, x, y, pointerType, chartRef, k1, chartId,
+                     activeSelection.type, activeSelection.id)
+                    activeSelection = {type:null, id:null, k1:null, hit:null};
                    
                     //console.log(drawing,drawingType)
                 };
@@ -166,6 +177,14 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
                 CircleTrendRect(ctx, x, y, pointerType, chartRef, k1, chartId,
                      activeSelection.type, activeSelection.id);
                 break;
+            
+            case "Short Position":
+            case "Long Position":
+                longShort(ctx, x, y, pointerType, chartRef, k1, chartId,
+                     activeSelection.type, activeSelection.id,
+                     activeSelection.hit)
+                break;
+            
             
             
         }

@@ -36,40 +36,40 @@ import AdsClickIcon from '@mui/icons-material/AdsClick';
 
 const groups = [
   [
-    ["Cursor", <MouseOutlinedIcon />],
-    ["Select Drawing", <AdsClickIcon/>]
+    ["Cursor", <MouseOutlinedIcon />, false],
+    ["Select Drawing", <AdsClickIcon/>, false]
   ],
 
   [
-    ["Trend Line", <TimelineOutlinedIcon />],
-    ["Horizontal Line", <HorizontalRuleOutlinedIcon />],
-    ["Vertical Line", <HeightOutlinedIcon />],
+    ["Trend Line", <TimelineOutlinedIcon />, false],
+    ["Horizontal Line", <HorizontalRuleOutlinedIcon />, false],
+    ["Vertical Line", <HeightOutlinedIcon />, false],
     
   ],
 
   [
-    ["Rectangle", <RectangleOutlinedIcon />],
+    ["Rectangle", <RectangleOutlinedIcon />, false],
     ["Circle", <CircleOutlinedIcon />],
   ],
 
   [
     
-    ["Text", <TextFieldsOutlinedIcon />],
+    ["Text", <TextFieldsOutlinedIcon />, true],
   ],
 
   [
-    ["Long Position", <TrendingUpOutlinedIcon />],
-    ["Short Position", <TrendingDownOutlinedIcon />],
+    ["Long Position", <TrendingUpOutlinedIcon />, false],
+    ["Short Position", <TrendingDownOutlinedIcon />, false],
   ],
 
   [
-    ["Measure", <StraightenOutlinedIcon />],
+    ["Measure", <StraightenOutlinedIcon />, true],
     
   ],
 
   [
     
-    ["Clear Drawings", <DeleteSweepOutlinedIcon />],
+    ["Clear Drawings", <DeleteSweepOutlinedIcon />, false],
   ],
 ];
 
@@ -122,13 +122,13 @@ export default function DrawingToolbar() {
             key={i}
             spacing={0.5}
           >
-            {group.map(([label, icon]) => (
+            {group.map(([label, icon, disabled]) => (
               <Tooltip
                 key={label}
                 title={label}
                 placement="right"
               >
-                <IconButton size="small"
+                <IconButton size="small" disabled={disabled}
                 sx={{
                   color: DrawingState.action==label ? "primary.main" : "inherit",
                   backgroundColor: DrawingState.action==label ? "action.selected" : "transparent",
