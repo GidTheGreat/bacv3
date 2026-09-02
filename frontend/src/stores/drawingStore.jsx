@@ -13,19 +13,46 @@ const useDrawingStore = create((set) => ({
         Drawings: {}
     }),
 
-    setDrawings: (key, type, entry) =>
-        set(state => ({
+    setDrawings: (key, type, id, entry) =>
+        set(state => {
+            return {
             Drawings: {
-                ...state.Drawings,
-                [key]: {
-                    ...(state.Drawings[key] ?? {}),
-                    [type]: [
-                        ...(state.Drawings[key]?.[type] ?? []),
-                        entry
-                    ]
+                    ...state.Drawings,
+                    [key]: {
+                        ...(state.Drawings[key] ?? {}),
+                        [type]: {
+                            ...(state.Drawings[key]?.[type] ?? {}),
+                            [id]:entry
+                        }
+                            
+                        
+                    }
                 }
             }
-        })),
+
+        }
+            
+        ),
+
+    setSelected:(key, type,id)=>set((state=>{
+        return {
+            Drawings: {
+                    ...state.Drawings,
+                    [key]: {
+                        ...(state.Drawings[key] ?? {}),
+                        [type]: {
+                            ...(state.Drawings[key]?.[type] ?? {}),
+                            [id]: {
+                                ...state.Drawings[key]?.[type]?.[id],
+                                selected: !state.Drawings[key]?.[type]?.[id].selected,
+                            }
+                        }
+                            
+                        
+                    }
+                }
+            }
+    })),
         
     setDrawingState: (key, newAction, details = null) =>
         set((state) => ({

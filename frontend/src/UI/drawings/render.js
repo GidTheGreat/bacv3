@@ -18,7 +18,6 @@ export function renderDrawing(ctx, chartId, drawing, chartRef) {
         case "Horizontal Line": {
             const y = activeSeries
                 .priceToCoordinate(points.price);
-
             ctx.beginPath();
             ctx.moveTo(0, y);
             ctx.lineTo(ctx.canvas.width, y);
@@ -189,6 +188,42 @@ export function renderDrawing(ctx, chartId, drawing, chartRef) {
 }
 
 
+function drawSelection(ctx, type, drawing) {
+    let bounds;
+
+    switch (type) {
+        case "line":
+            bounds = lineBounds(drawing);
+            break;
+
+        case "rectangle":
+            bounds = rectangleBounds(drawing);
+            break;
+
+        case "circle":
+            bounds = circleBounds(drawing);
+            break;
+    }
+
+    if (!bounds) return;
+
+    const pad = 5;
+
+    ctx.save();
+    ctx.strokeStyle = "#2196f3";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+
+    ctx.strokeRect(
+        bounds.minX - pad,
+        bounds.minY - pad,
+        bounds.maxX - bounds.minX + pad * 2,
+        bounds.maxY - bounds.minY + pad * 2
+    );
+
+    ctx.restore();
+}
+
 export function renderDrawings(ctx, chartId, k1, chartRef) {
     const activeSeries = useChartStore.getState().selection[chartId].activeSeries
     
@@ -202,25 +237,34 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
         if (!Drawings) return;
         for (const drawing of Object.keys(Drawings)){
             //console.log(drawing)
-            for (const drawing_details of Drawings[drawing]){
+            for (const drawing_details of Object.values(Drawings[drawing])){
                 
                 if (drawing== "Horizontal Line") {
                         const y = activeSeries
                             .priceToCoordinate(drawing_details.price);
-
+                        ctx.save();
+                        if (drawing_details.selected){ 
+                            //console.log("selected",drawing_details.selected)
+                            ctx.strokeStyle= "#2196f3"};
                         ctx.beginPath();
                         ctx.moveTo(0, y);
                         ctx.lineTo(ctx.canvas.width, y);
                         ctx.stroke();
+
+                        ctx.restore();
                         
                 } else if  (drawing== "Vertical Line"){
                         const x = chartRef.current.timeScale().timeToCoordinate(drawing_details.time);
-
+                        //console.log("[render drawings vertical]",x)
+                        ctx.save();
+                        if (drawing_details.selected){ 
+                            //console.log("selected",drawing_details.selected)
+                            ctx.strokeStyle= "#2196f3"};
                         ctx.beginPath();
                         ctx.moveTo(x, 0);
                         ctx.lineTo(x, ctx.canvas.height);
                         ctx.stroke();
-
+                        ctx.restore();
                         
                 } else if  (drawing== "Trend Line") {
                     //console.log(drawing_details)
@@ -237,11 +281,15 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                     const y2 = activeSeries.priceToCoordinate(drawing_details.final.price);
 
                     if (x1 == null || y1 == null || x2 == null || y2 == null) continue;
-
+                    ctx.save();
+                    if (drawing_details.selected){ 
+                        //console.log(`${drawing} selected`,drawing_details.selected)
+                        ctx.strokeStyle= "#2196f3"};
                     ctx.beginPath();
                     ctx.moveTo(x1, y1);
                     ctx.lineTo(x2, y2);
                     ctx.stroke();
+                    ctx.restore();
 
                 } else if (drawing== "Rectangle") {
                     if (!drawing_details.start || !drawing_details.final) return;
@@ -260,10 +308,14 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                     const y = Math.min(y1, y2);
                     const width = Math.abs(x2 - x1);
                     const height = Math.abs(y2 - y1);
-
+                    ctx.save();
+                    if (drawing_details.selected){ 
+                        //console.log(`${drawing} selected`,drawing_details.selected)
+                        ctx.strokeStyle= "#2196f3"};
                     ctx.beginPath();
                     ctx.rect(x, y, width, height);
                     ctx.stroke();
+                    ctx.restore();
 
                     
                 } else if (drawing== "Circle") {
@@ -285,10 +337,14 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                         Math.abs(x2 - x1),
                         Math.abs(y2 - y1)
                     ) / 2;
-
+                    ctx.save();
+                    if (drawing_details.selected){ 
+                        //console.log(`${drawing} selected`,drawing_details.selected)
+                        ctx.strokeStyle= "#2196f3"};
                     ctx.beginPath();
                     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
                     ctx.stroke();
+                    ctx.restore();
 
                 } else if (drawing== "Long Position"){
                     if (!drawing_details.start) return;
