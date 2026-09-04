@@ -5,6 +5,7 @@ import {
   Typography,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip
 } from "@mui/material";
 
 import Replay from "@mui/icons-material/Replay";
@@ -145,7 +146,7 @@ export default function ReplayButton() {
 
   return (
     <Box>
-      <IconButton
+      <Tooltip title="Replay Controls"><IconButton
         aria-describedby={id}
         onClick={(event) => setAnchorEl(event.currentTarget)}
         sx={{
@@ -158,7 +159,7 @@ export default function ReplayButton() {
         }}
       >
         <Replay />
-      </IconButton>
+      </IconButton></Tooltip>
 
       <Popover
         id={id}

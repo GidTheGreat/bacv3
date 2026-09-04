@@ -19,7 +19,11 @@ export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
         ? `${selection.platform}|${selection.trade}|${selection.symbol}`
         : null
 
-    //console.log(chartRef)
+    const k1Ref = useRef(k1);
+
+    useEffect(() => {
+        k1Ref.current = k1;
+    }, [k1]);
 
     function translatePointer(canvas, pointerData) {
         const rect = canvas.getBoundingClientRect();
@@ -39,7 +43,7 @@ export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
 
         const { x, y } = translatePointer(canvas, pointerData);
         //console.log("in relay",chartId)
-        draw(ctx, chartRef, k1, chartId, pointerData.type, x, y);
+        draw(ctx, chartRef, k1Ref.current, chartId, pointerData.type, x, y);
     }
 
 
@@ -55,7 +59,7 @@ export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
         
-        draw(ctx,chartRef, k1, chartId, null, null, null);
+        draw(ctx,chartRef, k1Ref.current, chartId, null, null, null);
     };
 
     const timeScale = chart.timeScale();
@@ -100,6 +104,9 @@ export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
                 inset: 0,
                 
                 pointerEvents:DrawingState.action =="Cursor"?"none":"auto",
+                touchAction:"none",
+                userSelect:"none",
+                
                 
             }}></canvas>
 }

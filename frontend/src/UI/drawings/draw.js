@@ -21,7 +21,7 @@ const DEFAULT_STYLE = {
 
 
 export default function draw(ctx, chartRef, k1, chartId, pointerType, x, y) {
-    //console.log("in draw:",ctx, x, y, chartRef, k1, chartId, pointerType)
+    //console.log("in draw:", k1,useDrawingStore.getState())
     if (useDrawingStore.getState().DrawingState.action=="Horizontal Line"){
         //console.log(chartId)
         DrawHorizontalLine(ctx, x, y, pointerType, chartRef, k1, chartId);
@@ -32,6 +32,7 @@ export default function draw(ctx, chartRef, k1, chartId, pointerType, x, y) {
     } else if (useDrawingStore.getState().DrawingState.action=="Clear Drawings"){
         
         useDrawingStore.getState().clearDrawings()
+        renderDrawings(ctx, chartId, k1, chartRef);
         useDrawingStore
             .getState()
             .setDrawingState(k1, "Cursor");

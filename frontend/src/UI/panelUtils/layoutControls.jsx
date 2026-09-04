@@ -8,6 +8,7 @@ import {
   ToggleButton,
   IconButton,
   Box,
+  Tooltip
 } from "@mui/material";
 
 import {
@@ -56,12 +57,12 @@ export default function LayoutControls() {
 
   return (
     <Box>
-      <IconButton
+      <Tooltip title="Layout"><IconButton
         aria-describedby={id}
         onClick={handleClick}
       >
         <ViewQuiltIcon />
-      </IconButton>
+      </IconButton></Tooltip>
 
       <Popover
         id={id}

@@ -15,11 +15,10 @@ import {useEffect, useRef, useState} from 'react'
 import ochestrator from '../ochestrator/main'
 import useAppStore from "../stores/appStore";
 
-
 export default function BottomBar() {
   //console.count("bottom bar")
   const ws = useAppStore(state => state.ws);
-  const notification = useAppStore(state=>state.notification)
+  const notification = useAppStore(state=>state.notification);
   
   
   useEffect(

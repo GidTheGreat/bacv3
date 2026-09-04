@@ -28,7 +28,8 @@ import LayoutControls from "./panelUtils/layoutControls";
 import Journal from "../capabilities/journal/Journal";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import FetchDataButton from "../capabilities/fetch";
-
+import DevTools from "../capabilities/devTools";
+import Trading from "../capabilities/trade";
 
 export default function LogoBar() {
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -115,10 +116,12 @@ export default function LogoBar() {
           spacing={0.5}
           sx={{ flexShrink: 0 }}
         >
+          {/*<Trading/>*/}
           <FetchDataButton/>
           <Journal/>
           <ReplayButton/>
           <LayoutControls/>
+          <DevTools/>
         </Stack>
       </Toolbar>
     </AppBar>
