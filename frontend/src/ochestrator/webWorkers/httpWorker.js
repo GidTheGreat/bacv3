@@ -1,4 +1,4 @@
-
+console.log("[http worker] started")
 import binanceFetch, { getCandles } from "./binanceFetch"
 
    

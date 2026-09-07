@@ -84,11 +84,25 @@ class WorkersManager {
     startUp(msgRelay){
         console.log("starting up")
         if (!this.workers.has("http")){
+            console.log("creating http worker");
             const httpWorker = new HttpWorker();
 
             httpWorker.postMessage({type: "status", payload:"meta"});
 
             httpWorker.onmessage = event => {this.workerMsgCapture(event)};
+
+            httpWorker.onerror = (event) => {
+            console.error("WORKER ERROR");
+            console.error("message:", event.message);
+            console.error("filename:", event.filename);
+            console.error("lineno:", event.lineno);
+            console.error(event);
+            };
+
+            httpWorker.onmessageerror = (event) => {
+            console.error("MESSAGE ERROR", event);
+            };
+            console.log("created http worker");
 
             this.workers.set("http", httpWorker);
         }
