@@ -364,7 +364,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                         (drawing_details.start.price-drawing_details.risk.price)
                     );
                     if (drawing_details.selected){ 
-                            console.log(`${drawing}`,drawing_details.selected)
+                            //console.log(`${drawing}`,drawing_details.selected)
                            // ctx.strokeStyle= "#2196f3"
                            };
                     ctx.fillStyle = "rgba(0, 180, 0, 0.2)";

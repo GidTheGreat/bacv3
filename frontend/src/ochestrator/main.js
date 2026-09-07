@@ -58,11 +58,11 @@ class OchestratorMain{
     }
 
     stateUpdate(msg){
-        //console.log(msg)
+        console.log(msg)
         if (msg.store =="chartStore"){
-            useChartStore.getState().addSymbol(
+            /*useChartStore.getState().addSymbol(
                 msg.k1.split("|")[2]
-            )
+            )*/
             
             useChartStore.getState().setData(
                 msg.k1, msg.tf, msg.trans_arr
@@ -73,6 +73,10 @@ class OchestratorMain{
         } else if (msg.storage =="RAM"){
             //console.log("setting state")
             appstore.getState().setStorage(msg.key, msg.size)
+        } else if (msg.type == "socket open"){
+            appstore.getState().setWs()
+        } else if (msg.type == "socket closed"){
+            appstore.getState().setWs()
         }
     }
 
@@ -87,9 +91,6 @@ class OchestratorMain{
         } else {
             this.workerController.send(type, {...payload,tfs:[...chartTfs]}, this.stateUpdate, workerKey);
         }
-        
-       
-        
     }
 
     

@@ -75,10 +75,10 @@ export default function DevTools() {
   const [hddType, setHddType] = useState("zustand");
 
   const tickDataRAM = `${(storage[ramType]/(1024*1024)).toFixed(2)} MB`
-  useEffect(()=>console.log("loaded"),[])
+  //useEffect(()=>console.log("loaded"),[])
 
   useEffect(()=>{
-    console.log(ramType)
+    //console.log(ramType)
     setNotification(prev=>{
       return [...prev,notif]
     })

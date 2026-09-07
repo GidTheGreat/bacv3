@@ -138,7 +138,7 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
                 if (hit) {
                     setSelected(k1, drawingType, id);
                     activeSelection = {type:drawingType, id:id, k1:k1, hit:hit};
-                    console.log(activeSelection)
+                    //console.log(activeSelection)
                     };
             }
         }

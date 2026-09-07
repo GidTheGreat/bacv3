@@ -50,10 +50,12 @@ export default function BottomBar() {
         size="small"
         onClick={()=>{
           if (ws){
-            
+            ochestrator.send("disconnect", 
+              {platform:"meta"}, "ws")
 
           } else {
-            ochestrator
+            ochestrator.send("connect", 
+              {platform:"binance",trade:"um",symbols:["BTCUSDT"]}, "ws")
             
           }
           

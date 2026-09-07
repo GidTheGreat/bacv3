@@ -1,37 +1,15 @@
+import DataFeed from "./parseData";
 
 const BINANCE_FSTREAM_BASE_URL = "wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade"
-let atomicsView;
-let countView;
 
-let aggTradeIdView;
-let timestampView;
-let priceView;
-let quantityView;
-let sideView;
+let binanceUmURL = "wss://fstream.binance.com/market/stream?streams="
 
-const platform='binance';
-const tradeType = 'um';
-const symbol = 'BTCUSDT';
 
 const connections = new Map()
+let socket = null;
 
-let localCounter = 0;
+const df = new DataFeed();
 
-function test(){
-    while (true){
-        //console.log(countView[0], countView[0] === localCounter);
-
-        const result = Atomics.wait(countView, 0, localCounter);
-
-        //console.log("wait returned:", result);
-        //console.log("processing");
-        
-        localCounter=countView[0];
-        //console.log(priceView[localCounter],localCounter, countView[0]);
-        //debugger;
-
-    }
-}
 
 onmessage = event => {
     
@@ -46,26 +24,41 @@ onmessage = event => {
             break;
         }
 
-        case "buffer":{
-            /*
-            const key = `${platform}|${tradeType}|${symbol}`;
-            const buffer= payload.get(key);
-            atomicsView = new Uint8Array(buffer, 1, 1);
-            countView = new Int32Array(buffer, 4, 1);
-
-            aggTradeIdView = new BigUint64Array(buffer, 16, 1_000_000);
-            timestampView = new Float64Array(buffer, 8_000_016, 1_000_000);
-            priceView = new Float64Array(buffer, 16_000_016, 1_000_000);
-            quantityView = new Float64Array(buffer, 24_000_016, 1_000_000);
-            sideView = new Uint8Array(buffer, 32_000_016, 1_000_000);
-            test();*/
-            postMessage(
-                {
-                    type: "buffer",
-                    worker: "ws",
-                    payload: "[ws worker] received buffer"
+        case "connect":{
+            if (payload.platform=='binance' && payload.trade== 'um'){
+                for (const symbol of payload.symbols){
+                    if (binanceUmURL.endsWith("=")){
+                        binanceUmURL += `${symbol.toLowerCase()}@aggTrade`
+                    } else {
+                        binanceUmURL += `/${symbol.toLowerCase()}@aggTrade`
+                    }
                 }
-            )
+                socket = new WebSocket(binanceUmURL);
+
+                socket.onopen = ()=>{
+                    postMessage(
+                        {type:"socket open"}
+                    )
+                }
+
+                socket.onclose = ()=> {
+                    postMessage(
+                        {type:"socket closed"}
+                    )
+                }
+
+                socket.onmessage = (e)=>{
+                    const parseData = JSON.parse(e.data)
+                    //console.log(parseData.data)
+                    df.parseFeed(payload.platform, payload.trade, "1min", parseData.data)
+                }
+            }
+            
+            break;
+        }
+
+        case "disconnect":{
+            socket.close()
             break;
         }
     }
