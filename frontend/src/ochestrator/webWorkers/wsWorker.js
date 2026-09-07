@@ -12,7 +12,7 @@ const df = new DataFeed();
 
 
 onmessage = event => {
-    
+    console.log("worker triggered")
     const { type, payload } = event.data
     switch (type){
         case "status":{
