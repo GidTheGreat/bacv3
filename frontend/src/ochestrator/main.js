@@ -70,6 +70,9 @@ class OchestratorMain{
         } else if (msg.store =="appStore"){
             //console.log("setting state")
             appstore.getState().setNotification(msg.notification)
+        } else if (msg.storage =="RAM"){
+            //console.log("setting state")
+            appstore.getState().setStorage(msg.key, msg.size)
         }
     }
 

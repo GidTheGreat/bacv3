@@ -434,7 +434,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                     const width = 120;
                     
                     if (drawing_details.selected){ 
-                            console.log(`${drawing}`,drawing_details.selected)
+                            //console.log(`${drawing}`,drawing_details.selected)
                            // ctx.strokeStyle= "#2196f3"
                            };
                     ctx.fillStyle = "rgba(255, 0, 0, 0.2)";

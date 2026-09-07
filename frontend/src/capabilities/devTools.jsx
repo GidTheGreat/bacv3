@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 
 import DeveloperModeIcon from "@mui/icons-material/DeveloperMode";
-import { useState,useEffect } from "react";
+import { useState,useEffect,Fragment } from "react";
 
 import useAppStore from "../stores/appStore";
 import useChartStore from "../stores/chartStore";
@@ -62,17 +62,23 @@ function roughSize(obj) {
 
 export default function DevTools() {
   const notif = useAppStore(s=>s.notification);
+  const storage = useAppStore(s=>s.storage);
+
   const data = useChartStore(s=>s.data);
 
-  const parsedData = `${(roughSize(data)/(1024*1024)).toFixed(2)}MB`
+  const candleDataRAM = `${(roughSize(data)/(1024*1024)).toFixed(2)}MB`
 
   const [state, setState] = useState(false);
   const [notification, setNotification] = useState([]);
 
-  const [ramType, setRamType] = useState("zuztand");
-  const [hddType, setHddType] = useState("zuztand");
+  const [ramType, setRamType] = useState("zustand");
+  const [hddType, setHddType] = useState("zustand");
+
+  const tickDataRAM = `${(storage[ramType]/(1024*1024)).toFixed(2)} MB`
+  useEffect(()=>console.log("loaded"),[])
 
   useEffect(()=>{
+    console.log(ramType)
     setNotification(prev=>{
       return [...prev,notif]
     })
@@ -169,7 +175,7 @@ export default function DevTools() {
               }}
             > 
               <ul>
-                  {notification.map(n=><li key={n}>{n}</li>)}
+                  {notification.map(n=><li key={n+Math.random()}>{n}</li>)}
               </ul>
               
             </Box>
@@ -293,9 +299,16 @@ export default function DevTools() {
               </Typography>
 
               <FormControl size="small">
-                <Select defaultValue="zustand" sx={selectSx}>
+                <Select sx={selectSx} defaultValue={ramType}
+                onChange={(e)=>{
+                  setRamType(e.target.value);
+                }}>
+                  
+                  {Object.keys(storage).map((storageKey)=>(
+                        <MenuItem  value={storageKey}>{storageKey}</MenuItem>
+                  ))}
                   <MenuItem value="zustand">Zustand</MenuItem>
-                  <MenuItem value="typed">Typed Arrays</MenuItem>
+                  
                 </Select>
               </FormControl>
 
@@ -304,7 +317,9 @@ export default function DevTools() {
                 color="text.secondary"
                 sx={{ flex: 1 }}
               >
-                {parsedData}
+                
+                {ramType=="zustand" && candleDataRAM }
+                {ramType!="zustand" && tickDataRAM}
               </Typography>
 
               <Button

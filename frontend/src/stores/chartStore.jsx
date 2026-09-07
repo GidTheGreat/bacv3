@@ -199,6 +199,25 @@ const useChartStore = create((set,get) => ({
     })),
 
   data: {},
+  clearData: ({platform, trade, symbol, tf}={})=>set(
+    (state)=>{
+      if (!platform && !symbol && !trade && !tf){
+        return {
+          data: {}
+        }
+      } else if (!tf) {
+        const key = `${platform}|${trade}|${symbol}`;
+        return {
+          data:{
+            ...state.data,
+            [key]:{
+              
+            }
+          }
+        }
+      }
+      
+    }),
 
   modifySelection: (chartId, patch) =>
   set((state) => ({

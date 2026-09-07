@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 const DEFAULT = {
     "binance|um|BTCUSDT":{
+        replayBar: false,
         playing: false,
         cursor: 1,
         speed: 1,
@@ -17,6 +18,9 @@ const useReplayStore = create((set) => ({
     replayKey: {
         platform: "binance", symbol: "BTCUSDT", trade: "um"
     },
+    replayActive: false,
+
+    setReplayActive: ()=>set((state)=>({replayActive:!state.replayActive})),
 
     setReplayKey: (update)=>set(
         (state)=>{
@@ -27,7 +31,6 @@ const useReplayStore = create((set) => ({
             }
             const currentKeys=Object.keys(state.replayKey).filter(cKey=>!(Object.keys(update).includes(cKey)));
             
-            console.log("current keys:",currentKeys);
 
             const replayKeyJoinList = [...currentKeys,...Object.keys(update)].sort((a,b)=>order[a]-order[b]).map(
                 c2Key=>{
@@ -46,10 +49,11 @@ const useReplayStore = create((set) => ({
                     replayKeyJoinList[1]="um"
                 }
 
-            const replayKeyJoin = replayKeyJoinList.join("|")
+            const replayKeyJoin = replayKeyJoinList.join("|") 
             const replayState ={
                 ...state.replayState,
                 [replayKeyJoin]: {
+                    replayBar: false,
                     playing: false,
                     cursor: 1,
                     speed: 1,

@@ -1,6 +1,6 @@
 import {
   IconButton,
-  Popover,
+  Popper,
   Box,
   Typography,
   ToggleButton,
@@ -22,11 +22,13 @@ import useChartStore from "../../stores/chartStore";
 export default function ReplayButton() {
   const replayState = useReplayStore((s) => s.replayState);
   const setReplayState = useReplayStore((s) => s.setReplayState);
+  const setReplayActive = useReplayStore(s=>s.setReplayActive);
 
   const replayKey = useReplayStore((s) => s.replayKey);
   const setReplayKey = useReplayStore((s) => s.setReplayKey);
 
   const selection = useChartStore((s) => s.selection);
+  const data = useChartStore(s=>s.data);
 
   const platformRef = useRef(null);
   const symbolRef = useRef(null);
@@ -62,6 +64,9 @@ export default function ReplayButton() {
 
   const currentReplay = replayState?.[replayKeyJoin];
 
+  const dataLength = data?.[replayKeyJoin]?.["1min"]?.data.length;
+  //console.log("[replayButton]", dataLength);
+
   /*
    * Progress / cursor interaction
    *
@@ -81,7 +86,8 @@ export default function ReplayButton() {
 
     ratio = Math.max(0, Math.min(1, ratio));
 
-    const cursor = Math.round(ratio * 300);
+    const cursor = Math.round(ratio * (dataLength? dataLength: 300));
+    //console.log("[replayButton] cursor", cursor);
 
     setReplayState(
       replayKeyJoin,
@@ -123,12 +129,10 @@ export default function ReplayButton() {
     // separate click calculation is actually necessary.
   };
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  
 
   const open = Boolean(anchorEl);
-  const id = open ? "replay-popover" : undefined;
+  const id = open ? "replay-popper" : undefined;
 
   const activeIcon = currentReplay?.playing
     ? <PauseIcon />
@@ -138,17 +142,23 @@ export default function ReplayButton() {
    * Cursor percentage for the visual progress bar.
    */
   const cursor = currentReplay?.cursor ?? 0;
-  const progress = (cursor / 300) * 100;
+  const progress = (cursor / (dataLength? dataLength: 300)) * 100;
 
-  /*useEffect(() => {
-    console.log(replayKey, replayState);
-  }, [replayState, replayKey]);*/
+  useEffect(() => {
+    console.log(useReplayStore.getState().replayActive);
+  }, [useReplayStore.getState().replayActive]);
 
   return (
     <Box>
       <Tooltip title="Replay Controls"><IconButton
         aria-describedby={id}
-        onClick={(event) => setAnchorEl(event.currentTarget)}
+        onClick={(event) => {
+          setAnchorEl((current) =>
+            current ? null : event.currentTarget
+          );
+
+          setReplayActive();
+        }}
         sx={{
           color: "text.secondary",
 
@@ -161,35 +171,33 @@ export default function ReplayButton() {
         <Replay />
       </IconButton></Tooltip>
 
-      <Popover
+      <Popper
         id={id}
         open={open}
         anchorEl={anchorEl}
-        onClose={handleClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "left",
-        }}
-        slotProps={{
-          paper: {
-            sx: {
-              mt: 1,
-              p: 1.5,
-              width: 330,
-              borderRadius: 1.5,
-              backgroundColor: "background.paper",
-              border: "1px solid",
-              borderColor: "divider",
-              boxShadow: 8,
+        placement="bottom-start"
+        sx={{
+    zIndex: (theme) => theme.zIndex.modal,
+  }}
+        modifiers={[
+          {
+            name: "offset",
+            options: {
+              offset: [0, 8],
             },
           },
-        }}
+        ]}
       >
         <Box
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 1.5,
+            p: 1.5,
+            width: 330,
+            borderRadius: 1.5,
+            backgroundColor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: 8,
+            
           }}
         >
 
@@ -382,7 +390,7 @@ export default function ReplayButton() {
                 color: "text.secondary",
               }}
             >
-              {cursor}/300
+              {cursor}/{(dataLength? dataLength: 300)}
             </Typography>
           </Box>
 
@@ -439,7 +447,7 @@ export default function ReplayButton() {
                   replayKeyJoin,
                   "cursor",
                   Math.min(
-                    300,
+                    (dataLength? dataLength: 300),
                     (currentReplay?.cursor ?? 0) + 1
                   )
                 )
@@ -482,7 +490,7 @@ export default function ReplayButton() {
           </ToggleButtonGroup>
 
         </Box>
-      </Popover>
+      </Popper>
     </Box>
   );
 }

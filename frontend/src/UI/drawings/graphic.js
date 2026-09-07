@@ -259,7 +259,7 @@ export function longShort(ctx, x, y, pointerType, chartRef, k1, chartId,type, id
             .setDrawingState(k1, "Select Drawing");
         
     } else  if (id && pointerType?.toLowerCase?.().endsWith("move")){
-            console.log("[long short] updating pos")
+            //console.log("[long short] updating pos")
             start["price"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.start?.price;
             start["time"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.start?.time;
             if (hitType=="target"){
@@ -280,7 +280,7 @@ export function longShort(ctx, x, y, pointerType, chartRef, k1, chartId,type, id
             {"start":start, "target":target, "risk":risk, selected: true})
     } else if (pointerType?.toLowerCase?.().endsWith("up")) {
         if (id){
-            console.log("resetting")
+            //console.log("resetting")
             start={}
         target={}
         risk = {}

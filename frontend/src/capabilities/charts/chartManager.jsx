@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import useChartStore from "../../stores/chartStore";
+import useReplayStore from "../../stores/replayStore";
 import Buttons from "./buttons";
 import {
   Box,
@@ -174,6 +175,10 @@ function noData({ symbol, tf }) {
 }
 
 function ChartData({ chartId, fpRef, chartRef, containerRef }) {
+    const replayState = useReplayStore(s => s.replayState);
+    const replayActive = useReplayStore(s=>s.replayActive);
+    const setReplayState = useReplayStore(s => s.setReplayState);
+
     const activeSeries = useChartStore(
         s => s.selection[chartId]?.activeSeries
     )
@@ -196,19 +201,82 @@ function ChartData({ chartId, fpRef, chartRef, containerRef }) {
         s => s.data?.[k1]?.[tf]
     )
     const renderdata = data?.data
+    const replayStateDeets = replayState[k1];
+
+    function getOffset(tf, minuteCursor){
+      if (tf.startsWith("1m")){
+        return minuteCursor
+      } else if (tf.startsWith("5m")){
+        return Math.floor(minuteCursor/5)
+      } else if (tf.startsWith("15m")){
+        return Math.floor(minuteCursor/15)
+      } else if (tf.startsWith("30m")){
+        return Math.floor(minuteCursor/30)
+      } else if (tf.startsWith("1h")){
+        return Math.floor(minuteCursor/60)
+      } else if (tf.startsWith("4h")){
+        return Math.floor(minuteCursor/240)
+      }
+
+    }
+
+    useEffect(() => {
+        if (!replayActive) return;
+        if (!replayStateDeets?.playing) return;
+
+        const interval = setInterval(() => {
+
+            setReplayState(k1, "cursor", replayStateDeets.cursor+=1)
+
+        }, 250 / replayStateDeets.speed);
+
+        return () => clearInterval(interval);
+
+    }, [
+        replayActive,
+        replayStateDeets?.playing,
+        replayStateDeets?.speed
+    ]);
     
     useEffect(() => {
+        if (!chartReady || !activeSeries || !renderdata) return;
 
-        if (!chartReady || !activeSeries || !renderdata) {
-          return;}
-        //console.log(renderdata)
-        activeSeries.setData(renderdata)
-        activeSeries.priceScale().applyOptions({
-            autoScale: true,
-        });
-        //chartRef.current.timeScale().fitContent();
-        fpRef.current.setData(renderdata)
-    }, [chartReady, activeSeries, renderdata])
+        if (replayActive) {
+            if (!replayStateDeets) return;
+
+            const offset = getOffset(
+                tf,
+                replayStateDeets.cursor
+            );
+
+            const replayData = renderdata.slice(0, offset);
+
+            activeSeries.setData(replayData);
+
+            activeSeries.priceScale().applyOptions({
+                autoScale: true,
+            });
+
+            fpRef.current?.setData(replayData);
+
+        } else {
+            activeSeries.setData(renderdata);
+
+            activeSeries.priceScale().applyOptions({
+                autoScale: true,
+            });
+
+            fpRef.current?.setData(renderdata);
+        }
+
+    }, [
+        chartReady,
+        activeSeries,
+        renderdata,
+        replayActive,
+        replayStateDeets?.cursor,
+        tf
+    ]);
 
     return null
 }

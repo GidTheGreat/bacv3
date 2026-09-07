@@ -192,6 +192,11 @@ export default async function binanceFetch(exchange, symbol, tradeType, tf, star
 
         
         buffer= buffers.get(bufferKey);
+        postMessage({
+            storage: "RAM",
+            key: bufferKey,
+            size: buffer.byteLength
+        })
         const atomicsView = new Uint8Array(buffer, 1, 1);
         const lengthView = new Int32Array(buffer, 4, 1);
 
