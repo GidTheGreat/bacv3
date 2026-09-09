@@ -52,7 +52,7 @@ onmessage = event => {
                     socket.onmessage = (e)=>{
                         const parseData = JSON.parse(e.data)
                         //console.log(parseData.data)
-                        df.parseFeed("binance", "um", "1min", parseData.data)
+                        df.parseFeed("binance", "um", parseData.data)
                     }
                 }
            })
