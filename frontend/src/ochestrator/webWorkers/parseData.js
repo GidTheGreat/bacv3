@@ -287,7 +287,15 @@ class DataFeed {
             this.currentBucket[candleKey] !==
             newBucket
         ) {
-
+            const bins = this.currentCandle[candleKey]["binnedProfile"]
+            const POC = Object.entries(bins).reduce((max, [price, profile]) => {
+                return profile.buy + profile.sell > max.volume
+                    ? { price: Number(price), volume: profile.buy + profile.sell }
+                    : max;
+            }, { price: null, volume: 0 });
+            
+            this.currentCandle[candleKey]["poc"] = POC 
+            //console.log(this.currentCandle[candleKey])
             // Send completed candle
             this.messageCoalescer.flush({
 

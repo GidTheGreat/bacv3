@@ -265,7 +265,13 @@ class FootprintRenderer {
 
             const bins = item.binnedProfile;
             //console.log(item,bins)
-
+            const poc= item?.poc;
+            let pocY;
+            if (poc){
+                pocY = series.priceToCoordinate(poc.price);
+            }
+            
+            const width = spacing * 0.8;
             if (!bins) continue;
             const y1 = series.priceToCoordinate(item.low);
             const y2 = series.priceToCoordinate(item.high);
@@ -280,7 +286,7 @@ class FootprintRenderer {
             let newRows = regroup(profileRows, aggPerRow);
             let rowHeight = Math.abs(y2-y1)/newRows.length;
             //console.log(aggPerRow,newRows.length)
-
+            
             
             this.drawFooter(y1, x, item, ctx)
             
@@ -302,8 +308,8 @@ class FootprintRenderer {
                     0
                 );
 
-                const width = spacing * 0.8;
-
+                
+                
                 const sellT = group.reduce((acc,val)=>Math.floor(acc+val.sell),0);
                 const sellColor =
                             heatColor(
@@ -338,7 +344,23 @@ class FootprintRenderer {
                 }
                 pos = pos+rowHeight;
             }
-        
+            if (pocY){
+                ctx.save();
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(
+                    x - width / 2,
+                    pocY,
+                    width,
+                    rowHeight
+                );
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "black";
+                ctx.fillText("POC",x,pocY+rowHeight/2)
+                ctx.restore();
+
+            }
 
         }
     });
