@@ -88,6 +88,12 @@ class DataFeed{
             this.currentCandle["high"]);
             this.currentCandle["low"] = Math.min(priceView[this.i[key]],
             this.currentCandle["low"]);
+            postMessage({
+                    store:"chartStore",
+                    k1: chartKey,
+                    tf: tf,
+                    trans_arr: [this.currentCandle]
+                })
             
             
         

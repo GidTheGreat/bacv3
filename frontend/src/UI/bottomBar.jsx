@@ -13,6 +13,7 @@ import {
   Tooltip,
   Checkbox
 } from "@mui/material";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
 import Clock from "./time";
 import { getCapabilities } from '../registry';
@@ -97,17 +98,26 @@ function SymbolSelector(){
   }
 
   useEffect(()=>{fetchSymbols()},[activePlatform,activeTrade])
-  useEffect(()=>{console.log(useConnStore.getState())},[selection])
+  //useEffect(()=>{console.log(useConnStore.getState())},[selection])
   
+  const selections = selection[`${activePlatform}|${activeTrade}`]
   
   return (
     <Box>
       <Tooltip><Button
         aria-describedby={id}
         onClick={handleClick}
-        variant="contained"
+        variant="outlined"
+        endIcon={<ArrowDropDownIcon />}
+
       >
-        {selection[`${activePlatform}|${activeTrade}`]}
+        <Typography
+          noWrap
+          sx={{ maxWidth: 60 }}
+        >
+          {selections?.size && selections.size>0? Array.from(selections).join(",") : "select symbol"}
+        </Typography>
+        
       </Button></Tooltip>
 
       <Popover
@@ -159,18 +169,35 @@ function SymbolSelector(){
 
 }
 
-function PickSymbol({ws}){
+function PickSymbol(){
+  const ws = useAppStore(state => state.ws);
+
   const platforms = useConnStore(s=>s.platforms);
   const trades = useConnStore(s=>s.trades);
   const setActive = useConnStore(s=>s.setActive);
+  const [connState, setConnState] = useState("Connect")
+
+  const selection = useConnStore(s=>s.selection);
+
+  let totalSizeList = []
+  
+  Object.keys(selection).forEach(key=>{
+    //console.log(selection[key].size)
+    selection[key]? totalSizeList.push(selection[key].size) : null
+  } 
+  )
+
+  let symbolsLen = totalSizeList.reduce((total, n) => total + n, 0)
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const id = open ? "replay-popper" : undefined;
 
+  useEffect(()=>{ws?setConnState("Connected"):setConnState("Connect")},[ws])
+
   return (
     <Box>
-      <Tooltip title="Connect">
+      <Tooltip >
         <Button
               aria-describedby={id}
               onClick={(event) => {
@@ -178,7 +205,7 @@ function PickSymbol({ws}){
                   current ? null : event.currentTarget
                 );
               }}
-
+              variant="outlined"
               startIcon={
                 <Box
                   sx={{
@@ -197,7 +224,17 @@ function PickSymbol({ws}){
               }
               
             >
-              <Typography>Active:{0}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Active
+              </Typography>
+
+              <Typography
+                variant="body2"
+                fontWeight={700}
+                sx={{ ml: 0.5 }}
+              >
+                {symbolsLen}
+              </Typography>
               
         </Button>
       </Tooltip>
@@ -277,9 +314,35 @@ function PickSymbol({ws}){
               justifyContent:"center"
             }}
           >
-            <Button variant="contained">
-                Connect
-            </Button>
+            <Tooltip title={connState=="Connected"? "Click to Disconnect" : "Click to Connect"}>
+              <Button variant="contained"
+            
+              sx={{
+                bgcolor: connState.toLowerCase().startsWith("failed")?"red":"Background.default"
+              }}
+              onClick={()=>{
+                if (ws){
+                  ochestrator.send("disconnect", 
+                    {platform:"meta"}, "ws")
+
+                } else {
+                  if (symbolsLen<1){
+                    //console.log("failed")
+                    setConnState("Failed,Pick atleast One Symbol")
+                    setTimeout(()=>setConnState("Connect"),5_000)
+                    return;
+                  }
+                  ochestrator.send("connect", 
+                    {selection}, "ws")
+                    setConnState("Connecting....")
+                }
+                
+              }}>
+                  {connState}
+              </Button>
+
+            </Tooltip>
+            
             
           </Box>
 
@@ -293,7 +356,7 @@ function PickSymbol({ws}){
 
 export default function BottomBar() {
   //console.count("bottom bar")
-  const ws = useAppStore(state => state.ws);
+  
   const notification = useAppStore(state=>state.notification);
   
   
@@ -320,42 +383,7 @@ export default function BottomBar() {
         direction="row"
         spacing={2}
       >
-        {/* Connection */}
-      {/*<Button
-        variant="outlined"
-        size="small"
-        onClick={()=>{
-          if (ws){
-            ochestrator.send("disconnect", 
-              {platform:"meta"}, "ws")
-
-          } else {
-            ochestrator.send("connect", 
-              {platform:"binance",trade:"um",symbols:["BTCUSDT"]}, "ws")
-            
-          }
-          
-        }}
-        startIcon={
-          <Box
-            sx={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              bgcolor: ws ? "success.main" : "error.main",
-              boxShadow: (theme) =>
-                `0 0 6px ${
-                  ws
-                    ? theme.palette.success.main
-                    : theme.palette.error.main
-                }`,
-            }}
-          />
-        }
-      >
-        {ws ? "Connected" : "Disconnected"
-        }
-      </Button>*/}
+        
       <PickSymbol/>
       </Stack>
 
