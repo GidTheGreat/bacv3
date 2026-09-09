@@ -342,25 +342,36 @@ class FootprintRenderer {
                     ctx.fillStyle =buyColor === "#ffffff" ? "black" : "white";
                     ctx.fillText(formatNotional(buyT),x + 3 * width / 8,(pos+rowHeight/2));
                 }
+                const containsPOC = group.some(row => row.price === poc?.price);
+
+                if (containsPOC) {
+                    ctx.save();
+
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 2;
+
+                    ctx.strokeRect(
+                        x - width / 2,
+                        pos,
+                        width,
+                        rowHeight
+                    );
+
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillStyle = "black";
+
+                    ctx.fillText(
+                        "POC",
+                        x,
+                        pos + rowHeight / 2
+                    );
+
+                    ctx.restore();
+                }
                 pos = pos+rowHeight;
             }
-            if (pocY){
-                ctx.save();
-                ctx.strokeStyle = "#ffffff";
-                ctx.lineWidth = 2;
-                ctx.strokeRect(
-                    x - width / 2,
-                    pocY,
-                    width,
-                    rowHeight
-                );
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillStyle = "black";
-                ctx.fillText("POC",x,pocY+rowHeight/2)
-                ctx.restore();
-
-            }
+            
 
         }
     });
