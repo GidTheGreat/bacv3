@@ -58,7 +58,7 @@ class OchestratorMain{
     }
 
     stateUpdate(msg){
-        console.log(msg)
+        //console.log(msg)
         if (msg.store =="chartStore"){
             /*useChartStore.getState().addSymbol(
                 msg.k1.split("|")[2]

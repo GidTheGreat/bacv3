@@ -49,9 +49,11 @@ function SymbolRow({ index, style, symbols,
 }
 
 function SymbolSelector(){
+  const ws = useAppStore(state => state.ws);
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event) => {
+    if (ws) return;
     setAnchorEl(event.currentTarget);
   };
 

@@ -8,9 +8,10 @@ class DataFeed{
         this.i = {};
         
         this.startTime = null;
-        this.currentTime = null;
+        this.startTime = {};
+        this.currentTime = {};
         this.currentCandle = {};
-        this.currentBucket = null;
+        this.currentBucket = {};
         
     }
     
@@ -47,57 +48,127 @@ class DataFeed{
         sideView, tf, key, chartKey)
         this.i[key] +=1;
     }
-    buildCandles(timeView, priceView, quantityView, 
-    sideView, tf, key, chartKey){
-        //console.log("building candles",this.i, key, this.i[key])
+
+    buildCandles(timeView, priceView, quantityView, sideView, tf, key, chartKey) {
+
         const tf_sec = tfs[tf];
-        if (timeView[this.i[key]]==this.startTime){
-            //console.log("setting up candle")
-            this.currentCandle["time"] = timeView[this.i[key]]/1000;
-            this.currentCandle["open"] = priceView[this.i[key]];
-            this.currentCandle["close"] = priceView[this.i[key]];
-            this.currentCandle["high"] = priceView[this.i[key]];
-            this.currentCandle["low"] = priceView[this.i[key]];
-            //console.log("candle init",this.currentCandle);
-            
-            
-            this.currentBucket = Math.floor(timeView[this.i[key]]/(tf_sec*1000));
+        const i = this.i[key];
+
+        const price = priceView[i];
+        const quantity = quantityView[i];
+        const side = sideView[i];
+
+        const volume = quantity * price;
+
+        if (!this.currentCandle[key]) {
+
+            this.currentCandle[key] = {
+                time: timeView[i] / 1000,
+                open: price,
+                close: price,
+                high: price,
+                low: price,
+
+                binnedProfile: {
+                    [price]: {
+                        buy: side === 1 ? 0 : volume,
+                        sell: side === 1 ? volume : 0,
+                    }
+                },
+
+                totalVolume: volume,
+                totalDelta: side === 1 ? -volume : volume,
+            };
+
+            this.startTime[key] = timeView[i];
+
+            this.currentBucket[key] =
+                Math.floor(timeView[i] / (tf_sec * 1000));
+
         } else {
-            const newBucket = Math.floor(timeView[this.i[key]]/(tf_sec*1000));
-            if (this.currentBucket!=newBucket){
-                
+
+            const newBucket =
+                Math.floor(timeView[i] / (tf_sec * 1000));
+
+            if (this.currentBucket[key] !== newBucket) {
+
                 postMessage({
-                    store:"chartStore",
+                    store: "chartStore",
                     k1: chartKey,
                     tf: tf,
-                    trans_arr: [this.currentCandle]
-                })
-                console.log("candle open time:",new Date(this.currentCandle["time"]*1000),
-                "current time",new Date(timeView[this.i[key]]))
-                this.currentCandle = {};
-                this.currentCandle["time"] = timeView[this.i[key]]/1000;
-                this.currentCandle["open"] = priceView[this.i[key]];
-                this.currentCandle["close"] = priceView[this.i[key]];
-                this.currentCandle["high"] = priceView[this.i[key]];
-                this.currentCandle["low"] = priceView[this.i[key]];
-                this.currentBucket = newBucket
+                    trans_arr: [this.currentCandle[key]]
+                });
+
+                this.currentCandle[key] = {
+                    time: timeView[i] / 1000,
+                    open: price,
+                    close: price,
+                    high: price,
+                    low: price,
+
+                    binnedProfile: {
+                        [price]: {
+                            buy: side === 1 ? 0 : volume,
+                            sell: side === 1 ? volume : 0,
+                        }
+                    },
+
+                    totalVolume: volume,
+                    totalDelta: side === 1 ? -volume : volume,
+                };
+
+                this.currentBucket[key] = newBucket;
+
+            } else {
+
+                this.currentCandle[key].close = price;
+
+                this.currentCandle[key].high =
+                    Math.max(
+                        price,
+                        this.currentCandle[key].high
+                    );
+
+                this.currentCandle[key].low =
+                    Math.min(
+                        price,
+                        this.currentCandle[key].low
+                    );
+
+                // Volume profile
+                const bin =
+                    this.currentCandle[key].binnedProfile[price];
+
+                if (bin) {
+
+                    if (side === 1) {
+                        bin.sell += volume;
+                    } else {
+                        bin.buy += volume;
+                    }
+
+                } else {
+
+                    this.currentCandle[key].binnedProfile[price] = {
+                        buy: side === 1 ? 0 : volume,
+                        sell: side === 1 ? volume : 0,
+                    };
+                }
+
+                // Candle totals
+                this.currentCandle[key].totalVolume += volume;
+
+                this.currentCandle[key].totalDelta +=
+                    side === 1 ? -volume : volume;
             }
-            
-            this.currentCandle["close"] = priceView[this.i[key]];
-            this.currentCandle["high"] = Math.max(priceView[this.i[key]],
-            this.currentCandle["high"]);
-            this.currentCandle["low"] = Math.min(priceView[this.i[key]],
-            this.currentCandle["low"]);
+
             postMessage({
-                    store:"chartStore",
-                    k1: chartKey,
-                    tf: tf,
-                    trans_arr: [this.currentCandle]
-                })
-            
-            
-        
-    }
+                store: "chartStore",
+                k1: chartKey,
+                tf: tf,
+                trans_arr: [this.currentCandle[key]]
+            });
+        }
     }
 }
 
