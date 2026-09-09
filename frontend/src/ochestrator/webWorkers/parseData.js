@@ -342,6 +342,23 @@ class DataFeed {
             this.currentBucket[candleKey] =
                 newBucket;
 
+            // Immediately show new forming candle
+            this.messageCoalescer.flush({
+
+                store: "chartStore",
+
+                k1: chartKey,
+
+                tf,
+
+                trans_arr: [
+                    this.currentCandle[candleKey]
+                ]
+            });
+
+
+            return;
+
         } else {
 
 
