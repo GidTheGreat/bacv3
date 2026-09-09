@@ -144,9 +144,9 @@ export default function ReplayButton() {
   const cursor = currentReplay?.cursor ?? 0;
   const progress = (cursor / (dataLength? dataLength: 300)) * 100;
 
-  useEffect(() => {
+  /*useEffect(() => {
     console.log(useReplayStore.getState().replayActive);
-  }, [useReplayStore.getState().replayActive]);
+  }, [useReplayStore.getState().replayActive]);*/
 
   return (
     <Box>
@@ -283,7 +283,7 @@ export default function ReplayButton() {
             >
               {Array.from(trade_types).map((trade) => (
                 <option value={trade} key={trade}>
-                  {trade}
+                  {trade=="um"?"USD-M":"COIN-M"}
                 </option>
               ))}
             </select>

@@ -82,9 +82,9 @@ class WorkersManager {
     }
 
     startUp(msgRelay){
-        console.log("starting up")
+        //console.log("starting up")
         if (!this.workers.has("http")){
-            console.log("creating http worker");
+            //console.log("creating http worker");
             const httpWorker = new HttpWorker();
 
             httpWorker.postMessage({type: "status", payload:"meta"});
@@ -102,7 +102,7 @@ class WorkersManager {
             httpWorker.onmessageerror = (event) => {
             console.error("MESSAGE ERROR", event);
             };
-            console.log("created http worker");
+            //console.log("created http worker");
 
             this.workers.set("http", httpWorker);
         }
