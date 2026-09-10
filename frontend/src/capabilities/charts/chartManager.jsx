@@ -67,11 +67,7 @@ function ChartSeries({chartId,chartRef, fpRef}){
                 }
             );
           series.attachPrimitive(fpRef.current)
-        } else {
-            series = chartRef.current.addCustomSeries(
-                new FootprintSeries(chartId)
-            );
-        }
+        } 
 
         setActiveSeries(chartId, series);
 
@@ -175,7 +171,7 @@ function noData({ symbol, tf }) {
   );
 }
 
-function ChartData({ chartId, fpRef, chartRef, containerRef }) {
+function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
     const replayState = useReplayStore(s => s.replayState);
     const replayActive = useReplayStore(s=>s.replayActive);
     const setReplayState = useReplayStore(s => s.setReplayState);
@@ -205,7 +201,7 @@ function ChartData({ chartId, fpRef, chartRef, containerRef }) {
     const replayStateDeets = replayState[k1];
 
     
-    const watermarkRef = useRef(null);
+    
     function getOffset(tf, minuteCursor){
       if (tf.startsWith("1m")){
         return minuteCursor
@@ -223,30 +219,6 @@ function ChartData({ chartId, fpRef, chartRef, containerRef }) {
 
     }
 
-    useEffect(() => {
-      if (!chartReady || !chartRef.current) return;
-
-      watermarkRef.current = createTextWatermark(
-          chartRef.current.panes()[0],
-          {
-              horzAlign: "center",
-              vertAlign: "center",
-              lines: [
-                  {
-                      text: "No data available",
-                      color: "rgba(255,255,255,0.35)",
-                      fontSize: 20,
-                  },
-              ],
-          }
-      );
-
-      return () => {
-          watermarkRef.current?.detach?.();
-          watermarkRef.current = null;
-      };
-
-  }, [chartReady]);
 
     useEffect(() => {
         if (!replayActive) return;
@@ -500,6 +472,7 @@ function Chart({chartId, destroyChart, pane}){
     });*/
   const containerRef = useRef(null);
   const chartRef = useRef(null);
+  const watermarkRef = useRef(null);
 
   const fpRef = useRef(new FootprintPrimitive(chartId))
   //console.count("chart")
@@ -532,6 +505,20 @@ function Chart({chartId, destroyChart, pane}){
                     secondsVisible: false,
                 },
             })
+      watermarkRef.current = createTextWatermark(
+          chart.panes()[0],
+          {
+              horzAlign: "center",
+              vertAlign: "center",
+              lines: [
+                  {
+                      text: "No data available",
+                      color: "rgba(255,255,255,0.35)",
+                      fontSize: 20,
+                  },
+              ],
+          }
+      );
       chartRef.current = chart;
        /*console.log("CHART CREATED:", {
         chartId,
@@ -559,6 +546,8 @@ function Chart({chartId, destroyChart, pane}){
             pane,
             chartRef: chartRef.current
         });*/
+        watermarkRef.current?.detach?.();
+        watermarkRef.current = null;
         chart.remove();
         resize.disconnect();
         setChartReady(chartId,false);
@@ -604,7 +593,7 @@ function Chart({chartId, destroyChart, pane}){
       </Box>
       <ChartSeries chartId={chartId} chartRef={chartRef} fpRef={fpRef}/>
       <ChartData chartId={chartId} fpRef={fpRef}  chartRef={chartRef}
-       containerRef={containerRef}/>
+       containerRef={containerRef} watermarkRef={watermarkRef}/>
       
     </Box>
   )
