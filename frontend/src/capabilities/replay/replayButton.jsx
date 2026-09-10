@@ -18,6 +18,8 @@ import { useEffect, useRef, useState } from "react";
 
 import useReplayStore from "../../stores/replayStore";
 import useChartStore from "../../stores/chartStore";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 
 export default function ReplayButton() {
   const replayState = useReplayStore((s) => s.replayState);
@@ -63,6 +65,7 @@ export default function ReplayButton() {
     `${replayKey.platform}|${replayKey.trade}|${replayKey.symbol}`;
 
   const currentReplay = replayState?.[replayKeyJoin];
+  const locked = currentReplay.locked;
 
   const dataLength = data?.[replayKeyJoin]?.["1min"]?.data.length;
   //console.log("[replayButton]", dataLength);
@@ -156,8 +159,10 @@ export default function ReplayButton() {
           setAnchorEl((current) =>
             current ? null : event.currentTarget
           );
-
-          setReplayActive();
+          if (!locked){
+            setReplayActive();
+          }
+          
         }}
         sx={{
           color: "text.secondary",
@@ -207,6 +212,7 @@ export default function ReplayButton() {
               display: "grid",
               gridTemplateColumns: "1fr 1fr 1.2fr",
               gap: 0.75,
+              pr: 3.5,
 
               "& select": {
                 width: "100%",
@@ -228,6 +234,27 @@ export default function ReplayButton() {
               },
             }}
           >
+            <IconButton
+              size="small"
+              onClick={()=>{
+                setReplayState(replayKeyJoin, "locked", !locked)
+              }}
+              sx={{
+                position: "absolute",
+                right: -2,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 24,
+                height: 24,
+                color: locked ? "primary.main" : "text.secondary",
+              }}
+            >
+              {locked ? (
+                <LockOutlinedIcon sx={{ fontSize: 16 }} />
+              ) : (
+                <LockOpenOutlinedIcon sx={{ fontSize: 16 }} />
+              )}
+            </IconButton>
             <select
               ref={platformRef}
               value={replayKey.platform ?? ""}

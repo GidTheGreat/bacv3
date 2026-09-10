@@ -4,6 +4,7 @@ const DEFAULT = {
     "binance|um|BTCUSDT":{
         replayBar: false,
         playing: false,
+        locked:false,
         cursor: 1,
         speed: 1,
         
@@ -55,6 +56,7 @@ const useReplayStore = create((set) => ({
                 [replayKeyJoin]: {
                     replayBar: false,
                     playing: false,
+                    locked:false,
                     cursor: 1,
                     speed: 1,
                     
