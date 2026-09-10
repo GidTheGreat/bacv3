@@ -22,7 +22,7 @@ import Tooltip from '@mui/material/Tooltip';
 import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 
 import { getCapabilities } from "../../registry";
-import {createChart, CandlestickSeries} from 'lightweight-charts';
+import {createChart, CandlestickSeries, createTextWatermark} from 'lightweight-charts';
 import CloseIcon from "@mui/icons-material/Close";
 import DrawingLayer from "../../UI/drawings/drawingLayer";
 import { FootprintPrimitive } from "./footprintPrimitive";
@@ -31,6 +31,7 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import VPControls from "./vpControls";
+import VerticalAlignCenterIcon from "@mui/icons-material/VerticalAlignCenter";
 
 
 function ChartSeries({chartId,chartRef, fpRef}){
@@ -203,6 +204,8 @@ function ChartData({ chartId, fpRef, chartRef, containerRef }) {
     const renderdata = data?.data
     const replayStateDeets = replayState[k1];
 
+    
+    const watermarkRef = useRef(null);
     function getOffset(tf, minuteCursor){
       if (tf.startsWith("1m")){
         return minuteCursor
@@ -219,6 +222,31 @@ function ChartData({ chartId, fpRef, chartRef, containerRef }) {
       }
 
     }
+
+    useEffect(() => {
+      if (!chartReady || !chartRef.current) return;
+
+      watermarkRef.current = createTextWatermark(
+          chartRef.current.panes()[0],
+          {
+              horzAlign: "center",
+              vertAlign: "center",
+              lines: [
+                  {
+                      text: "No data available",
+                      color: "rgba(255,255,255,0.35)",
+                      fontSize: 20,
+                  },
+              ],
+          }
+      );
+
+      return () => {
+          watermarkRef.current?.detach?.();
+          watermarkRef.current = null;
+      };
+
+  }, [chartReady]);
 
     useEffect(() => {
         if (!replayActive) return;
@@ -245,8 +273,24 @@ function ChartData({ chartId, fpRef, chartRef, containerRef }) {
     ]);
     
     useEffect(() => {
-        if (!chartReady || !activeSeries || !renderdata) return;
+        if (!chartReady || !activeSeries ) return;
+       
+        const watermark = watermarkRef.current;
 
+        if (!renderdata?.length) {
+
+            activeSeries.setData([]);
+
+            watermark?.applyOptions({
+                visible: true,
+            });
+
+            return;
+        }
+
+        watermark?.applyOptions({
+            visible: false,
+        });
         if (replayActive) {
             if (!replayStateDeets) return;
 
@@ -268,9 +312,9 @@ function ChartData({ chartId, fpRef, chartRef, containerRef }) {
         } else {
             activeSeries.setData(renderdata);
 
-            activeSeries.priceScale().applyOptions({
+            /*activeSeries.priceScale().applyOptions({
                 autoScale: true,
-            });
+            });*/
 
             fpRef.current?.setData(renderdata);
         }
@@ -413,6 +457,33 @@ function ChartScroll({chartRef}){
           >
             <KeyboardDoubleArrowRightIcon />
           </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Pricescale FitScreen">
+            <IconButton
+                size="small"
+                aria-label="Go to latest"
+                sx={{
+                  position: 'absolute',
+                  right: 110,
+                  bottom: 30,
+                  zIndex: 10,
+                  backgroundColor: 'background.paper',
+                  opacity: 0.75,
+
+                  '&:hover': {
+                    opacity: 1,
+                    backgroundColor: 'background.paper',
+                  },
+                }}
+                onClick={
+                  ()=>{
+                    chartRef.current.priceScale("right").setAutoScale(true);
+                  }
+                }
+              >
+                <VerticalAlignCenterIcon/>
+              </IconButton>
           </Tooltip>
     </>
   )
