@@ -479,6 +479,9 @@ function ChartScroll({chartRef}){
                 onClick={
                   ()=>{
                     chartRef.current.priceScale("right").setAutoScale(true);
+                    requestAnimationFrame(()=>{
+                      chartRef.current.priceScale("right").setAutoScale(false);
+                    })
                   }
                 }
               >
