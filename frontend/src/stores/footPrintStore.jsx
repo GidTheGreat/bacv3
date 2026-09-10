@@ -7,6 +7,7 @@ const DEFAULT = {
         footer: true,
         poc: false,
         lod: false,
+        ua: false,
         VA: 70
     }
 }

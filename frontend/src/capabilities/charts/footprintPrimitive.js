@@ -182,6 +182,48 @@ function formatNotional(value) {
         return `${Math.round(value)}`;
     }
 
+function quantityProfile(item) {
+    const bins = item.binnedProfile;
+    const binnedProfile = {};
+
+    let totalVolume = 0;
+    let totalDelta = 0;
+    let poc = { price: null, volume: 0 };
+
+    for (const [priceKey, profile] of Object.entries(bins)) {
+        const price = Number(priceKey);
+
+        const buy = profile.buy / price;
+        const sell = profile.sell / price;
+
+        binnedProfile[priceKey] = {
+            buy,
+            sell
+        };
+
+        const volume = buy + sell;
+        const delta = buy - sell;
+
+        totalVolume += volume;
+        totalDelta += delta;
+
+        if (volume > poc.volume) {
+            poc = {
+                price,
+                volume
+            };
+        }
+    }
+
+    return {
+        ...item,
+        binnedProfile,
+        totalVolume,
+        totalDelta,
+        poc
+    };
+}
+
 function heatColor(
     value,
     max,
@@ -283,12 +325,19 @@ class FootprintRenderer {
     if (!chart || !series || !data.length) return;
 
     target.useMediaCoordinateSpace(({ context: ctx }) => {
-        for (const item of newData) {
+        for (let item of newData) {
             const x = timeScale.timeToCoordinate(item.time);
 
             if (x === null) continue;
+            let bins;
 
-            const bins = item.binnedProfile;
+            if (footPrintState?.notional ?? true ){
+                bins = item.binnedProfile
+            } else {
+                item = quantityProfile(item);
+                bins = item.binnedProfile;
+            }
+
             //console.log(item,bins)
             const poc= item?.poc;
             let pocY;
@@ -306,6 +355,9 @@ class FootprintRenderer {
                 price: Number(price), buy: profile.buy,
               sell:profile.sell}))
             profileRows.sort((a,b)=>b.price-a.price);
+            const highUA = profileRows[0]?.sell > 0;
+            const lowUA = profileRows.at(-1)?.buy > 0;
+
             let aggPerRow = targetPx/pixelsPerPrice;
             //let aggLength = profileRows.length/aggPerRow;
             let newRows = regroup(profileRows, aggPerRow);
@@ -314,14 +366,44 @@ class FootprintRenderer {
                 : newRows;
             let rowHeight = Math.abs(y2-y1)/newRows.length;
             //console.log(aggPerRow,newRows.length)
+
+            if (footPrintState?.ua ?? false) {
+                ctx.save();
+
+                const uaHeight = Math.min(rowHeight * 0.6, 8);
+
+                if (highUA) {
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 2;
+
+                    ctx.strokeRect(
+                        x - width / 2,
+                        y2 - uaHeight,
+                        width / 4,
+                        uaHeight
+                    );
+                }
+
+                if (lowUA) {
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 2;
+
+                    ctx.strokeRect(
+                        x + width / 4,
+                        y1,
+                        width / 4,
+                        uaHeight
+                    );
+                }
+
+                ctx.restore();
+            }
             
             if (footPrintState?.footer){
                 this.drawFooter(y1, x, item, ctx)
             }
             
-            let pos = y2;
-            for ( const group of newRows){
-                const maxVolBuySide = newRows.reduce(
+            const maxVolBuySide = newRows.reduce(
                     (max, group) => Math.max(
                         max,
                         group.reduce((sum, val) => sum + val.buy, 0)
@@ -329,16 +411,15 @@ class FootprintRenderer {
                     0
                 );
 
-                const maxVolSellSide = newRows.reduce(
-                    (max, group) => Math.max(
-                        max,
-                        group.reduce((sum, val) => sum + val.sell, 0)
-                    ),
-                    0
-                );
-
-                
-                
+            const maxVolSellSide = newRows.reduce(
+                (max, group) => Math.max(
+                    max,
+                    group.reduce((sum, val) => sum + val.sell, 0)
+                ),
+                0
+            );
+            let pos = y2;
+            for ( const group of newRows){
                 const sellT = group.reduce((acc,val)=>Math.floor(acc+val.sell),0);
                 const sellColor =
                             heatColor(

@@ -17,8 +17,13 @@ import useFootprintStore from "../../stores/footPrintStore";
 import { useState, useEffect} from "react"
 
 export default function VPControls({ chartId }) {
-  const footPrintState = useFootprintStore((s) => s.footPrintState?.[chartId]);
-  const setFootPrintState = useFootprintStore((s) => s.setFootPrintState);
+  const footPrintState = useFootprintStore(
+    (s) => s.footPrintState?.[chartId]
+  );
+
+  const setFootPrintState = useFootprintStore(
+    (s) => s.setFootPrintState
+  );
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -32,8 +37,31 @@ export default function VPControls({ chartId }) {
 
   const open = Boolean(anchorEl);
   const id = open ? "footprint-popover" : undefined;
-  //useEffect(()=>{console.log(footPrintState)},[footPrintState])
 
+  const enabled = footPrintState?.footprint ?? false;
+
+  const toggle = (key) => {
+    setFootPrintState(
+      chartId,
+      key,
+      !footPrintState?.[key]
+    );
+  };
+
+  const controlSx = {
+    m: 0,
+    width: "100%",
+    minHeight: 30,
+    justifyContent: "space-between",
+
+    "& .MuiFormControlLabel-label": {
+      fontSize: 12,
+    },
+
+    "& .MuiCheckbox-root": {
+      p: 0.5,
+    },
+  };
 
   return (
     <Box sx={{ display: "inline-flex" }}>
@@ -43,10 +71,11 @@ export default function VPControls({ chartId }) {
         onClick={handleClick}
         sx={{
           borderRadius: 1,
-          bgcolor: footPrintState?.footprint
+          bgcolor: enabled
             ? "rgba(120, 90, 255, 0.18)"
             : "transparent",
-          color: footPrintState?.footprint
+
+          color: enabled
             ? "primary.light"
             : "text.secondary",
 
@@ -58,179 +87,233 @@ export default function VPControls({ chartId }) {
         <CandlestickChartIcon fontSize="small" />
       </IconButton>
 
-     <Popover
-          id={id}
-          open={open}
-          anchorEl={anchorEl}
-          onClose={handleClose}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "left",
-          }}
-          slotProps={{
-            paper: {
-              sx: {
-                mt: 0.75,
-                minWidth: 190,
-                bgcolor: "background.paper",
-                border: "1px solid",
-                borderColor: "divider",
-                borderRadius: 2,
-                boxShadow: 8,
-                overflow: "hidden",
-              },
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 0.5,
+              width: 210,
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              boxShadow: 8,
+              overflow: "hidden",
             },
-          }}
-        >
-          <Box sx={{ px: 1.5, py: 1.25 }}>
+          },
+        }}
+      >
+        <Box sx={{ p: 1.25 }}>
+
+          {/* Header */}
+
+          <Typography
+            variant="caption"
+            sx={{
+              display: "block",
+              mb: 0.75,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 1,
+              color: "text.secondary",
+            }}
+          >
+            FOOTPRINT
+          </Typography>
+
+
+          {/* Master */}
+
+          <Box
+            sx={{
+              px: 0.75,
+              py: 0.25,
+              mb: 0.75,
+
+              borderRadius: 1,
+
+              bgcolor: enabled
+                ? "rgba(120, 90, 255, 0.10)"
+                : "transparent",
+            }}
+          >
+            <FormControlLabel
+              sx={{
+                ...controlSx,
+
+                "& .MuiFormControlLabel-label": {
+                  fontSize: 12,
+                  fontWeight: 600,
+                },
+              }}
+              labelPlacement="start"
+              checked={enabled}
+              control={
+                <Checkbox
+                  size="small"
+                  onChange={() => toggle("footprint")}
+                />
+              }
+              label="Enable Footprint"
+            />
+          </Box>
+
+
+          {/* Divider */}
+
+          <Box
+            sx={{
+              height: 1,
+              bgcolor: "divider",
+              mb: 0.5,
+            }}
+          />
+
+
+          {/* Options */}
+
+          <Box
+            sx={{
+              opacity: enabled ? 1 : 0.35,
+              transition: "opacity 150ms ease",
+            }}
+          >
 
             <Typography
               variant="caption"
               sx={{
                 display: "block",
-                mb: 1,
-                color: "text.secondary",
-                fontWeight: 600,
+                mt: 0.5,
+                mb: 0.25,
+                fontSize: 9,
+                fontWeight: 700,
                 letterSpacing: 0.8,
+                color: "text.secondary",
               }}
             >
-              FOOTPRINT
+              DISPLAY
             </Typography>
+
+
+            <FormControlLabel
+              sx={controlSx}
+              labelPlacement="start"
+              checked={footPrintState?.notional ?? true}
+              control={
+                <Checkbox
+                  size="small"
+                  disabled={!enabled}
+                  onChange={() => toggle("notional")}
+                />
+              }
+              label="Notional"
+            />
+
+
+            <FormControlLabel
+              sx={controlSx}
+              labelPlacement="start"
+              checked={footPrintState?.lod ?? false}
+              control={
+                <Checkbox
+                  size="small"
+                  disabled={!enabled}
+                  onChange={() => toggle("lod")}
+                />
+              }
+              label="Variable LOD"
+            />
+
 
             <Box
               sx={{
                 height: 1,
                 bgcolor: "divider",
-                mb: 0.75,
+                my: 0.5,
               }}
             />
 
-            <FormControlLabel
-              sx={{
-                m: 0,
-                width: "100%",
-                justifyContent: "space-between",
 
-                "& .MuiFormControlLabel-label": {
-                  fontSize: 13,
-                  fontWeight: 500,
-                },
+            <Typography
+              variant="caption"
+              sx={{
+                display: "block",
+                mb: 0.25,
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: 0.8,
+                color: "text.secondary",
               }}
+            >
+              LEVELS
+            </Typography>
+
+
+            <FormControlLabel
+              sx={controlSx}
               labelPlacement="start"
-              checked={footPrintState?.footprint ?? false}
+              checked={footPrintState?.poc ?? false}
               control={
                 <Checkbox
                   size="small"
-                  onChange={() =>
-                    setFootPrintState(
-                      chartId,
-                      "footprint",
-                      !footPrintState?.footprint
-                    )
-                  }
+                  disabled={!enabled}
+                  onChange={() => toggle("poc")}
                 />
               }
-              label="Enable Footprint"
+              label="Point of Control"
             />
+
+
+            <FormControlLabel
+              sx={controlSx}
+              labelPlacement="start"
+              checked={footPrintState?.ua ?? false}
+              control={
+                <Checkbox
+                  size="small"
+                  disabled={!enabled}
+                  onChange={() => toggle("ua")}
+                />
+              }
+              label="Unfinished Auction"
+            />
+
 
             <Box
               sx={{
-                ml: 1,
-                mt: 0.5,
-                pl: 1.25,
-                borderLeft: "1px solid",
-                borderColor: "divider",
-                opacity: footPrintState?.footprint ? 1 : 0.4,
-                transition: "opacity 150ms ease",
+                height: 1,
+                bgcolor: "divider",
+                my: 0.5,
               }}
-            >
-              <FormControlLabel
-                sx={{
-                  m: 0,
-                  width: "100%",
-                  justifyContent: "space-between",
+            />
 
-                  "& .MuiFormControlLabel-label": {
-                    fontSize: 12,
-                  },
-                }}
-                labelPlacement="start"
-                checked={footPrintState?.lod ?? false}
-                control={
-                  <Checkbox
-                    size="small"
-                    disabled={!footPrintState?.footprint}
-                    onChange={() =>
-                      setFootPrintState(
-                        chartId,
-                        "lod",
-                        !footPrintState?.lod
-                      )
-                    }
-                  />
-                }
-                label="Variable Level of Detail"
-              />
-              
-              <FormControlLabel
-                sx={{
-                  m: 0,
-                  width: "100%",
-                  justifyContent: "space-between",
 
-                  "& .MuiFormControlLabel-label": {
-                    fontSize: 12,
-                  },
-                }}
-                labelPlacement="start"
-                checked={footPrintState?.footer ?? false}
-                control={
-                  <Checkbox
-                    size="small"
-                    disabled={!footPrintState?.footprint}
-                    onChange={() =>
-                      setFootPrintState(
-                        chartId,
-                        "footer",
-                        !footPrintState?.footer
-                      )
-                    }
-                  />
-                }
-                label="Footer"
-              />
-
-              <FormControlLabel
-                sx={{
-                  m: 0,
-                  width: "100%",
-                  justifyContent: "space-between",
-
-                  "& .MuiFormControlLabel-label": {
-                    fontSize: 12,
-                  },
-                }}
-                labelPlacement="start"
-                checked={footPrintState?.poc ?? false}
-                control={
-                  <Checkbox
-                    size="small"
-                    disabled={!footPrintState?.footprint}
-                    onChange={() =>
-                      setFootPrintState(
-                        chartId,
-                        "poc",
-                        !footPrintState?.poc
-                      )
-                    }
-                  />
-                }
-                label="Point of Control"
-              />
-            </Box>
+            <FormControlLabel
+              sx={controlSx}
+              labelPlacement="start"
+              checked={footPrintState?.footer ?? false}
+              control={
+                <Checkbox
+                  size="small"
+                  disabled={!enabled}
+                  onChange={() => toggle("footer")}
+                />
+              }
+              label="Footer"
+            />
 
           </Box>
-        </Popover>
+
+        </Box>
+      </Popover>
     </Box>
   );
 }
