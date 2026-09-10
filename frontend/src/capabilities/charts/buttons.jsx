@@ -31,7 +31,7 @@ export default function Buttons({chartId}) {
         s => s.addSymbol
     )
   async function fetchSymbols(){
-    console.log("running fetch")
+    //console.log("running fetch")
     if (selection.platform=="binance"){
       if (selection.trade=="um"){
         const resp = await fetch("https://fapi.binance.com/fapi/v1/exchangeInfo");

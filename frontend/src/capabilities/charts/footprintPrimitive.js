@@ -146,7 +146,28 @@ function regroup(arr, groupNum){
     return newArr
 }
 
+function regroup10(newRows) {
+    if (newRows.length <= 10) return newRows;
 
+    const result = [];
+    const n = newRows.length;
+    const base = Math.floor(n / 10);
+    const remainder = n % 10;
+
+    let start = 0;
+
+    for (let i = 0; i < 10; i++) {
+        const size = base + (i < remainder ? 1 : 0);
+
+        result.push(
+            newRows.slice(start, start + size).flat()
+        );
+
+        start += size;
+    }
+
+    return result;
+}
 function formatNotional(value) {
         const abs = Math.abs(value);
 
@@ -240,8 +261,14 @@ class FootprintRenderer {
     if (!newData) return;
     //console.log(newData.length);
     const footPrintState = useFootprintStore.getState().footPrintState?.[chartId];
-    //console.log(footPrintState)
-    if (footPrintState?.fpStatus === "off") return;
+    /*console.log({
+        state: footPrintState,
+        poc: footPrintState?.poc,
+        type: typeof footPrintState?.poc,
+        isTrue: footPrintState?.poc === true,
+        truthy: Boolean(footPrintState?.poc),
+    });*/
+    if (!footPrintState?.footprint) return;
     const visible = series.priceScale().getVisibleRange();
     if (!visible) return;
     const priceSpan = Math.abs(visible.to - visible.from);
@@ -254,8 +281,6 @@ class FootprintRenderer {
 
     
     if (!chart || !series || !data.length) return;
-
-    
 
     target.useMediaCoordinateSpace(({ context: ctx }) => {
         for (const item of newData) {
@@ -284,11 +309,15 @@ class FootprintRenderer {
             let aggPerRow = targetPx/pixelsPerPrice;
             //let aggLength = profileRows.length/aggPerRow;
             let newRows = regroup(profileRows, aggPerRow);
+            newRows = !(footPrintState?.lod ?? false)
+                ? regroup10(newRows)
+                : newRows;
             let rowHeight = Math.abs(y2-y1)/newRows.length;
             //console.log(aggPerRow,newRows.length)
             
-            
-            this.drawFooter(y1, x, item, ctx)
+            if (footPrintState?.footer){
+                this.drawFooter(y1, x, item, ctx)
+            }
             
             let pos = y2;
             for ( const group of newRows){
@@ -344,9 +373,9 @@ class FootprintRenderer {
                 }
                 const containsPOC = group.some(row => row.price === poc?.price);
 
-                if (containsPOC) {
+                if (footPrintState?.poc && containsPOC) {
                     ctx.save();
-
+                    /*
                     ctx.strokeStyle = "#ffffff";
                     ctx.lineWidth = 2;
 
@@ -365,7 +394,14 @@ class FootprintRenderer {
                         "POC",
                         x,
                         pos + rowHeight / 2
-                    );
+                    );*/
+                    ctx.strokeStyle = "yellow";
+                    ctx.lineWidth = 2;
+
+                    ctx.beginPath();
+                    ctx.moveTo(x - width / 2, pocY);
+                    ctx.lineTo(x + width / 2, pocY);
+                    ctx.stroke();
 
                     ctx.restore();
                 }

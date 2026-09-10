@@ -3,9 +3,10 @@ import { create } from "zustand";
 const DEFAULT = {
     "12345":{
         notional: true,
-        fpStatus: "full",
+        footprint: false,
         footer: true,
         poc: false,
+        lod: false,
         VA: 70
     }
 }
