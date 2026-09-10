@@ -57,7 +57,6 @@ export default function LogoBar() {
         {/* Branding */}
         <Stack
           direction="row"
-          alignItems="center"
           spacing={1}
           sx={{ flexShrink: 0 }}
         >

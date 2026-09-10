@@ -25,7 +25,7 @@ onmessage = event => {
         }
 
         case "connect":{
-            console.log(payload)
+            //console.log(payload)
            Object.keys(payload.selection).forEach(key=>{
                 if (key.startsWith('binance') && key.endsWith('um')){
                     for (const symbol of Array.from(payload.selection[key])){

@@ -103,7 +103,9 @@ export function CircleTrendRect(ctx, x, y, pointerType, chartRef, k1, chartId,ty
             //console.log("[circeTrendRect] updating pos")
             start["price"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.start?.price;
             start["time"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.start?.time;
-            
+            if (!price || !time) {
+            //console.log("returning");
+            return;}
             final["price"] = price;
             final["time"] = time;
             useDrawingStore.getState().setDrawings(k1,type,
@@ -112,9 +114,12 @@ export function CircleTrendRect(ctx, x, y, pointerType, chartRef, k1, chartId,ty
             
                 
     } else if (pointerType?.toLowerCase?.().endsWith("move")) {
-        
+        if (!price || !time) {
+            //console.log("returning");
+            return;}
         final["price"] = price;
         final["time"] = time;
+        
         renderDrawing(ctx,chartId, {type:type, 
             points:{ start, final}},
              chartRef)
@@ -127,6 +132,9 @@ export function CircleTrendRect(ctx, x, y, pointerType, chartRef, k1, chartId,ty
             final={};
             return;
         }
+        if (!price || !time) {
+            //console.log("returning");
+            return;}
         
         final["price"] = price;
         final["time"] = time;
