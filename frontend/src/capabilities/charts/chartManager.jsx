@@ -275,18 +275,10 @@ function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
 
             activeSeries.setData(replayData);
 
-            activeSeries.priceScale().applyOptions({
-                autoScale: true,
-            });
-
             fpRef.current?.setData(replayData);
 
         } else {
             activeSeries.setData(renderdata);
-
-            /*activeSeries.priceScale().applyOptions({
-                autoScale: true,
-            });*/
 
             fpRef.current?.setData(renderdata);
         }

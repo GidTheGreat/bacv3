@@ -17,6 +17,8 @@ import { useTheme } from "@mui/material/styles";
 export default function Buttons({chartId}) {
     const theme = useTheme();
   const selection = useChartStore((s) => s.selection[chartId]);
+
+  //useEffect(()=>console.log(selection),[selection])
   
   const modifySelection = useChartStore((s) => s.modifySelection);
   const symbols = useChartStore((s) => s.symbols);
@@ -29,7 +31,7 @@ export default function Buttons({chartId}) {
         s => s.addSymbol
     )
   async function fetchSymbols(){
-    //console.log(market, market=="cm")
+    console.log("running fetch")
     if (selection.platform=="binance"){
       if (selection.trade=="um"){
         const resp = await fetch("https://fapi.binance.com/fapi/v1/exchangeInfo");
@@ -50,7 +52,16 @@ export default function Buttons({chartId}) {
     }
   }
 
-  useEffect(()=>{fetchSymbols()},[selection.platform,selection.trade])
+  useEffect(()=>{
+    if (
+      symbols.length < 2 || 
+      (selection.trade=="cm" && !symbols[0].toLowerCase().endsWith("perp")) 
+      || (selection.trade=="um" && symbols[0].toLowerCase().endsWith("perp"))
+    ){
+      fetchSymbols()
+    }
+    },
+      [selection.platform,selection.trade])
 
   const [open, setOpen] = useState(false);
 
