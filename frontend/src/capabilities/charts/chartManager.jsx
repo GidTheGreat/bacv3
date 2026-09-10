@@ -220,29 +220,7 @@ function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
     }
 
 
-    useEffect(() => {
-        if (!replayActive) return;
-        if (!replayStateDeets?.playing) return;
-
-        const interval = setInterval(() => {
-           const cursor =
-    replayStateDeets.cursor =
-        Math.min(
-            renderdata.length,
-            replayStateDeets.cursor + 1
-        );
-
-            setReplayState(k1, "cursor", cursor)
-
-        }, 250 / replayStateDeets.speed);
-
-        return () => clearInterval(interval);
-
-    }, [
-        replayActive,
-        replayStateDeets?.playing,
-        replayStateDeets?.speed
-    ]);
+    
     
     useEffect(() => {
         if (!chartReady || !activeSeries ) return;

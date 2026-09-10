@@ -25,6 +25,7 @@ export default function ReplayButton() {
   const replayState = useReplayStore((s) => s.replayState);
   const setReplayState = useReplayStore((s) => s.setReplayState);
   const setReplayActive = useReplayStore(s=>s.setReplayActive);
+  const replayActive = useReplayStore(s=>s.replayActive);
 
   const replayKey = useReplayStore((s) => s.replayKey);
   const setReplayKey = useReplayStore((s) => s.setReplayKey);
@@ -68,6 +69,30 @@ export default function ReplayButton() {
   const locked = currentReplay.locked;
 
   const dataLength = data?.[replayKeyJoin]?.["1min"]?.data.length;
+  useEffect(() => {
+        if (!replayActive) return;
+        if (!currentReplay?.playing) return;
+
+        const interval = setInterval(() => {
+           const cursor =
+    currentReplay.cursor =
+        Math.min(
+            dataLength ?? 300,
+            currentReplay.cursor + 1
+        );
+
+            setReplayState(replayKeyJoin, "cursor", cursor)
+
+        }, 250 / currentReplay.speed);
+
+        return () => clearInterval(interval);
+
+    }, [
+        replayActive,
+        currentReplay?.playing,
+        currentReplay?.speed
+    ]);
+  
   //console.log("[replayButton]", dataLength);
 
   /*
