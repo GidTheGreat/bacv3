@@ -1,5 +1,14 @@
 export default function handlePointers(el, msgRelay) {
-    
+    el.ondblclick = e => {
+        //console.log("dblclick",e.clientX,)
+        msgRelay({
+            el: el.id,
+            type: e.type,
+            x: e.clientX,
+            y: e.clientY
+        });
+    };
+
     el.onpointerdown = e => {
         el.setPointerCapture(e.pointerId);
 
@@ -44,5 +53,6 @@ export default function handlePointers(el, msgRelay) {
         el.onpointermove = null;
         el.onpointerup = null;
         el.onpointercancel = null;
+        el.ondblclick = null;
     };
 }

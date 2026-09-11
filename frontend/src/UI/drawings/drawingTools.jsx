@@ -33,6 +33,7 @@ import RedoOutlinedIcon from "@mui/icons-material/RedoOutlined";
 import useDrawingStore from "../../stores/drawingStore";
 import useChartStore from "../../stores/chartStore";
 import AdsClickIcon from '@mui/icons-material/AdsClick';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 
 const groups = [
   [
@@ -68,7 +69,7 @@ const groups = [
   ],
 
   [
-    
+    ["Clear Selected Drawing",<DeleteOutlinedIcon />,false],
     ["Clear Drawings", <DeleteSweepOutlinedIcon />, false],
   ],
 ];

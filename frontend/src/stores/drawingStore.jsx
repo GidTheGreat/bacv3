@@ -34,8 +34,26 @@ const useDrawingStore = create((set) => ({
             
         ),
 
+    clearDrawing: (key, type, id,)=>set((state) => {
+        const {
+            [id]: removed,
+            ...remainingDrawings
+        } = state.Drawings[key]?.[type] ?? {};
+        console.log("[drawing store]",remainingDrawings);
+
+        return {
+            Drawings: {
+                ...state.Drawings,
+                [key]: {
+                    ...state.Drawings[key],
+                    [type]: remainingDrawings
+                }
+            }
+        };
+    }),
+
     setSelected:(key, type, id, hit=null)=>set((state=>{
-        console.log("Set slected being called")
+        //console.log("Set slected being called")
         return {
             Drawings: {
                     ...state.Drawings,

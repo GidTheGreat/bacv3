@@ -119,31 +119,78 @@ function hitTestDrawing(chartRef, activeSeries, drawingType, drawing, x, y){
     }
 }
 
-let activeSelection = {type:null, id:null, k1:null, hit:null};
+let activeSelection = {type:null, id:null, k1:null, hit:null, hold:false};
 export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
     //console.log("[hit test] execeuting,received args: ",ctx, chartRef, k1, chartId, pointerType, x, y)
-    if (!useDrawingStore.getState().Drawings) return;
+    
+    if (Object.keys(useDrawingStore.getState().Drawings).length < 1) return;
+    if (useDrawingStore.getState().DrawingState.action=="Clear Selected Drawing"){
+        if (!activeSelection.hold) return;
+        console.log("[clearing drawing it test]",activeSelection);
+        useDrawingStore.getState().clearDrawing(k1,activeSelection.type,activeSelection.id);
+        activeSelection = {type:null, id:null,
+            k1:null, hit:null, hold: false};
+        return;
+    }
     //useDrawingStore.subscribe(s=>console.log(s.Drawings))
     const setSelected = useDrawingStore.getState().setSelected;
     const activeSeries = useChartStore.getState().selection[chartId].activeSeries;
     const Drawings = useDrawingStore.getState().Drawings[k1];
     const priceY = activeSeries.coordinateToPrice(y);
     const priceX = chartRef.current.timeScale().coordinateToTime(x);
+    if (pointerType?.toLowerCase?.().endsWith("dblclick")){
+        console.log(pointerType,activeSelection)
+        for (const drawingType of  Object.keys(Drawings)){
+            for (const [id, drawing] of Object.entries(Drawings[drawingType])){
+                const hit = hitTestDrawing(chartRef, activeSeries, 
+                    drawingType, drawing, x, y) 
+                if (hit) {
+                    if (activeSelection.hold){
+                        setSelected(k1, drawingType, id, hit);
+                        activeSelection = {type:null, id:null,
+                         k1:null, hit:null, hold: false}
+                         console.log("should be deselecting",
+                            useDrawingStore.getState().Drawings
+                         )
+                    } else {
+                        setSelected(k1, drawingType, id, hit);
+                        activeSelection = {type:drawingType, id:id,
+                         k1:k1, hit:hit, hold: true};
+                         console.log("should be selecting",
+                            activeSelection
+                         )
+                    }
+                    
+                    };
+            }
+        }
+    }
+
     if (pointerType?.toLowerCase?.().endsWith("down")) {
         //console.log("[hit test] pointer down lokking for drawingsks")
+        if (activeSelection.hold){
+            console.log("[Pointer down]",activeSelection)
+            return;
+        }
+        
         for (const drawingType of  Object.keys(Drawings)){
             for (const [id, drawing] of Object.entries(Drawings[drawingType])){
                 const hit = hitTestDrawing(chartRef, activeSeries, 
                     drawingType, drawing, x, y) 
                 if (hit) {
                     setSelected(k1, drawingType, id, hit);
-                    activeSelection = {type:drawingType, id:id, k1:k1, hit:hit};
+                    activeSelection = {type:drawingType, id:id, k1:k1, hit:hit, hold:false};
                     //console.log(activeSelection)
                     };
             }
         }
         
     } else if (pointerType?.toLowerCase?.().endsWith("up")){
+        console.log("[pointer up] executing",activeSelection)
+        if (activeSelection.hold){
+            console.log("Not deselecting");
+            return;
+        }
         for (const drawingType of  Object.keys(Drawings)){
             for (const [id, drawing] of Object.entries(Drawings[drawingType])){
                 
@@ -153,14 +200,17 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
                      activeSelection.type, activeSelection.id);
                     longShort(ctx, x, y, pointerType, chartRef, k1, chartId,
                      activeSelection.type, activeSelection.id)
-                    activeSelection = {type:null, id:null, k1:null, hit:null};
+                    activeSelection = {type:null, id:null, k1:null, hit:null, hold:false};
                    
                     //console.log(drawing,drawingType)
                 };
             }
         }
     } else if ( pointerType?.toLowerCase?.().endsWith("move") && activeSelection.type){
-        //console.log(activeSelection.type)
+        if (activeSelection.hold){
+            //console.log("Hold mode not updating");
+            return;
+        }
         switch (activeSelection.type){
             case "Horizontal Line":
                 DrawHorizontalLine(ctx, x, y, pointerType, chartRef, k1, chartId, activeSelection.id);

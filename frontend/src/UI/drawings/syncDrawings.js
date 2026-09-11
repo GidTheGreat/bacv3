@@ -1,5 +1,5 @@
 
-
+import useDrawingStore from "../../stores/drawingStore";
 
 export class SyncDrawings {
 
@@ -20,7 +20,12 @@ export class SyncDrawings {
         this._paneViews = [
             new SyncView(this),
         ];
-
+        this.unsubDs = useDrawingStore.subscribe(
+            (state) =>  {
+                console.log("store updated")
+                this.requestUpdate?.();
+            }
+        );
         // Tell the chart that the primitive has something to draw.
         this.requestUpdate();
     }
@@ -30,6 +35,8 @@ export class SyncDrawings {
         this.series = null;
         this.requestUpdate = null;
         this._paneViews = [];
+        this.unsubDs();
+        
     }
 
 

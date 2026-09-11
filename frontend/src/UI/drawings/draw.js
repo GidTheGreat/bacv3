@@ -58,6 +58,16 @@ export default function draw(ctx, chartRef, k1, chartId, pointerType, x, y) {
     } else if (useDrawingStore.getState().DrawingState.action=="Select Drawing"){
         hitTest(ctx, chartRef, k1, chartId, pointerType, x, y);
         renderDrawings(ctx, chartId, k1, chartRef);
+    } else if (useDrawingStore.getState().DrawingState.action=="Clear Selected Drawing"){
+        
+        hitTest(ctx, chartRef, k1, chartId, pointerType, x, y);
+        renderDrawings(ctx, chartId, k1, chartRef);
+        useDrawingStore
+            .getState()
+            .setDrawingState(k1, "Cursor");
+        
+        renderDrawings(ctx, chartId, k1, chartRef);
+
     }
 
 }
