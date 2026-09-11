@@ -413,7 +413,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                             //console.log(`${drawing}`,drawing_details.hit)
                             ctx.save();
                             ctx.strokeStyle= "#2196f3";
-                            ctx.lineWidth = 5;
+                            ctx.lineWidth = 3;
 
                             if (drawing_details.hit=="target"){
                                 ctx.beginPath();
@@ -437,7 +437,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                                 ctx.arc(x, risk, 3, 0, Math.PI * 2);
                                 ctx.arc(x + width, risk, 3, 0, Math.PI * 2);
                                 ctx.fill();
-                                
+
                                 ctx.restore();
                             }
                             
@@ -514,7 +514,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                             //console.log(`${drawing}`,drawing_details.hit)
                             ctx.save();
                             ctx.strokeStyle= "#2196f3";
-                            ctx.lineWidth = 5;
+                            ctx.lineWidth = 3;
 
                             if (drawing_details.hit=="target"){
                                 ctx.beginPath();
