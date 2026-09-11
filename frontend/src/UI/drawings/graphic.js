@@ -285,7 +285,7 @@ export function longShort(ctx, x, y, pointerType, chartRef, k1, chartId,type, id
             
             useDrawingStore.getState().setDrawings(k1,
             type, id ? id :Math.floor(Math.random()*1_000_000_000),
-            {"start":start, "target":target, "risk":risk, selected: true})
+            {"start":start, "target":target, "risk":risk, selected: true, "hit":hitType})
     } else if (pointerType?.toLowerCase?.().endsWith("up")) {
         if (id){
             //console.log("resetting")

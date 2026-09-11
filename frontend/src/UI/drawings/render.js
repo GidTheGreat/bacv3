@@ -363,10 +363,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                     const rewardToRisk= ((drawing_details.target.price-drawing_details.start.price)/
                         (drawing_details.start.price-drawing_details.risk.price)
                     );
-                    if (drawing_details.selected){ 
-                            //console.log(`${drawing}`,drawing_details.selected)
-                           // ctx.strokeStyle= "#2196f3"
-                           };
+                    
                     ctx.fillStyle = "rgba(0, 180, 0, 0.2)";
                     
                     ctx.fillRect(
@@ -412,6 +409,39 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                         x + width - 6,
                         risk - 12
                     );
+                    if (drawing_details.selected){ 
+                            //console.log(`${drawing}`,drawing_details.hit)
+                            ctx.save();
+                            ctx.strokeStyle= "#2196f3";
+                            ctx.lineWidth = 5;
+
+                            if (drawing_details.hit=="target"){
+                                ctx.beginPath();
+                                ctx.moveTo(x, target);
+                                ctx.lineTo(x+width, target);
+                                ctx.stroke();
+
+                                ctx.beginPath();
+                                ctx.arc(x, target, 3, 0, Math.PI * 2);
+                                ctx.arc(x + width, target, 3, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.restore();
+                            } else if (drawing_details.hit=="risk"){
+                                ctx.beginPath();
+                                ctx.moveTo(x, risk);
+                                ctx.lineTo(x+width, risk);
+                                ctx.stroke();
+
+                                ctx.beginPath();
+                                ctx.arc(x, risk, 3, 0, Math.PI * 2);
+                                ctx.arc(x + width, risk, 3, 0, Math.PI * 2);
+                                ctx.fill();
+                                
+                                ctx.restore();
+                            }
+                            
+                           };
 
                     ctx.restore();
                                         
@@ -433,10 +463,6 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
 
                     const width = 120;
                     
-                    if (drawing_details.selected){ 
-                            //console.log(`${drawing}`,drawing_details.selected)
-                           // ctx.strokeStyle= "#2196f3"
-                           };
                     ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
                     ctx.fillRect(
                         x,
@@ -483,6 +509,40 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                         x + width - 6,
                         risk - 12
                     );
+
+                    if (drawing_details.selected){ 
+                            //console.log(`${drawing}`,drawing_details.hit)
+                            ctx.save();
+                            ctx.strokeStyle= "#2196f3";
+                            ctx.lineWidth = 5;
+
+                            if (drawing_details.hit=="target"){
+                                ctx.beginPath();
+                                ctx.moveTo(x, target);
+                                ctx.lineTo(x+width, target);
+                                ctx.stroke();
+
+                                ctx.beginPath();
+                                ctx.arc(x, target, 3, 0, Math.PI * 2);
+                                ctx.arc(x + width, target, 3, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.restore();
+                            } else if (drawing_details.hit=="risk"){
+                                ctx.beginPath();
+                                ctx.moveTo(x, risk);
+                                ctx.lineTo(x+width, risk);
+                                ctx.stroke();
+
+                                ctx.beginPath();
+                                ctx.arc(x, risk, 3, 0, Math.PI * 2);
+                                ctx.arc(x + width, risk, 3, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.restore();
+                            }
+                            
+                           };
 
                     ctx.restore();
 

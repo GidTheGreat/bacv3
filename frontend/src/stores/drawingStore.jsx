@@ -34,7 +34,8 @@ const useDrawingStore = create((set) => ({
             
         ),
 
-    setSelected:(key, type,id)=>set((state=>{
+    setSelected:(key, type, id, hit=null)=>set((state=>{
+        console.log("Set slected being called")
         return {
             Drawings: {
                     ...state.Drawings,
@@ -45,6 +46,7 @@ const useDrawingStore = create((set) => ({
                             [id]: {
                                 ...state.Drawings[key]?.[type]?.[id],
                                 selected: !state.Drawings[key]?.[type]?.[id].selected,
+                                hit: hit
                             }
                         }
                             

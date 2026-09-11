@@ -136,7 +136,7 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
                 const hit = hitTestDrawing(chartRef, activeSeries, 
                     drawingType, drawing, x, y) 
                 if (hit) {
-                    setSelected(k1, drawingType, id);
+                    setSelected(k1, drawingType, id, hit);
                     activeSelection = {type:drawingType, id:id, k1:k1, hit:hit};
                     //console.log(activeSelection)
                     };
