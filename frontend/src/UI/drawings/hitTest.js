@@ -110,10 +110,14 @@ function hitTestDrawing(chartRef, activeSeries, drawingType, drawing, x, y){
         case "Short Position":
         case "Long Position":
             const drawingTy = activeSeries.priceToCoordinate(drawing.target.price);
-            const drawingRx = activeSeries.priceToCoordinate(drawing.risk.price);
-            if (Math.abs(y - drawingTy) <= 10){
+            const drawingRy = activeSeries.priceToCoordinate(drawing.risk.price);
+
+            const drawingSx = chartRef.current.timeScale().timeToCoordinate(drawing.start.time);
+
+
+            if (Math.abs(y - drawingTy) <= 10 && (x <= drawingSx+120 && x >= drawingSx)){
                 return "target"
-            } else if (Math.abs(y - drawingRx) <= 10){
+            } else if (Math.abs(y - drawingRy) <= 10 && (x <= drawingSx+120 && x >= drawingSx)){
                 return "risk" }
         
     }

@@ -280,7 +280,7 @@ export function longShort(ctx, x, y, pointerType, chartRef, k1, chartId,type, id
                 
             } else if (hitType=="risk"){
                 target["price"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.target.price;
-                target["time"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.target.risk;
+                target["time"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.target.time;
                 risk["price"] = price 
                 risk["time"] = time;
             }
