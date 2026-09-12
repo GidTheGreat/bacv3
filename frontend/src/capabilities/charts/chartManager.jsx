@@ -298,7 +298,7 @@ function ChartControls({chartId,handleDestroyChart}){
             <Buttons chartId={chartId} />
           </Box>
 
-        <Tooltip title="Toggle Footprint">
+        <Tooltip >
           <Box size="small" sx={{
             position: 'absolute',
             right: 60,

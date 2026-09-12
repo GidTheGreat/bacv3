@@ -99,7 +99,7 @@ export default function DrawingLayer({chartId, paneId, chartRef, containerRef}){
     return <canvas id="canvas" ref={canvasRef} style={{
                 width:"100%",
                 height: "100%",
-                zIndex: 9998,
+                zIndex: 5,
                 position: "absolute",
                 inset: 0,
                 
