@@ -139,26 +139,39 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
     const priceY = activeSeries.coordinateToPrice(y);
     const priceX = chartRef.current.timeScale().coordinateToTime(x);
     if (pointerType?.toLowerCase?.().endsWith("dblclick")){
-        console.log(pointerType,activeSelection)
+        //console.log(pointerType,activeSelection)
         for (const drawingType of  Object.keys(Drawings)){
             for (const [id, drawing] of Object.entries(Drawings[drawingType])){
+                
                 const hit = hitTestDrawing(chartRef, activeSeries, 
                     drawingType, drawing, x, y) 
                 if (hit) {
+                    if (activeSelection.id && activeSelection.id!=id){
+                        /*console.log("[dblclick hit test] existing selection being reset,"
+                        ,"current   selection hit state:",activeSelection,"global state:",
+                    useDrawingStore.getState().Drawings[k1]);*/
+                        setSelected(k1, activeSelection.type, activeSelection.id, hit);
+                        activeSelection = {type:null, id:null,
+                         k1:null, hit:null, hold: false};
+
+                        /*console.log("[dblclick hit test] confirm state propagation,"
+                        ,"current   selection hit state:",activeSelection,"global state:",
+                    useDrawingStore.getState().Drawings[k1]);*/
+                    }
                     if (activeSelection.hold){
                         setSelected(k1, drawingType, id, hit);
                         activeSelection = {type:null, id:null,
                          k1:null, hit:null, hold: false}
-                         console.log("should be deselecting",
+                         /*console.log("should be deselecting",
                             useDrawingStore.getState().Drawings
-                         )
+                         )*/
                     } else {
                         setSelected(k1, drawingType, id, hit);
                         activeSelection = {type:drawingType, id:id,
                          k1:k1, hit:hit, hold: true};
-                         console.log("should be selecting",
+                         /*console.log("should be selecting",
                             activeSelection
-                         )
+                         )*/
                     }
                     
                     };
@@ -169,7 +182,7 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
     if (pointerType?.toLowerCase?.().endsWith("down")) {
         //console.log("[hit test] pointer down lokking for drawingsks")
         if (activeSelection.hold){
-            console.log("[Pointer down]",activeSelection)
+            //console.log("[Pointer down]",activeSelection)
             return;
         }
         
@@ -186,7 +199,7 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
         }
         
     } else if (pointerType?.toLowerCase?.().endsWith("up")){
-        console.log("[pointer up] executing",activeSelection)
+        //console.log("[pointer up] executing",activeSelection)
         if (activeSelection.hold){
             console.log("Not deselecting");
             return;

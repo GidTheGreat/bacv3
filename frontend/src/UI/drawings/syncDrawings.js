@@ -22,7 +22,7 @@ export class SyncDrawings {
         ];
         this.unsubDs = useDrawingStore.subscribe(
             (state) =>  {
-                console.log("store updated")
+                //console.log("store updated")
                 this.requestUpdate?.();
             }
         );

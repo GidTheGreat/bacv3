@@ -39,7 +39,7 @@ const useDrawingStore = create((set) => ({
             [id]: removed,
             ...remainingDrawings
         } = state.Drawings[key]?.[type] ?? {};
-        console.log("[drawing store]",remainingDrawings);
+        //console.log("[drawing store]",remainingDrawings);
 
         return {
             Drawings: {
