@@ -1,5 +1,5 @@
 // Layout.jsx
-import { Box, IconButton, Paper, Stack, Typography } from "@mui/material";
+import { Box, IconButton, Paper, Stack, Typography,Popover } from "@mui/material";
 
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
@@ -8,6 +8,7 @@ import BottomBar from "./bottomBar";
 import DrawingToolbar from "./drawings/drawingTools";
 import { getCapabilities } from "../registry";
 import PanelManager from "./panelManager";
+
 
 
 

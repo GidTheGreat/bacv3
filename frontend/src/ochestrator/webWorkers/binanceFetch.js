@@ -246,8 +246,84 @@ export default async function binanceFetch(exchange, symbol, tradeType, tf, star
 }
 
 
+export async function upload(exchange, symbol, tradeType, tf, date, zipFile){
+    postMessage({
+                store:"appStore",
+                notification:`[CSV Extracted succesffully] Date:${date}, Symbol:${symbol},${tradeType}`
+            })
+
+        
+        //console.log("beginning extraction")
+        let zip = await JSZip.loadAsync(zipFile);
+        let csv = await zip.file('BTCUSDT-aggTrades-2026-07-01.csv').async("string");
+        let m = Papa.parse(csv, {
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+        }).data;
+
+        console.log(m[0])
+
+        postMessage({
+                store:"appStore",
+                notification:`[CSV Parsed into JSON] Date:${date}, Symbol:${symbol},${tradeType}`
+            })
+        const length=m.length;
+
+        const bufferKey = `${exchange}|${tradeType}|${symbol}|${date}`
+        const chartKey = `${exchange}|${tradeType}|${symbol}`
+
+        buffers.set(bufferKey, 
+            new SharedArrayBuffer(2*Uint8Array.BYTES_PER_ELEMENT +
+                            1*Uint32Array.BYTES_PER_ELEMENT+
+                            10*Uint8Array.BYTES_PER_ELEMENT +
+                            length*Float64Array.BYTES_PER_ELEMENT +
+                            length*Float64Array.BYTES_PER_ELEMENT +
+                            length*Float64Array.BYTES_PER_ELEMENT +
+                            length*Uint8Array.BYTES_PER_ELEMENT 
+                        ))
+
+        
+        let buffer= buffers.get(bufferKey);
+        postMessage({
+            storage: "RAM",
+            key: bufferKey,
+            size: buffer.byteLength
+        })
+        const atomicsView = new Uint8Array(buffer, 1, 1);
+        const lengthView = new Int32Array(buffer, 4, 1);
+
+        const timestampView = new Float64Array(buffer, 16, length);
+        const priceView = new Float64Array(buffer, (length*8)+16, length);
+        const quantityView = new Float64Array(buffer, (length*8*2)+16, length);
+        const sideView = new Uint8Array(buffer, (length*8*3)+16, length);
+
+        lengthView[0] = length;
+        for (let i=0; i < m.length; i++){
+            priceView[i] = m[i].price;
+            timestampView[i] = m[i].transact_time;
+            quantityView[i] = m[i].quantity;
+            sideView[i] = m[i].is_buyer_maker ? 1 : 0;
+        }
+        buffer = null;
+        zip=null;
+        csv=null;
+        m=null;
+        /./.test("x");
+
+        postMessage({
+                store:"appStore",
+                notification:`[Generating Candles] Date:${date}, Symbol:${symbol},${tradeType}`
+            })
+
+        
+        
+
+}
+
 
 export async function getCandles(exchange, symbol, market, tfs){
+    console.log("should be in candles", buffers)
     if (buffers.size<1) return;
 
     for (const [ bufferKey,buffer ] of buffers.entries()){
@@ -274,6 +350,7 @@ export async function getCandles(exchange, symbol, market, tfs){
                 if ((trans_arr.length%1000)==0){
                     await new Promise(resolve=>{
                         setTimeout(()=>{
+                            console.log(chartKey, tf, trans_arr)
                             postMessage({
                                 store: "chartStore",
                                 k1: chartKey,

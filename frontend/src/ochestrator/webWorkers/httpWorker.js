@@ -1,5 +1,5 @@
 //console.log("[http worker] started")
-import binanceFetch, { getCandles } from "./binanceFetch"
+import binanceFetch, { getCandles,upload } from "./binanceFetch"
 import BackfillAggregator from "./backFillAgg"
    
 const BACKFILL_URL="https://fapi.binance.com/fapi/v1/aggTrades"
@@ -93,15 +93,10 @@ onmessage = async(event) => {
                 getCandles(payload.exchange, payload.symbol, payload.market, payload.tfs);
             }
 
-            case "buffer":{
-               
-                postMessage(
-                    {
-                        type: "buffer",
-                        worker: "http",
-                        payload: "[httpWorker] received buffer"
-                    }
-            )
+            case "upload":{
+               const zip = await payload.zip.arrayBuffer()
+                await upload("binance", "BTCUSDT", "um", "1min", "2026-07-01",zip);
+                getCandles("binance", "BTCUSDT", "um", ["1min"],);
             break;
         }
     
