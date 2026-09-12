@@ -125,9 +125,12 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
     
     if (Object.keys(useDrawingStore.getState().Drawings).length < 1) return;
     if (useDrawingStore.getState().DrawingState.action=="Clear Selected Drawing"){
-        if (!activeSelection.hold) return;
-        //console.log("[clearing drawing it test]",activeSelection);
-        useDrawingStore.getState().clearDrawing(k1,activeSelection.type,activeSelection.id);
+        //console.log("[hit test] current activeSelection",activeSelection)
+        if (!activeSelection.hold) {
+            //console.log("[hit test] has no drawing being held");
+            return;};
+        //console.log("[clearing drawing it test] k1:",k1,"activeSelection.k1:",activeSelection.k1);
+        useDrawingStore.getState().clearDrawing(activeSelection.k1,activeSelection.type,activeSelection.id);
         activeSelection = {type:null, id:null,
             k1:null, hit:null, hold: false};
         return;
@@ -138,7 +141,16 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
     const Drawings = useDrawingStore.getState().Drawings[k1];
     const priceY = activeSeries.coordinateToPrice(y);
     const priceX = chartRef.current.timeScale().coordinateToTime(x);
+    if (!Drawings){
+        //console.log("[hit test] No drawings for key:",k1);
+        return;
+    }
+    
     if (pointerType?.toLowerCase?.().endsWith("dblclick")){
+        if (activeSelection.k1 && activeSelection.k1 != k1) {
+            //console.log("[HIT TEST dbl click], only hold one drawing per platform|trade|symbol");
+            return;
+        }
         //console.log(pointerType,activeSelection)
         for (const drawingType of  Object.keys(Drawings)){
             for (const [id, drawing] of Object.entries(Drawings[drawingType])){
@@ -146,7 +158,7 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
                 const hit = hitTestDrawing(chartRef, activeSeries, 
                     drawingType, drawing, x, y) 
                 if (hit) {
-                    if (activeSelection.id && activeSelection.id!=id){
+                    if (activeSelection.id && activeSelection.k1 ==k1 && activeSelection.id!=id){
                         /*console.log("[dblclick hit test] existing selection being reset,"
                         ,"current   selection hit state:",activeSelection,"global state:",
                     useDrawingStore.getState().Drawings[k1]);*/

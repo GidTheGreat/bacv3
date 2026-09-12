@@ -98,10 +98,10 @@ const useChartStore = create((set,get) => ({
 
   destroyChart: (chartId, pane) =>
     set(state => {
-      console.log("STORE destroyChart BEFORE", {
+      /*console.log("STORE destroyChart BEFORE", {
           chartId,
           selection: state.selection[chartId],
-      });
+      });*/
 
       const selection = { ...state.selection };
       delete selection[chartId];

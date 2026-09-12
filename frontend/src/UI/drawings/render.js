@@ -250,7 +250,17 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                         ctx.moveTo(0, y);
                         ctx.lineTo(ctx.canvas.width, y);
                         ctx.stroke();
-                            
+    
+                        ctx.restore();
+
+                        ctx.save();
+                        ctx.font = "12px Arial";
+                        // Entry label
+                        ctx.fillStyle = "red";
+                        ctx.fillText(
+                            drawing_details.price.toFixed(2),
+                            ctx.canvas.width-70, y
+                        );
                         ctx.restore();
                         
                 } else if  (drawing== "Vertical Line"){
@@ -264,6 +274,19 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                         ctx.moveTo(x, 0);
                         ctx.lineTo(x, ctx.canvas.height);
                         ctx.stroke();
+                        ctx.restore();
+                        
+                        //console.log(drawing_details.time)
+                        ctx.save();
+                        ctx.translate(x, ctx.canvas.height-20);
+                        ctx.rotate(-Math.PI / 2);
+                        ctx.font = "12px Arial";
+                        // Entry label
+                        ctx.fillStyle = "red";
+                        ctx.fillText(
+                            new Date(drawing_details.time*1000).toISOString().slice(11,16),
+                            0,0
+                        );
                         ctx.restore();
                         
                 } else if  (drawing== "Trend Line") {

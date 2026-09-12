@@ -34,9 +34,7 @@ export function DrawVerticalLine(ctx, x, y, pointerType, chartRef, k1, chartId, 
 
     const time = ts.coordinateToTime(x);
     if (!time) {
-        useDrawingStore
-        .getState()
-        .setDrawingState(k1, "Cursor");
+        
 
         return;
     };
@@ -220,6 +218,10 @@ export function longShort(ctx, x, y, pointerType, chartRef, k1, chartId,type, id
     const time = ts.coordinateToTime(x);
     const price = activeSeries
             .coordinateToPrice(y);
+    if (!price || !time){
+        
+        return;
+    }
     const priceScale = activeSeries.priceScale();
     const range = priceScale.getVisibleRange();
 
