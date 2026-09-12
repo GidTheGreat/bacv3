@@ -126,7 +126,7 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
     if (Object.keys(useDrawingStore.getState().Drawings).length < 1) return;
     if (useDrawingStore.getState().DrawingState.action=="Clear Selected Drawing"){
         if (!activeSelection.hold) return;
-        console.log("[clearing drawing it test]",activeSelection);
+        //console.log("[clearing drawing it test]",activeSelection);
         useDrawingStore.getState().clearDrawing(k1,activeSelection.type,activeSelection.id);
         activeSelection = {type:null, id:null,
             k1:null, hit:null, hold: false};
@@ -201,7 +201,7 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
     } else if (pointerType?.toLowerCase?.().endsWith("up")){
         //console.log("[pointer up] executing",activeSelection)
         if (activeSelection.hold){
-            console.log("Not deselecting");
+            //console.log("Not deselecting");
             return;
         }
         for (const drawingType of  Object.keys(Drawings)){
