@@ -1,6 +1,85 @@
 import workersManager from "./workersManager";
 import appstore from "../stores/appStore";
 import useChartStore from "../stores/chartStore";
+import useConnStore from "../stores/connStore";
+import useFootprintStore from "../stores/footPrintStore";
+import usePanelStore from "../stores/panelStore";
+import useDrawingStore from "../stores/drawingStore";
+import useReplayStore from "../stores/replayStore";
+
+const stores = ["appStore", "chartStore", "connStore", "footPrintStore",
+    "panelStore", "drawingStore", "replayStore"
+] 
+const stores2 = ["panelStore"]
+
+function populateZustand(db, storeType){
+    //console.log(db,storeType)
+    const tx = db.transaction(storeType, "readonly");
+    const store = tx.objectStore(storeType);
+    const storeReq = store.getAll();
+
+    storeReq.onsuccess = e=>{
+        const storeData = e.target.result;
+        switch (storeType){
+            case "panelStore":{
+                storeData.forEach(storeDatum=>{
+                    usePanelStore.getState().setActiveLayout(storeDatum.activeLayout)
+                })
+            }
+        }
+    }
+}
+
+function createUpdateDB(version){
+  const req = indexedDB.open("bacv3",version);
+  req.onupgradeneeded = e=>{
+    console.log("[upgrading DB]")
+    const db = e.target.result;
+    for (const store of stores2){
+        if (!db.objectStoreNames.contains(store)){
+            db.createObjectStore(store,
+                {
+                    keyPath: "type"
+                }
+            )
+        } 
+    }
+    
+  }
+
+  req.onsuccess = e =>{
+    const db = e.target.result;
+    appstore.getState().setNotification("[DB initialization] success")
+    console.log("store exists populating zustand")
+    try{
+        stores2.forEach(storeType=>populateZustand(db, storeType))
+        
+    } catch (error){
+        console.log(error)
+    }
+    
+    
+  }
+
+  req.onerror = e =>{
+    console.log(e)
+  }
+}
+
+function updateObjectStore(storeType, infoType, info ){
+    const req = indexedDB.open("bacv3");
+    req.onsuccess= e=>{
+        const db = e.target.result;
+        const tx = db.transaction(storeType, "readwrite");
+        const store = tx.objectStore(storeType);
+        store.put({
+            type: infoType,
+            [infoType]: info
+        })
+    }
+
+}
+
 
 
 
@@ -9,6 +88,8 @@ class OchestratorMain{
         this.workerController = workersManager;
         this.stateUpdate = this.stateUpdate.bind(this);
         this.activeTfs = new Map();
+        this.db = null
+
         this.unsubApp = appstore.subscribe((state)=>{
             //console.log(state)
         })
@@ -23,9 +104,18 @@ class OchestratorMain{
             })
         })
 
+        
+
+        this.unsubPanelStore = usePanelStore.subscribe(state=>{
+            console.log(state)
+            updateObjectStore("panelStore", "activeLayout", state.activeLayout )
+            
+        })
+
     }
     startUp(){
         this.workerController.startUp(this.parseWorkerMsg);
+        createUpdateDB(1)
 
     }
 
@@ -34,6 +124,8 @@ class OchestratorMain{
         appstore.getState().setWs();
         this.unsubApp();
         this.unsubChart();
+        this.unsubPanelStore();
+        this.db=null
     }
 
     updateActiveTfs(exchange, market, symbol, tf){
