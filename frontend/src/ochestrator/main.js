@@ -10,7 +10,7 @@ import useReplayStore from "../stores/replayStore";
 const stores = ["appStore", "chartStore", "connStore", "footPrintStore",
     "panelStore", "drawingStore", "replayStore"
 ] 
-const stores2 = ["panelStore"]
+const stores2 = ["panelStore", "drawingStore", "tradeData"]
 
 function populateZustand(db, storeType){
     //console.log(db,storeType)
@@ -25,6 +25,22 @@ function populateZustand(db, storeType){
                 storeData.forEach(storeDatum=>{
                     usePanelStore.getState().setActiveLayout(storeDatum.activeLayout)
                 })
+                break;
+            }
+            case "drawingStore":{
+                storeData.forEach(storeDatum=>{
+                    for (const [drawingKey, drawings] of Object.entries(storeDatum.Drawings)){
+                        for (const [drawingType, drawingDetailsDict] of Object.entries(drawings)){
+                            for ( const [drawingId, drawingDetails] of Object.entries(drawingDetailsDict)){
+                                //console.log(drawingKey,drawingType,drawingId,drawingDetails)
+                                useDrawingStore.getState().setDrawings(drawingKey,drawingType,drawingId,drawingDetails)
+                                console.log(useDrawingStore.getState().Drawings)
+                            }
+                        }
+                    }
+                    
+                })
+                break;
             }
         }
     }
@@ -107,9 +123,14 @@ class OchestratorMain{
         
 
         this.unsubPanelStore = usePanelStore.subscribe(state=>{
-            console.log(state)
-            updateObjectStore("panelStore", "activeLayout", state.activeLayout )
+            //console.log(state)
+            updateObjectStore("panelStore", "activeLayout", state.activeLayout);
             
+        })
+
+        this.unsubDrawingStore = useDrawingStore.subscribe(state=>{
+            //console.log(state.Drawings);
+            updateObjectStore("drawingStore", "Drawings", state.Drawings);
         })
 
     }
@@ -125,6 +146,7 @@ class OchestratorMain{
         this.unsubApp();
         this.unsubChart();
         this.unsubPanelStore();
+        this.unsubDrawingStore();
         this.db=null
     }
 
@@ -163,7 +185,10 @@ class OchestratorMain{
             //console.log("setting state")
             appstore.getState().setNotification(msg.notification)
         } else if (msg.storage =="RAM"){
-            //console.log("setting state")
+            if (msg.type=="clear"){
+                appstore.getState().clearStorage(msg.key);
+                return;
+            }
             appstore.getState().setStorage(msg.key, msg.size)
         } else if (msg.type == "socket open"){
             appstore.getState().setWs()

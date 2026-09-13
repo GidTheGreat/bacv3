@@ -15,6 +15,10 @@ const useAppStore = create((set)=>
                 [key]: value
             }
         })),
+        clearStorage: (key)=>set(state=>{
+            const {key:removed, ...rem} = state.storage;
+            return {storage: rem}
+        }),
         
         setNotification: (notification)=>set(()=>({
             notification

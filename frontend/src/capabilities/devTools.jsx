@@ -18,6 +18,7 @@ import { useState,useEffect,Fragment } from "react";
 
 import useAppStore from "../stores/appStore";
 import useChartStore from "../stores/chartStore";
+import ochestrator from "../ochestrator/main"
 
 function roughSize(obj) {
     const seen = new WeakSet();
@@ -61,6 +62,7 @@ function roughSize(obj) {
 }
 
 export default function DevTools() {
+  //window.och = ochestrator
   const notif = useAppStore(s=>s.notification);
   const storage = useAppStore(s=>s.storage);
 
@@ -326,14 +328,28 @@ export default function DevTools() {
                 variant="outlined"
                 size="small"
                 sx={{ height: 30, textTransform: "none" }}
+                onClick={e=>{
+                  if (ramType != "zustand"){
+                    ochestrator.send("buffers", {key:ramType,action:"deleteRAM"}, "http")
+                  }
+                }}
+                disabled
               >
                 delete
               </Button>
 
               <Button
+              disabled
                 variant="contained"
                 size="small"
                 sx={{ height: 30, textTransform: "none" }}
+                onClick={e=>{
+                  if (ramType != "zustand"){
+                    ochestrator.send("buffers", {key:ramType,action:"persist"}, "http")
+                  } else {
+
+                  }
+                }}
               >
                 persist
               </Button>
@@ -370,14 +386,23 @@ export default function DevTools() {
                 variant="outlined"
                 size="small"
                 sx={{ height: 30, textTransform: "none" }}
+                disabled
               >
                 delete
               </Button>
 
               <Button
+              disabled
                 variant="contained"
                 size="small"
                 sx={{ height: 30, textTransform: "none" }}
+                onClick={e=>{
+                  if (ramType != "zustand"){
+                    ochestrator.send("buffers", {key:ramType,action:"persist"}, "http")
+                  } else {
+
+                  }
+                }}
               >
                 restore
               </Button>

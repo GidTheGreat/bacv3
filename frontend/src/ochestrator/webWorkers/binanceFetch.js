@@ -15,6 +15,8 @@ const timeframes = {
   "4h": 14400,
 };
 
+
+
 function binsHelper(bins, price, quantity, side, sideKey){
     if (bins[price]){
         if (side== 0 && sideKey=="buy"){
@@ -380,4 +382,84 @@ export async function getCandles(exchange, symbol, market, tfs){
         
     }
 
+}
+
+function dbInterface(action, key){
+
+    
+    const req = indexedDB.open("bacv3");
+    req.onsuccess = e=> {
+        const db = e.target.result;
+        switch (action){
+            case "persist":{
+                const tx = db.transaction("tradeData", "readwrite");
+                const store = tx.objectStore("tradeData");
+                store.put({
+                    type: key,
+                    [key]: buffers.get(key)
+                })
+
+                tx.oncomplete = e=> {
+                    postMessage({
+                        store:"appStore",
+                        notification:`[Saved Buffer Successfully] Buffer Key:${key}`
+                    })
+                }
+                break; 
+            }
+
+            case "restore":{
+                const tx = db.transaction("tradeData", "readwrite");
+                const store = tx.objectStore("tradeData");
+                storeReq = store.get(key);
+                storeReq.onsuccess=e=>{
+                    console.log(e);
+                    buffers.set(key, e.result);
+                };
+                postMessage({
+                    storage: "RAM",
+                    key: key,
+                    size: e.result.byteLength
+                })
+                break;
+            }
+
+            case "deleteHDD":{
+                const tx = db.transaction("tradeData", "readwrite");
+                const store = tx.objectStore("tradeData");
+                storeReq = store.delete(key);
+                storeReq.onsuccess=e=>{
+                    console.log(e);
+                    postMessage(
+                        {
+                            store:"appStore",
+                            notification:`[Delete BufferHDD Successfully] Buffer Key:${key}`
+                        }
+                        )
+                };
+
+            }
+        }
+    };
+    req.onerror = e=> console.log(e)
+    req.onblocked = e=>console.log(e)
+
+}
+
+export function manageBuffers(action, key){
+    if (action=="deleteRAM"){
+        buffers.delete(key);
+        postMessage({
+            storage: "RAM",
+            key: key,
+            type: "clear" 
+        })
+        postMessage({
+            store:"appStore",
+            notification:`[Delete BufferRAM Successfully] Buffer Key:${key}`
+        })
+        return;
+    }
+    dbInterface(action, key)
+    
 }
