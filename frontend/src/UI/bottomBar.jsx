@@ -30,6 +30,9 @@ import { List } from "react-window";
 
 function SymbolRow({ index, style, symbols,
   activeTrade, activePlatform, selection, setSelection }) {
+  if (!symbols){
+    return;
+  }
   const symbol = symbols[index];
 
   return (
@@ -73,34 +76,9 @@ function SymbolSelector(){
   const selection = useConnStore(s=>s.selection);
   const setSelection = useConnStore(s=>s.setSelection);
 
-  const symbols = useConnStore(s=>s.symbols);
-
-  async function fetchSymbols(){
-    //console.log(market, market=="cm")
-    if (activePlatform=="binance"){
-      //console.log("evaluating symbols")
-      if (activeTrade=="um"){
-        //console.log("fetching um")
-        const resp = await fetch("https://fapi.binance.com/fapi/v1/exchangeInfo");
-        const exchangeInfo = await resp.json();
-        const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
-        
-        setSymbols(symbols);
-      } else if (activeTrade=="cm"){
-        const resp = await fetch("https://dapi.binance.com/dapi/v1/exchangeInfo");
-        
-        const exchangeInfo = await resp.json();
-        
-        const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
-        
-        setSymbols(symbols);
-      }
-        
-    }
-  }
-
-  useEffect(()=>{fetchSymbols()},[activePlatform,activeTrade])
-  //useEffect(()=>{console.log(useConnStore.getState())},[selection])
+  const symbolsKey = `${activePlatform}|${activeTrade}`;
+  const symbols = useChartStore(s=>s.symbols[symbolsKey]);
+  //useEffect(()=>console.log("in bottom bar",symbols),[symbols])
   
   const selections = selection[`${activePlatform}|${activeTrade}`]
   
@@ -156,7 +134,7 @@ function SymbolSelector(){
         >
           <List
             rowComponent={SymbolRow}
-            rowCount={symbols.length}
+            rowCount={symbols?.length ?? 5}
             rowHeight={40}
             rowProps={{ symbols,activeTrade,activePlatform,selection,setSelection }}
             style={{

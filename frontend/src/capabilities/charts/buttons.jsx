@@ -30,38 +30,8 @@ export default function Buttons({chartId}) {
   const addSymbol = useChartStore(
         s => s.addSymbol
     )
-  async function fetchSymbols(){
-    //console.log("running fetch")
-    if (selection.platform=="binance"){
-      if (selection.trade=="um"){
-        const resp = await fetch("https://fapi.binance.com/fapi/v1/exchangeInfo");
-        const exchangeInfo = await resp.json();
-        const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
-        modifySelection(chartId, { symbol: symbols[0] })
-        addSymbol(symbols);
-      } else if (selection.trade=="cm"){
-        const resp = await fetch("https://dapi.binance.com/dapi/v1/exchangeInfo");
-        
-        const exchangeInfo = await resp.json();
-        
-        const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
-        modifySelection(chartId, { symbol: symbols[0] })
-        addSymbol(symbols);
-      }
-        
-    }
-  }
-
-  useEffect(()=>{
-    if (
-      symbols.length < 2 || 
-      (selection.trade=="cm" && !symbols[0].toLowerCase().endsWith("perp")) 
-      || (selection.trade=="um" && symbols[0].toLowerCase().endsWith("perp"))
-    ){
-      fetchSymbols()
-    }
-    },
-      [selection.platform,selection.trade])
+  
+  const symbolsKey = `${selection.platform}|${selection.trade}`;
 
   const [open, setOpen] = useState(false);
 
@@ -255,7 +225,7 @@ export default function Buttons({chartId}) {
               <Row
                 label="Symbol"
                 value={selection.symbol}
-                values={symbols}
+                values={symbols[symbolsKey] ?? []}
                 field="symbol"
               />
 

@@ -133,26 +133,37 @@ const useChartStore = create((set,get) => ({
   
   
 
-  symbols: ["BTCUSDT"],
+  symbols: {},
+  symbolsInfo: {},
   timeframes: ["1min","5min","15min","30min", "1h", "4h"],
   platforms: ["binance"],
   trade_types: ["um","cm"],
   candle_types: ["japanese"],
 
   // symbols
-  addSymbol: (symbol) =>
+  addSymbols: (symbols, platform, tradeType) =>
     set((state) => {
-      if (Array.isArray(symbol)){
-        return {symbols:symbol}
-      } else return {
-        symbols: state.symbols.includes(symbol)
-        ? state.symbols
-        : [...state.symbols, symbol]
+      const key = `${platform}|${tradeType}`;
+      return {
+        symbols: {
+          ...state.symbols,
+          [key]: [...symbols]
+        }
       }
       
     }),
 
-  
+  addSymbolsInfo: (symbol, symbolInfo, platform, tradeType) =>
+    set((state) => {
+      const key = `${platform}|${tradeType}|${symbol}`;
+      return {
+        symbolsInfo: {
+          ...state.symbolsInfo,
+          [key]: symbolInfo
+        }
+      }
+      
+    }),
 
   removeSymbol: (symbol) =>
     set((state) => ({

@@ -10,7 +10,79 @@ import useReplayStore from "../stores/replayStore";
 const stores = ["appStore", "chartStore", "connStore", "footPrintStore",
     "panelStore", "drawingStore", "replayStore"
 ] 
-const stores2 = ["panelStore", "drawingStore", "tradeData"]
+const stores2 = ["panelStore", "drawingStore", "tradeData", "symbols", "symbolsInfo"]
+
+function updateObjectStore(storeType, infoType, info ){
+    const req = indexedDB.open("bacv3");
+    req.onsuccess= e=>{
+        const db = e.target.result;
+        const tx = db.transaction(storeType, "readwrite");
+        const store = tx.objectStore(storeType);
+        store.put({
+            type: infoType,
+            [infoType]: info
+        })
+    }
+
+}
+
+async function fetchSymbols(){
+    const platforms = useChartStore.getState().platforms;
+    const tradeTypes = useChartStore.getState().trade_types;
+    const addSymbols = useChartStore.getState().addSymbols;
+    const addSymbolsInfo = useChartStore.getState().addSymbolsInfo;
+    const info = {};
+    const symbolsIDB = {};
+
+    for (const platform of platforms){
+        for (const trade of tradeTypes){
+            if (platform=="binance"){
+                let resp;
+                if (trade=="um"){
+                    try {
+                        resp = await fetch("https://fapi.binance.com/fapi/v1/exchangeInfo");
+                    } catch (error){
+                        return;
+                    }
+                    
+                    const exchangeInfo = await resp.json();
+                    //console.log(exchangeInfo)
+                    const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
+                    addSymbols(symbols, platform, trade);
+                    symbolsIDB[`${platform}|${trade}`] = symbols;
+
+                    exchangeInfo.symbols.forEach(symbolInfo=>{
+                        info[`${platform}|${trade}|${symbolInfo.symbol}`] = symbolInfo.filters;
+
+                        addSymbolsInfo(symbolInfo.symbol, symbolInfo.filters, platform, trade)
+                    });
+                    
+                } else if (trade=="cm"){
+                    try {
+                        resp = await fetch("https://dapi.binance.com/dapi/v1/exchangeInfo");
+                    } catch (error){
+                        return;
+                    }
+                    
+                    const exchangeInfo = await resp.json();
+
+                    console.log(exchangeInfo);
+                    const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
+                    addSymbols(symbols, platform, trade);
+                    symbolsIDB[`${platform}|${trade}`] = symbols;
+                    exchangeInfo.symbols.forEach(symbolInfo=>{
+
+                        addSymbolsInfo(symbolInfo.symbol, symbolInfo.filters, platform, trade)
+                    });
+                }
+            }
+
+        }
+    }
+    return [ info, symbolsIDB ]
+    
+  }
+
 
 function populateZustand(db, storeType){
     //console.log(db,storeType)
@@ -42,11 +114,38 @@ function populateZustand(db, storeType){
                 })
                 break;
             }
+
+            case "symbols":{
+                
+                storeData.forEach(storeDatum=>{
+                    const symbolsDict = storeDatum.symbols;
+                    for (const [platformTrade, symbols] of Object.entries(symbolsDict)){
+                        const [platform, tradeType] = platformTrade.split("|");
+
+                        //console.log(platform, tradeType,"end")
+                        useChartStore.getState().addSymbols(symbols, platform, tradeType);
+                    }
+                    
+                })
+                break;
+            }
+
+            case "symbolsInfo":{
+                storeData.forEach(storeDatum=>{
+                    const symbolsInfo = storeDatum.symbolsInfo;
+                    for (const [platformTradeSymbol, symbolInfo] of Object.entries(symbolsInfo)){
+                        const [platform, tradeType, symbol] = platformTradeSymbol.split("|");
+                        useChartStore.getState().addSymbolsInfo(symbol, symbolInfo, platform, tradeType)
+                    }
+                    
+                })
+                break;
+            }
         }
     }
 }
 
-function createUpdateDB(version){
+async function createUpdateDB(version){
   const req = indexedDB.open("bacv3",version);
   req.onupgradeneeded = e=>{
     console.log("[upgrading DB]")
@@ -66,7 +165,9 @@ function createUpdateDB(version){
   req.onsuccess = e =>{
     const db = e.target.result;
     appstore.getState().setNotification("[DB initialization] success")
-    console.log("store exists populating zustand")
+    console.log("store exists populating zustand",db)
+    
+    
     try{
         stores2.forEach(storeType=>populateZustand(db, storeType))
         
@@ -82,21 +183,8 @@ function createUpdateDB(version){
   }
 }
 
-function updateObjectStore(storeType, infoType, info ){
-    const req = indexedDB.open("bacv3");
-    req.onsuccess= e=>{
-        const db = e.target.result;
-        const tx = db.transaction(storeType, "readwrite");
-        const store = tx.objectStore(storeType);
-        store.put({
-            type: infoType,
-            [infoType]: info
-        })
-    }
 
-}
-
-
+  
 
 
 class OchestratorMain{
@@ -134,10 +222,15 @@ class OchestratorMain{
         })
 
     }
-    startUp(){
+    async startUp(){
         this.workerController.startUp(this.parseWorkerMsg);
-        createUpdateDB(1)
+        await createUpdateDB(1);
+        const [ info, symbolsIDB ] = await fetchSymbols();
 
+        if (Object.keys(info).length > 0){
+            updateObjectStore("symbolsInfo", "symbolsInfo", info);
+            updateObjectStore("symbols", "symbols", symbolsIDB);
+        }
     }
 
     cleanUp(){

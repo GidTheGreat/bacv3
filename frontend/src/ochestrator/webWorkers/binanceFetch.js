@@ -257,7 +257,9 @@ export async function upload(exchange, symbol, tradeType, tf, date, zipFile){
         
         //console.log("beginning extraction")
         let zip = await JSZip.loadAsync(zipFile);
-        let csv = await zip.file('BTCUSDT-aggTrades-2026-07-01.csv').async("string");
+        console.log(zip)
+
+        let csv = await zip.file('BTCUSDT-aggTrades-2020-02.csv').async("string");
         let m = Papa.parse(csv, {
             header: true,
             dynamicTyping: true,
@@ -325,7 +327,7 @@ export async function upload(exchange, symbol, tradeType, tf, date, zipFile){
 
 
 export async function getCandles(exchange, symbol, market, tfs){
-    console.log("should be in candles", buffers)
+    //console.log("should be in candles", buffers)
     if (buffers.size<1) return;
 
     for (const [ bufferKey,buffer ] of buffers.entries()){
@@ -352,7 +354,7 @@ export async function getCandles(exchange, symbol, market, tfs){
                 if ((trans_arr.length%1000)==0){
                     await new Promise(resolve=>{
                         setTimeout(()=>{
-                            console.log(chartKey, tf, trans_arr)
+                            //console.log(chartKey, tf, trans_arr)
                             postMessage({
                                 store: "chartStore",
                                 k1: chartKey,

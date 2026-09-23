@@ -94,6 +94,7 @@ onmessage = async(event) => {
             }
 
             case "upload":{
+                console.log(payload.zip)
                const zip = await payload.zip.arrayBuffer()
                 await upload("binance", "BTCUSDT", "um", "1min", "2026-07-01",zip);
                 getCandles("binance", "BTCUSDT", "um", ["1min"],);

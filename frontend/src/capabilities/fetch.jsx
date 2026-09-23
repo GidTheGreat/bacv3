@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { CloudDownload, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import ochestrator from "../ochestrator/main";
+import useChartStore from "../stores/chartStore";
 
 const toggleStyle = {
   width: 36,
@@ -80,8 +81,9 @@ export default function FetchDataButton({
   });
   const [mode, setMode] = useState("daily");
 
-  const [ symbols, setSymbols] = useState(["BTCUSDT"])
+  const symbols = useChartStore(s=>s.symbols);
 
+  const symbolsKey = `${exchange}|${market}`;
   const todayP = new Date()
   todayP.setDate(todayP.getDate()-2)
   const today= todayP.toISOString().slice(0, 10);
@@ -94,29 +96,7 @@ export default function FetchDataButton({
 
   const [endMonth, setEndMonth] = useState(today.slice(0, 7));
 
-  async function fetchSymbols(){
-    //console.log(market, market=="cm")
-    if (exchange=="binance"){
-      if (market=="um"){
-        const resp = await fetch("https://fapi.binance.com/fapi/v1/exchangeInfo");
-        const exchangeInfo = await resp.json();
-        const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
-        setSymbol(symbols[0])
-        setSymbols(symbols);
-      } else if (market=="cm"){
-        const resp = await fetch("https://dapi.binance.com/dapi/v1/exchangeInfo");
-        
-        const exchangeInfo = await resp.json();
-        
-        const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
-        setSymbol(symbols[0])
-        setSymbols(symbols);
-      }
-        
-    }
-  }
   
-  useEffect(()=>{fetchSymbols()},[exchange,market])
   //useEffect(()=>{console.log(symbol)},[symbol])
 
   function handleDateChange(changed, value){
@@ -269,7 +249,7 @@ export default function FetchDataButton({
                   onChange={(e) => setSymbol(e.target.value)}
                 >
 
-                  {symbols.map((s) => (
+                  {symbols[symbolsKey]?.map((s) => (
                     <option
                       key={s}
                       value={s}
