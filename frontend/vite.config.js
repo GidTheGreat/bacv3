@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
 
       workbox: {
         runtimeCaching: [

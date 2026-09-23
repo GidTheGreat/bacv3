@@ -66,7 +66,7 @@ async function fetchSymbols(){
                     
                     const exchangeInfo = await resp.json();
 
-                    console.log(exchangeInfo);
+                    //console.log(exchangeInfo);
                     const symbols = exchangeInfo.symbols.map(symbolInfo=>symbolInfo.symbol);
                     addSymbols(symbols, platform, trade);
                     symbolsIDB[`${platform}|${trade}`] = symbols;
@@ -148,7 +148,7 @@ function populateZustand(db, storeType){
 async function createUpdateDB(version){
   const req = indexedDB.open("bacv3",version);
   req.onupgradeneeded = e=>{
-    console.log("[upgrading DB]")
+    //console.log("[upgrading DB]")
     const db = e.target.result;
     for (const store of stores2){
         if (!db.objectStoreNames.contains(store)){
@@ -165,7 +165,7 @@ async function createUpdateDB(version){
   req.onsuccess = e =>{
     const db = e.target.result;
     appstore.getState().setNotification("[DB initialization] success")
-    console.log("store exists populating zustand",db)
+    //console.log("store exists populating zustand",db)
     
     
     try{
