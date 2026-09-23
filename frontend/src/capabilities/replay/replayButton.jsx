@@ -68,7 +68,12 @@ export default function ReplayButton() {
   const currentReplay = replayState?.[replayKeyJoin];
   const locked = currentReplay.locked;
 
+  let currentTime;
   const dataLength = data?.[replayKeyJoin]?.["1min"]?.data.length;
+
+  if (dataLength) {
+    currentTime = data?.[replayKeyJoin]?.["1min"]?.data[currentReplay.cursor]?.time;
+  }
   useEffect(() => {
         if (!replayActive) return;
         if (!currentReplay?.playing) return;
@@ -442,6 +447,8 @@ export default function ReplayButton() {
                 color: "text.secondary",
               }}
             >
+              {currentTime? new Date(currentTime*1000).toUTCString(): new Date().toUTCString()} 
+              &nbsp;&nbsp;|&nbsp;&nbsp;
               {cursor}/{(dataLength? dataLength: 300)}
             </Typography>
           </Box>

@@ -40,7 +40,6 @@ const useReplayStore = create((set) => ({
 
                 }
             )
-
             
             if (replayKeyJoinList[2].toLowerCase().endsWith("perp") 
                 && replayKeyJoinList[1].toLowerCase().endsWith("um")){
