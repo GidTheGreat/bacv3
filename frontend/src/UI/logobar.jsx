@@ -183,7 +183,7 @@ function ManualUpload(){
 
           <Box
           >
-            <input  type="file" value={""} onChange={e=>{
+            <input  type="file"  onChange={e=>{
               setActive(prev=>({
                 ...prev,
                 file: e.target.files[0]

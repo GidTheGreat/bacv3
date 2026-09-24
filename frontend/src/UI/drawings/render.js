@@ -188,42 +188,6 @@ export function renderDrawing(ctx, chartId, drawing, chartRef) {
 }
 
 
-function drawSelection(ctx, type, drawing) {
-    let bounds;
-
-    switch (type) {
-        case "line":
-            bounds = lineBounds(drawing);
-            break;
-
-        case "rectangle":
-            bounds = rectangleBounds(drawing);
-            break;
-
-        case "circle":
-            bounds = circleBounds(drawing);
-            break;
-    }
-
-    if (!bounds) return;
-
-    const pad = 5;
-
-    ctx.save();
-    ctx.strokeStyle = "#2196f3";
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([4, 3]);
-
-    ctx.strokeRect(
-        bounds.minX - pad,
-        bounds.minY - pad,
-        bounds.maxX - bounds.minX + pad * 2,
-        bounds.maxY - bounds.minY + pad * 2
-    );
-
-    ctx.restore();
-}
-
 export function renderDrawings(ctx, chartId, k1, chartRef) {
     const activeSeries = useChartStore.getState().selection[chartId].activeSeries
     
@@ -462,6 +426,18 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                                 ctx.fill();
 
                                 ctx.restore();
+                            } else if (drawing_details.hit=="mid"){
+                                ctx.beginPath();
+                                ctx.moveTo(x, entry);
+                                ctx.lineTo(x+width, entry);
+                                ctx.stroke();
+
+                                ctx.beginPath();
+                                ctx.arc(x, entry, 3, 0, Math.PI * 2);
+                                ctx.arc(x + width, entry, 3, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.restore();
                             }
                             
                            };
@@ -560,6 +536,18 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                                 ctx.beginPath();
                                 ctx.arc(x, risk, 3, 0, Math.PI * 2);
                                 ctx.arc(x + width, risk, 3, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.restore();
+                            } else if (drawing_details.hit=="mid"){
+                                ctx.beginPath();
+                                ctx.moveTo(x, entry);
+                                ctx.lineTo(x+width, entry);
+                                ctx.stroke();
+
+                                ctx.beginPath();
+                                ctx.arc(x, entry, 3, 0, Math.PI * 2);
+                                ctx.arc(x + width, entry, 3, 0, Math.PI * 2);
                                 ctx.fill();
 
                                 ctx.restore();

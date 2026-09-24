@@ -113,12 +113,15 @@ function hitTestDrawing(chartRef, activeSeries, drawingType, drawing, x, y){
             const drawingRy = activeSeries.priceToCoordinate(drawing.risk.price);
 
             const drawingSx = chartRef.current.timeScale().timeToCoordinate(drawing.start.time);
-
+            const drawingSy = activeSeries.priceToCoordinate(drawing.start.price);
 
             if (Math.abs(y - drawingTy) <= 10 && (x <= drawingSx+120 && x >= drawingSx)){
                 return "target"
             } else if (Math.abs(y - drawingRy) <= 10 && (x <= drawingSx+120 && x >= drawingSx)){
-                return "risk" }
+                return "risk" 
+            } else if (Math.abs(y - drawingSy) <= 10 && (x <= drawingSx+120 && x >= drawingSx)){
+                //return "mid"
+            }
         
     }
 }
