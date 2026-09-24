@@ -149,6 +149,7 @@ function SymbolSelector(){
 
 }
 
+
 function PickSymbol(){
   const ws = useAppStore(state => state.ws);
 

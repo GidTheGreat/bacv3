@@ -34,9 +34,23 @@ import DevTools from "../capabilities/devTools";
 import Trading from "../capabilities/trade";
 import ochestrator from '../ochestrator/main';
 
-import { useState } from "react";
+import { CloudUploadIcon } from "lucide-react";
+import { CloudUpload } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import useConnStore from "../stores/connStore";
 
 function ManualUpload(){
+  const platforms = useConnStore(s=>s.platforms);
+  const trades = useConnStore(s=>s.trades);
+
+  const [ active, setActive ] = useState({
+    exchange: "binance",
+    market: "um",
+    csvName: "",
+    file: ""
+  });
+
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event) => {
@@ -45,6 +59,7 @@ function ManualUpload(){
   };
 
   const handleClose = () => {
+    
     setAnchorEl(null);
   };
 
@@ -54,19 +69,19 @@ function ManualUpload(){
     ? "upload-popover"
     : undefined;
 
-  c
+  //useEffect(()=>console.log(active,Boolean(active.file)),[active])
   
   return (
     <Box>
-      <Tooltip><Button
+      <Tooltip title='Upload Data'><IconButton
         aria-describedby={id}
         onClick={handleClick}
         variant="outlined"
 
       >
-        upload
+        <CloudUploadIcon/>
         
-      </Button></Tooltip>
+      </IconButton></Tooltip>
 
       <Popover
         id={id}
@@ -78,10 +93,136 @@ function ManualUpload(){
           horizontal: "left",
         }}
       >
-        <input type="file" onChange={e=>{
-          ochestrator.send("upload", {zip:e.target.files[0]}, "http")
-        }}/>
-        <Button onClick={handleClose} variant="contained">Fetch</Button>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexDirection: "column",
+            gap: 1,
+            fontFamily:"cursive",
+            "& input": {
+                minWidth: 0,
+                height: 32,
+                padding: "0 7px",
+                borderRadius: 1,
+                border: "1px solid",
+                borderColor: "divider",
+                backgroundColor: "background.default",
+                color: "text.primary",
+                outline: "none",
+                fontSize: 12,
+                cursor: "pointer",
+
+                "&:focus": {
+                  borderColor: "primary.main",
+                },}
+          }}
+        >
+          <Box
+          sx={{
+            fontFamily:"cursive"
+          }}>
+            <ul>
+              <li>Upload file must be Zip containing only one CSV</li>
+              <li>Choose the platform and market of CSV</li>
+              <li>If name of Zip is not the name of CSV,
+                type the name of CSV in field provided</li>
+              <li>Else leave the field empty</li>
+              <li>Expected format,zip:"[symbol]-aggTrades-[yyyy]-[mm]-[dd].zip",
+                csv:"[symbol]-aggTrades-[yyyy]-[mm]-[dd].csv"</li>
+            </ul>
+          </Box>
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr ",
+              gap: 0.75,
+
+              "& select": {
+                width: "100%",
+                minWidth: 0,
+                height: 32,
+                padding: "0 7px",
+                borderRadius: 1,
+                border: "1px solid",
+                borderColor: "divider",
+                backgroundColor: "background.default",
+                color: "text.primary",
+                outline: "none",
+                fontSize: 12,
+                cursor: "pointer",
+
+                "&:focus": {
+                  borderColor: "primary.main",
+                },
+              },
+            }}
+          >
+            <select onChange={e=>setActive(prev=>({
+              ...prev,
+              exchange: e.target.value
+            }))}>
+              {platforms.map(platform=>(
+                <option key={platform} value={platform}>
+                  {platform}</option>))}
+              
+            </select>
+
+            <select onChange={e=>setActive(prev=>({
+              ...prev,
+              market: e.target.value
+            }))}>
+              {trades.map(trade=>(
+                <option key={trade} value={trade}>
+                  {trade=="um"?"USD-M":"COIN-M"}</option>))}
+              
+            </select>
+
+          </Box>
+
+          <Box
+          >
+            <input  type="file" value={""} onChange={e=>{
+              setActive(prev=>({
+                ...prev,
+                file: e.target.files[0]
+              }))
+            }}/>
+          </Box>
+          
+
+          <Box
+          >
+            <label>CSV Name &nbsp;
+              <input value={active.csvName} onChange={
+                e=>{
+                  setActive(prev=>({
+                    ...prev,
+                    csvName: e.target.value
+                  }))
+                }
+              } placeholder="xyz.csv"/>
+            </label>
+          </Box>
+          
+
+          <Button disabled={active.file == "" || !active.file ? true : false} 
+          onClick={()=>{
+            ochestrator.send("upload", {
+              exchange: active.exchange,
+              market: active.market,
+              file: active.file,
+              csvName: active.csvName,
+            }, "http")
+            handleClose();
+
+            }} variant="outlined">
+            <CloudUpload/>
+          </Button>
+
+        </Box>
+        
       </Popover>
     </Box>
   )

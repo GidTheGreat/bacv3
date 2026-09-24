@@ -3,6 +3,10 @@ import { CloudDownload, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import ochestrator from "../ochestrator/main";
 import useChartStore from "../stores/chartStore";
+import {
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 
 const toggleStyle = {
   width: 36,
@@ -182,13 +186,17 @@ export default function FetchDataButton({
 
   return (
     <>
-      <button
-        style={toggleStyle}
+      <Tooltip
+      title="Fetch Data"
+      >
+        <IconButton
         onClick={() => setOpen(true)}
-        title="Fetch Data"
       >
         <CloudDownload size={18} />
-      </button>
+      </IconButton>
+
+      </Tooltip>
+      
 
       {open &&
         createPortal(

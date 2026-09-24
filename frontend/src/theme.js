@@ -42,7 +42,7 @@ const theme = createTheme({
   },
 
   typography: {
-    fontFamily: '"Inter", "Roboto", sans-serif',
+    fontFamily: '"cursive" "Inter", "Roboto", sans-serif',
 
     h6: {
       fontWeight: 600,

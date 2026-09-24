@@ -94,10 +94,12 @@ onmessage = async(event) => {
             }
 
             case "upload":{
-                console.log(payload.zip)
-               const zip = await payload.zip.arrayBuffer()
-                await upload("binance", "BTCUSDT", "um", "1min", "2026-07-01",zip);
-                getCandles("binance", "BTCUSDT", "um", ["1min"],);
+                
+               //console.log("[http worker] upload case,payload:",payload)
+                await upload(payload);
+                getCandles(payload.exchange,
+                     payload.csvName ? payload.csvName.split("-")[0] : payload.file.name.split("-")[0],
+                      payload.market, ["1min"],);
             break;
 
             }
