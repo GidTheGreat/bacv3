@@ -355,8 +355,8 @@ class FootprintRenderer {
                 price: Number(price), buy: profile.buy,
               sell:profile.sell}))
             profileRows.sort((a,b)=>b.price-a.price);
-            const highUA = profileRows[0]?.sell > 0;
-            const lowUA = profileRows.at(-1)?.buy > 0;
+            //const highUA = profileRows[0]?.sell > 0;
+            //const lowUA = profileRows.at(-1)?.buy > 0;
 
             let aggPerRow = targetPx/pixelsPerPrice;
             //let aggLength = profileRows.length/aggPerRow;
@@ -366,7 +366,8 @@ class FootprintRenderer {
                 : newRows;
             let rowHeight = Math.abs(y2-y1)/newRows.length;
             //console.log(aggPerRow,newRows.length)
-
+            
+            /*
             if (footPrintState?.ua ?? false) {
                 ctx.save();
 
@@ -397,7 +398,7 @@ class FootprintRenderer {
                 }
 
                 ctx.restore();
-            }
+            }*/
             
             if (footPrintState?.footer){
                 this.drawFooter(y1, x, item, ctx)
@@ -456,26 +457,7 @@ class FootprintRenderer {
 
                 if (footPrintState?.poc && containsPOC) {
                     ctx.save();
-                    /*
-                    ctx.strokeStyle = "#ffffff";
-                    ctx.lineWidth = 2;
-
-                    ctx.strokeRect(
-                        x - width / 2,
-                        pos,
-                        width,
-                        rowHeight
-                    );
-
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillStyle = "black";
-
-                    ctx.fillText(
-                        "POC",
-                        x,
-                        pos + rowHeight / 2
-                    );*/
+                    
                     ctx.strokeStyle = "yellow";
                     ctx.lineWidth = 2;
 

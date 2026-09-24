@@ -272,7 +272,7 @@ export default function VPControls({ chartId }) {
             />
 
 
-            <FormControlLabel
+            {/*<FormControlLabel
               sx={controlSx}
               labelPlacement="start"
               checked={footPrintState?.ua ?? false}
@@ -284,7 +284,7 @@ export default function VPControls({ chartId }) {
                 />
               }
               label="Unfinished Auction"
-            />
+            />*/}
 
 
             <Box

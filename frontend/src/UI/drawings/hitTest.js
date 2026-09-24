@@ -130,7 +130,7 @@ function hitTestDrawing(chartRef, activeSeries, drawingType, drawing, x, y){
             } else if (Math.abs(y - drawingSy) <= 20 && (x >= drawingSx && x <= drawingSx + 20)){
                 return "moveOrigin"
             } else if (Math.abs(y - drawingSy) <= 20 && (x <= drawingSx + drawing.width && x >= drawingSx + (drawing.width - 20))){
-                console.log("width hit")
+                //console.log("width hit")
                 return "width"
             } else if (Math.abs(y - drawingSy) <= 20 && (x <= drawingSx + (drawing.width - 20 ) && x >= drawingSx + 20)){
                 return "mid"
