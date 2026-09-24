@@ -114,14 +114,27 @@ function hitTestDrawing(chartRef, activeSeries, drawingType, drawing, x, y){
 
             const drawingSx = chartRef.current.timeScale().timeToCoordinate(drawing.start.time);
             const drawingSy = activeSeries.priceToCoordinate(drawing.start.price);
+            /*const endPos = drawingSx + drawing.width
+            if (drawingType=="Short Position"){
+                console.log("YPOS",Math.abs(y - drawingSy) <= 20 );
+                console.log("drawing width:",drawing.width)
+                console.log("[XPOS < width]",(x <= drawingSx + drawing.width))
+                console.log( "[XPOS > (width-20)]", x >= drawingSx + (drawing.width - 20))
+                console.log("x:", x, "(width-20):",(drawing.width - 20), "lowerbound width:", drawingSx + (drawing.width - 20))
+            }*/
 
-            if (Math.abs(y - drawingTy) <= 10 && (x <= drawingSx+120 && x >= drawingSx)){
+            if (Math.abs(y - drawingTy) <= 10 && (x <= drawingSx + (drawing.width) && x >= drawingSx)){
                 return "target"
-            } else if (Math.abs(y - drawingRy) <= 10 && (x <= drawingSx+120 && x >= drawingSx)){
-                return "risk" 
-            } else if (Math.abs(y - drawingSy) <= 10 && (x <= drawingSx+120 && x >= drawingSx)){
-                //return "mid"
-            }
+            } else if (Math.abs(y - drawingRy) <= 10 && (x <= drawingSx + (drawing.width) && x >= drawingSx)){
+                return "risk"
+            } else if (Math.abs(y - drawingSy) <= 20 && (x >= drawingSx && x <= drawingSx + 20)){
+                return "moveOrigin"
+            } else if (Math.abs(y - drawingSy) <= 20 && (x <= drawingSx + drawing.width && x >= drawingSx + (drawing.width - 20))){
+                console.log("width hit")
+                return "width"
+            } else if (Math.abs(y - drawingSy) <= 20 && (x <= drawingSx + (drawing.width - 20 ) && x >= drawingSx + 20)){
+                return "mid"
+            } 
         
     }
 }
@@ -153,6 +166,7 @@ export default function hitTest(ctx, chartRef, k1, chartId, pointerType, x, y){
         return;
     }
     
+    //console.log("[HIT TEST]",Drawings)
     if (pointerType?.toLowerCase?.().endsWith("dblclick")){
         if (activeSelection.k1 && activeSelection.k1 != k1) {
             //console.log("[HIT TEST dbl click], only hold one drawing per platform|trade|symbol");

@@ -346,7 +346,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
 
                     if (x == null || entry == null) return;
 
-                    const width = 120;
+                    const width = (drawing_details?.width ?? 120);
                     const rewardToRisk= ((drawing_details.target.price-drawing_details.start.price)/
                         (drawing_details.start.price-drawing_details.risk.price)
                     );
@@ -373,12 +373,18 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                     ctx.textBaseline = "middle";
 
                     // Entry label
-                    ctx.fillStyle = "#00e5ff";
+                    ctx.fillStyle = "yellow";
                     ctx.fillText(
-                        `${drawing_details.start.price.toFixed(2)}  |  Reward:Risk  ${rewardToRisk.toFixed(2)}`,
-                        x + 6,
+                        `${drawing_details.start.price.toFixed(2)}`,
+                        x + width,
                         entry
                     );
+                    ctx.fillText(
+                        `Reward:Risk  ${rewardToRisk.toFixed(2)}`,
+                        x + width,
+                        entry+10
+                    );
+                    
 
                     // Target price — near the top of green zone
                     ctx.fillStyle = "#008000";
@@ -400,6 +406,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                             //console.log(`${drawing}`,drawing_details.hit)
                             ctx.save();
                             ctx.strokeStyle= "#2196f3";
+                            
                             ctx.lineWidth = 3;
 
                             if (drawing_details.hit=="target"){
@@ -432,9 +439,21 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                                 ctx.lineTo(x+width, entry);
                                 ctx.stroke();
 
+                                
+
+                                ctx.restore();
+                            } else if (drawing_details.hit=="moveOrigin"){
+                                
                                 ctx.beginPath();
-                                ctx.arc(x, entry, 3, 0, Math.PI * 2);
-                                ctx.arc(x + width, entry, 3, 0, Math.PI * 2);
+                                ctx.arc(x, entry, 10, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.restore();
+
+                            } else if (drawing_details.hit=="width"){
+                                ctx.fillStyle= "#2196f3";
+                                ctx.beginPath();
+                                ctx.arc(x + width, entry, 10, 0, Math.PI * 2);
                                 ctx.fill();
 
                                 ctx.restore();
@@ -460,7 +479,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                     );
                     if (x == null || entry == null) return;
 
-                    const width = 120;
+                    const width = (drawing_details?.width ?? 120);
                     
                     ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
                     ctx.fillRect(
@@ -484,13 +503,19 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                     ctx.textBaseline = "middle";
 
                     // Entry + R:R
-                    ctx.fillStyle = "#00e5ff";
+                    ctx.fillStyle = "yellow";
                     ctx.textAlign = "left";
                     ctx.fillText(
-                        `${drawing_details.start.price.toFixed(2)}  |  Reward:Risk  ${rewardToRisk.toFixed(2)}`,
-                        x + 6,
+                        `${drawing_details.start.price.toFixed(2)}`,
+                        x + width,
                         entry
                     );
+                    ctx.fillText(
+                        `Reward:Risk  ${rewardToRisk.toFixed(2)}`,
+                        x + width,
+                        entry + 10
+                    );
+
 
                     // Target price — upper green zone
                     ctx.fillStyle = "#008000";
@@ -513,6 +538,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                             //console.log(`${drawing}`,drawing_details.hit)
                             ctx.save();
                             ctx.strokeStyle= "#2196f3";
+                            
                             ctx.lineWidth = 3;
 
                             if (drawing_details.hit=="target"){
@@ -545,9 +571,21 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                                 ctx.lineTo(x+width, entry);
                                 ctx.stroke();
 
+                                
+
+                                ctx.restore();
+                            } else if (drawing_details.hit=="moveOrigin"){
+                                
+
                                 ctx.beginPath();
-                                ctx.arc(x, entry, 3, 0, Math.PI * 2);
-                                ctx.arc(x + width, entry, 3, 0, Math.PI * 2);
+                                ctx.arc(x, entry, 10, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.restore();
+                            } else if (drawing_details.hit=="width"){
+                                ctx.fillStyle= "#2196f3";
+                                ctx.beginPath();
+                                ctx.arc(x + width, entry, 10, 0, Math.PI * 2);
                                 ctx.fill();
 
                                 ctx.restore();

@@ -259,7 +259,7 @@ export function longShort(ctx, x, y, pointerType, chartRef, k1, chartId,type, id
             
         useDrawingStore.getState().setDrawings(k1,
             type, id ? id :Math.floor(Math.random()*1_000_000_000),
-            {"start":start, "target":target, "risk":risk, selected: false})
+            {"start":start, "target":target, "risk":risk, "width":120, selected: false})
         
         start={}
         target={}
@@ -269,9 +269,12 @@ export function longShort(ctx, x, y, pointerType, chartRef, k1, chartId,type, id
             .setDrawingState(k1, "Select Drawing");
         
     } else  if (id && pointerType?.toLowerCase?.().endsWith("move")){
-            //console.log("[long short] updating pos")
+            //console.log("[long short] updating pos",hitType)
             start["price"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.start?.price;
             start["time"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.start?.time;
+
+            let width = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.width;
+
             if (hitType=="target"){
                 target["price"] = price;
                 target["time"] = time;
@@ -281,13 +284,37 @@ export function longShort(ctx, x, y, pointerType, chartRef, k1, chartId,type, id
             } else if (hitType=="risk"){
                 target["price"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.target.price;
                 target["time"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.target.time;
-                risk["price"] = price 
+                risk["price"] = price; 
                 risk["time"] = time;
+
+            } else if (hitType=="mid"){
+                target["price"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.target.price;
+                target["time"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.target.time;
+                risk["price"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.risk.price;
+                risk["time"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.risk.time;
+                start["price"] = price;
+                
+            } else if (hitType=="moveOrigin"){
+                target["price"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.target.price;
+                target["time"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.target.time;
+                risk["price"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.risk.price;
+                risk["time"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.risk.time;
+                start["time"] = time;
+                
+            } else if (hitType=="width"){
+                target["price"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.target.price;
+                target["time"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.target.time;
+                risk["price"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.risk.price;
+                risk["time"] = useDrawingStore.getState().Drawings?.[k1]?.[type]?.[id]?.risk.time;
+                width = x - ts.timeToCoordinate(start["time"]);
+                
             }
+
             
             useDrawingStore.getState().setDrawings(k1,
             type, id ? id :Math.floor(Math.random()*1_000_000_000),
-            {"start":start, "target":target, "risk":risk, selected: true, "hit":hitType})
+            {"start":start, "target":target, "risk":risk, selected: true, width, "hit":hitType})
+            
     } else if (pointerType?.toLowerCase?.().endsWith("up")) {
         if (id){
             //console.log("resetting")
