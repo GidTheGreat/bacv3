@@ -22,16 +22,34 @@ function gridStyle(tradeMode, isMobile) {
       return {
         gridTemplateColumns: "40px 1fr",
         gridTemplateRows: "1fr 100px",
+        gridTemplateAreas: `
+          "drawing main"
+          "trade trade"
+        `,
       };
     } else {
       return {
         gridTemplateColumns: "40px 1fr 300px",
+        gridTemplateRows: "1fr",
+        gridTemplateAreas: `
+        "drawing main trade"
+        `,
       };
     }
   }
 }
 
-
+function TradePanel() {
+  return (
+    <Box
+      sx={{
+        gridArea: "trade",
+      }}
+    >
+      Account balance
+    </Box>
+  )
+}
 export default function Layout() {
  const ChartManager = getCapabilities("chartManager")[0].component;
  const tradeMode = useTradeStore((state) => state.tradeMode);
@@ -39,11 +57,11 @@ export default function Layout() {
  const isMobile = useMediaQuery('(max-width:600px)');
  console.log(isMobile);
 
- useEffect(() => {
+ /*useEffect(() => {
         console.log("Trade mode changed:", tradeMode);
     console.log("gridstyle mid:", gridStyle(tradeMode));
 
-    }, [tradeMode]);
+    }, [tradeMode]);*/
  
   return (
     <Box
@@ -107,7 +125,7 @@ export default function Layout() {
             
           </Paper>
         </Box>
-
+        {tradeMode && <TradePanel />}
         
       </Box>
 
