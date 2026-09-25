@@ -15,6 +15,7 @@
     "@mui/icons-material": "^9.2.0",
     "@mui/material": "^9.2.0",
     "danfojs": "^1.2.0",
+    "html2canvas": "^1.4.1",
     "jszip": "^3.10.1",
     "lightweight-charts": "^5.2.0",
     "lucide-react": "^1.28.0",

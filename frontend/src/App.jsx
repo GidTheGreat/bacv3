@@ -6,9 +6,10 @@ import heroImg from './assets/hero.png'
 
 import Layout from './UI/UILayout'
 import { paperClasses } from '@mui/material'
+//import html2canvas from 'html2canvas'
 
 function App() {
-  console.log("testing refresh v2")
+  
   return (
     <>
       

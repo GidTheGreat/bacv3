@@ -312,7 +312,7 @@ export default function LogoBar() {
           spacing={0.5}
           sx={{ flexShrink: 0 }}
         >
-          {/*<Trading/>*/}
+          {<Trading/>}
           <ManualUpload/>
           <FetchDataButton/>
           <Journal/>
