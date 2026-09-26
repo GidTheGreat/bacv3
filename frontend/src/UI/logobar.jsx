@@ -234,8 +234,6 @@ function ManualUpload(){
 
 export default function LogoBar() {
   const isMobile = useMediaQuery("(max-width:600px)");
-  const Journal = getCapabilities("journal")[0].component;
-  //console.log(Journal)
   return (
     <AppBar
       position="static"
@@ -319,7 +317,6 @@ export default function LogoBar() {
           {<Trading/>}
           <ManualUpload/>
           <FetchDataButton/>
-          <Journal/>
           <ReplayButton/>
           <LayoutControls/>
           <DevTools/>
