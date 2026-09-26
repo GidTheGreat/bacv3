@@ -106,7 +106,7 @@ function populateZustand(db, storeType){
                             for ( const [drawingId, drawingDetails] of Object.entries(drawingDetailsDict)){
                                 //console.log(drawingKey,drawingType,drawingId,drawingDetails)
                                 useDrawingStore.getState().setDrawings(drawingKey,drawingType,drawingId,drawingDetails)
-                                console.log(useDrawingStore.getState().Drawings)
+                                //console.log(useDrawingStore.getState().Drawings)
                             }
                         }
                     }

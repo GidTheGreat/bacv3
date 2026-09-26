@@ -12,6 +12,8 @@ import useTradeStore from "../stores/tradeStore";
 import { useEffect } from "react";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+
 function gridStyle(tradeMode, isMobile) {
   if (!tradeMode) {
     return {

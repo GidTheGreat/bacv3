@@ -183,12 +183,16 @@ function ManualUpload(){
 
           <Box
           >
-            <input  type="file"  onChange={e=>{
+            <Button variant="outlined" component="label">
+              {active.file==""|| !active.file?.name ?"Choose File":active.file?.name}
+              <input  type="file"  hidden onChange={e=>{
               setActive(prev=>({
                 ...prev,
                 file: e.target.files[0]
               }))
             }}/>
+            </Button>
+            
           </Box>
           
 
