@@ -71,10 +71,12 @@ async function fetchSymbols(){
                     addSymbols(symbols, platform, trade);
                     symbolsIDB[`${platform}|${trade}`] = symbols;
                     exchangeInfo.symbols.forEach(symbolInfo=>{
-
+                        info[`${platform}|${trade}|${symbolInfo.symbol}`] = symbolInfo.filters;
                         addSymbolsInfo(symbolInfo.symbol, symbolInfo.filters, platform, trade)
                     });
+                    
                 }
+                //console.log("symbols info", info,"symbols info in chart store",useChartStore.getState().symbolsInfo)
             }
 
         }
@@ -224,7 +226,7 @@ class OchestratorMain{
     }
     async startUp(){
         this.workerController.startUp(this.parseWorkerMsg);
-        await createUpdateDB(1);
+        await createUpdateDB(2);
         const [ info, symbolsIDB ] = await fetchSymbols();
 
         if (Object.keys(info).length > 0){

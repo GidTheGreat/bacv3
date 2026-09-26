@@ -283,7 +283,7 @@ function PickSymbol(){
 
             <select onChange={e=>setActive("trade",e.target.value)}>
               {trades.map(trade=>(
-                <option key={trade} value={trade}>
+                <option key={trade} value={trade} disabled={trade=="cm"} >
                   {trade=="um"?"USD-M":"COIN-M"}</option>))}
               
             </select>
