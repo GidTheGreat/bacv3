@@ -47,7 +47,7 @@ function TransientHelper({ msg }) {
             open={open}
             autoHideDuration={10000} // Matches your 10 second requirement
             onClose={handleClose}
-            TransitionComponent={SlideTransition}
+            
             // Overriding positioning behavior to align inside your stack context cleanly
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
             sx={{

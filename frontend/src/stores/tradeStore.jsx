@@ -21,6 +21,24 @@ const useTradeStore = create((set) => ({
 
     leverage: 4,
 
+    runningTrades: [],
+
+    closedTrades: [],
+
+    setRunningTrade: (tradeInfo)=> set(state=>{
+        return {
+            runningTrades: [...state.runningTrades, tradeInfo]
+        }
+    }),
+
+    closeRunningTrade: (id) => set(state=>{
+        const closedTrade = state.runningTrades.find(runningTrade=>runningTrade.id==id)
+        return {
+            runningTrades: state.runningTrades.filter(runningTrade=>(runningTrade.id != closedTrade.id)),
+            closedTrades: [...state.closedTrades, closedTrade]
+        }
+    }),
+
     setLeverage: (leverage) => set({ leverage }),
 
     setStake: (stake) => set({ stake }),

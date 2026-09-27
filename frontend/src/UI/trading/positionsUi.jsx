@@ -7,184 +7,242 @@ import {
   Divider,
   Button,
   Chip,
+  Popover,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import TrendingDownIcon from "@mui/icons-material/TrendingDown";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import useTradeStore from "../../stores/tradeStore";
+import useAppStore from "../../stores/appStore";
 
-function PositionsUI({
-  symbol,
-  posSize,
-  margin,
-  entryPrice,
-  pnl,
-  side = "LONG",
-  leverage = "10x",
-  onClose,
-}) {
-  const isProfit = pnl >= 0;
-  const isLong = side === "LONG";
+import { useState } from "react";
+
+function PositionsUI({ runningTrade, typeOfPos}) {
+  const closeRunningTrade = useTradeStore(s=>s.closeRunningTrade);
+  const setNotification = useAppStore(s=>s.setNotification);
+
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
+  const id = open ? "footprint-popover" : undefined;
+
+  // Safe fallback split check
+  const symbol = runningTrade?.key?.split("|")[2] || "UNKNOWN";
+  const isBuy = runningTrade?.direction?.toLowerCase() === "buy";
+  const isPnlPositive = (runningTrade?.pnl || 0) >= 0;
+
+  // Stop click from bubbling up to the Card's popover trigger
+  const handleCloseTrade = (e) => {
+    e.stopPropagation();
+    // TODO: Connect your close trade action dispatcher here
+    setNotification(`Closing trade ID: ${runningTrade.id}`);
+    closeRunningTrade(runningTrade.id)
+  };
 
   return (
-    <Card
-      sx={{
-        position: "relative",
-        overflow: "hidden",
-        borderRadius: 3,
-        border: "1px solid",
-        borderColor: isProfit
-          ? "rgba(46, 204, 113, 0.25)"
-          : "rgba(255, 82, 82, 0.25)",
-        background: (theme) =>
-          `linear-gradient(135deg, ${
-            isProfit
-              ? "rgba(46, 204, 113, 0.08)"
-              : "rgba(255, 82, 82, 0.08)"
-          }, ${theme.palette.background.paper} 55%)`,
-        boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
-        minWidth: 300,
-      }}
-    >
-      {/* Accent bar */}
-      <Box
+    <>
+      <Card
+        aria-describedby={id}
+        onClick={handleClick}
         sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 3,
-          bgcolor: isProfit ? "success.main" : "error.main",
-        }}
-      />
-
-      <CardContent sx={{ p: 2.25, "&:last-child": { pb: 2.25 } }}>
-        {/* Header */}
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          mb={2}
-        >
-          <Stack direction="row"  spacing={1}>
-            <Typography
-              variant="h6"
-              fontWeight={800}
-              sx={{ letterSpacing: "-0.02em" }}
-            >
-              {symbol}
-            </Typography>
-
-            <Chip
-              label={side}
-              size="small"
-              sx={{
-                height: 22,
-                fontSize: 11,
-                fontWeight: 800,
-                borderRadius: 1,
-                bgcolor: isLong
-                  ? "rgba(46, 204, 113, 0.14)"
-                  : "rgba(255, 82, 82, 0.14)",
-                color: isLong ? "success.main" : "error.main",
-              }}
-            />
-
-            <Chip
-              label={leverage}
-              size="small"
-              variant="outlined"
-              sx={{
-                height: 22,
-                fontSize: 10,
-                fontWeight: 700,
-              }}
-            />
-          </Stack>
-
-          <Button
-            onClick={onClose}
-            size="small"
-            color="error"
-            variant="outlined"
-            startIcon={<CloseIcon fontSize="small" />}
-            sx={{
-              minWidth: 0,
-              px: 1,
-              py: 0.4,
-              borderRadius: 1.5,
-              textTransform: "none",
-              fontWeight: 700,
-            }}
-          >
-            Close
-          </Button>
-        </Stack>
-
-        {/* PnL */}
-        <Box
-          sx={{
-            p: 1.75,
-            mb: 2,
-            borderRadius: 2,
-            bgcolor: isProfit
-              ? "rgba(46, 204, 113, 0.08)"
-              : "rgba(255, 82, 82, 0.08)",
-          }}
-        >
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            fontWeight={600}
-          >
-            Unrealized PnL
-          </Typography>
-
-          <Typography
-            variant="h5"
-            fontWeight={800}
-            color={isProfit ? "success.main" : "error.main"}
-            sx={{
-              mt: 0.25,
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {isProfit ? "+" : ""}
-            {pnl}
-          </Typography>
-        </Box>
-
-        <Divider sx={{ mb: 2 }} />
-
-        {/* Details */}
-        <Stack spacing={1.5}>
-          <PositionRow label="Position Size" value={posSize} />
-          <PositionRow label="Margin" value={margin} />
-          <PositionRow label="Entry Price" value={entryPrice} />
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-}
-
-function PositionRow({ label, value }) {
-  return (
-    <Stack
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-    >
-      <Typography variant="body2" color="text.secondary">
-        {label}
-      </Typography>
-
-      <Typography
-        variant="body2"
-        fontWeight={700}
-        sx={{
-          fontVariantNumeric: "tabular-nums",
-          letterSpacing: "0.01em",
+          cursor: "pointer",
+          borderRadius: "12px",
+          border: "1px solid",
+          borderColor: "divider",
+          background: "background.paper",
+          transition: "all 0.2s ease-in-out",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          "&:hover": {
+            boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
+            borderColor: "primary.main",
+            transform: "translateY(-1px)",
+          },
         }}
       >
-        {value}
-      </Typography>
-    </Stack>
+        <CardContent sx={{ p: "12px 16px", "&:last-child": { pb: "12px" } }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={1.5} // Slightly tighter spacing to prevent overflow
+            sx={{ width: "100%", overflow: "hidden" }} // Enforces card structural bounds
+          >
+            {/* Left: Identity and Position Intent */}
+            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flexShrink: 1 }} >
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, fontFamily: "monospace", fontSize: "0.95rem" }}>
+                {symbol}
+              </Typography>
+              <Chip
+                icon={isBuy ? <TrendingUpIcon fontSize="small" /> : <TrendingDownIcon fontSize="small" />}
+                label={runningTrade.direction?.toUpperCase()}
+                size="small"
+                color={isBuy ? "success" : "error"}
+                variant="light" // Falls back cleanly or looks great with theme customization
+                sx={{ fontWeight: 700, fontSize: "0.7rem", height: "20px" }}
+              />
+            </Stack>
+
+            {/* Middle: Financials metrics */}
+            <Stack direction="row" alignItems="center" spacing={3}>
+              
+
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: "0.65rem", textTransform: "uppercase", fontWeight: 600 }}>
+                  PnL
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 700,
+                    fontFamily: "monospace",
+                    color: isPnlPositive ? "success.main" : "error.main",
+                  }}
+                >
+                  {isPnlPositive ? `+${runningTrade.pnl}` : runningTrade.pnl}
+                </Typography>
+              </Box>
+            </Stack>
+
+            {/* Right: Quick Action Dismiss */}
+            {typeOfPos=="open" && <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              startIcon={<CloseIcon />}
+              onClick={handleCloseTrade}
+              sx={{
+                borderRadius: "6px",
+                textTransform: "none",
+                fontSize: "0.75rem",
+                py: 0.25,
+                px: 1,
+                minWidth: "auto",
+                textOverflow: "ellipsis",
+                flexShrink: 0
+              }}
+            >
+              Close
+            </Button>}
+          </Stack>
+        </CardContent>
+      </Card>
+
+      {/* Deep-Dive Metric Popover Breakdown */}
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 1,
+              width: 280,
+              borderRadius: "12px",
+              boxShadow: "0px 10px 30px rgba(0,0,0,0.12)",
+              border: "1px solid",
+              borderColor: "divider",
+              overflow: "hidden",
+            },
+          },
+        }}
+      >
+        {/* Popover Header */}
+        <Box sx={{ p: 2, bgcolor: "action.hover" }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, display: "flex", alignItems: "center", gap: 0.5 }}>
+            Position Details
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: "monospace" }}>
+            ID: {runningTrade.id}
+          </Typography>
+        </Box>
+        <Divider />
+
+        {/* Metric Grid list Layout */}
+        <Box sx={{ p: 2, display: "grid", gridTemplateColumns: "1fr 1fr", rowGap: 1.5, columnGap: 1 }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">Symbol</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>{symbol}</Typography>
+          </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">Direction</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: isBuy ? "success.main" : "error.main" }}>
+              {runningTrade.direction}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">Stake</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: "monospace" }}>{runningTrade.stake}</Typography>
+          </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">Pos Size</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: "monospace" }}>{runningTrade.positionSize}</Typography>
+          </Box>
+        </Box>
+
+        <Divider />
+
+        {/* Timestamps */}
+        <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1, bgcolor: "background.paper" }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <AccessTimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block">Start Time</Typography>
+              <Typography variant="caption" sx={{ fontFamily: "monospace", display: "block" }}>
+                {new Date(runningTrade.startTime).toLocaleString()}
+              </Typography>
+            </Box>
+          </Stack>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <AccessTimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block">Candle Start</Typography>
+              <Typography variant="caption" sx={{ fontFamily: "monospace", display: "block" }}>
+                {new Date(runningTrade.candleStartTime).toLocaleString()}
+              </Typography>
+            </Box>
+          </Stack>
+        </Box>
+
+        <Divider />
+
+        {/* Popover Footer Context */}
+        <Box sx={{ p: 1.5, display: "flex", alignItems: "center", justifyContent: "space-between", bgcolor: "action.hover" }}>
+          <Stack direction="row" spacing={0.5} alignItems="baseline">
+            <Typography variant="caption" color="text.secondary">Current PnL:</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, fontFamily: "monospace", color: isPnlPositive ? "success.main" : "error.main" }}>
+              {runningTrade.pnl}
+            </Typography>
+          </Stack>
+          {typeOfPos=="open" && <Button
+            variant="contained"
+            color="error"
+            size="small"
+            startIcon={<CloseIcon />}
+            onClick={(e)=>{
+              console.log("terminate clicked");
+              handleCloseTrade(e);
+            }}
+            sx={{ borderRadius: "6px", textTransform: "none", fontSize: "0.75rem" }}
+          >
+            Terminate
+          </Button>}
+        </Box>
+      </Popover>
+    </>
   );
 }
 

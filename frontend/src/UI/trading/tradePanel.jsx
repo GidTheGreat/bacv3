@@ -4,6 +4,8 @@ import { Slider, Box, IconButton, Paper, Stack, ToggleButton,
 import PositionsUI from "./positionsUi"
 import useTradeStore from "../../stores/tradeStore";
 import useChartStore from "../../stores/chartStore";
+import useAppStore from "../../stores/appStore";
+import useReplayStore from "../../stores/replayStore";
 import { useEffect, useState } from "react";
 
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
@@ -15,6 +17,16 @@ function TradeOptions() {
   const activeSymbol = useTradeStore((state) => state.activeSymbol);
 
   const activePlatform = useTradeStore((state) => state.activePlatform);
+
+  const accType = useTradeStore(state=>state.accType);
+
+  const setRunningTrade = useTradeStore(state=>state.setRunningTrade);
+
+  const setNotification = useAppStore(state => state.setNotification);
+
+  const replayActive = useReplayStore(state => state.replayActive);
+  
+  const replayState = useReplayStore(state=>state.replayState);
 
   const stake = useTradeStore((state) => state.stake);
 
@@ -32,13 +44,47 @@ function TradeOptions() {
   const key = `${activePlatform}|${activeTrade}|${activeSymbol}`;
 
   const symbolsInfo = useChartStore((state) => state.symbolsInfo[key]);
+
+  const data = useChartStore(state=>state.data?.[key]?.["1min"]?.data)
  
 
   const minNotional = Number(symbolsInfo?.find((f) => f.filterType === "MIN_NOTIONAL")?.notional);
 
   const isInvalid = ((stake*leverage) < minNotional) || (stake <= 0) || (leverage <= 0);
 
-  //isInvalid ? setStake(minNotional/leverage) : null
+  function handleBuySellClick(buttonType){
+    if (!data?.length){
+      setNotification(`Failed to place ${buttonType.toUpperCase()} order, no data available 
+      for market:${key}:${Math.ceil(Math.random()*10)}`) 
+    } else {
+      if (accType=="Practice"){
+        if (!replayActive){
+          setNotification(`Failed to place ${buttonType.toUpperCase()} order, 
+          in PRACTICE MODE replay mode should be active to 
+          simulate trading:${Math.ceil(Math.random()*10)}`)
+        } else {
+          if ((stake*leverage)< minNotional){
+            setNotification(`Failed to place ${buttonType.toUpperCase()} order, 
+          (stake X leverage) less than minimum:${Math.ceil(Math.random()*10)}`)
+          return;
+          }
+          const cursor = replayState[key].cursor;
+          const entryCandle = data[cursor];
+          const id = Math.floor(Math.random()*1_000_000_000_000);
+          const startTime = new Date().getTime();
+          const candleStartTime = entryCandle.time*1000; //ms
+          const entryPrice = entryCandle.close;
+          
+          setRunningTrade({id,startTime, candleStartTime,
+             entryPrice, stake, positionSize:(stake*leverage),
+             key, direction:buttonType, pnl:0})
+
+          setNotification(`Success,Placed ${buttonType.toUpperCase()} order, 
+          on market:${key}:${Math.ceil(Math.random()*10)}`)
+        }
+      }
+    }
+  }
 
   return (
     <>
@@ -122,12 +168,12 @@ function TradeOptions() {
           Leverage: {leverage}X
         </Button>}
         
-        <Button variant="outlined"
+        <Button variant="outlined" onClick={()=>handleBuySellClick("buy")}
         sx={{
           backgroundColor:"green",
           color:"white"
           }}>Buy</Button>
-        <Button variant="outlined"  
+        <Button variant="outlined"  onClick={()=>handleBuySellClick("sell")}
         sx={{
           backgroundColor:"red",
           color:"white"
@@ -286,10 +332,27 @@ function TradingBots() {
   )
 }
 
-function DspPositions(){
+function DspOpenPositions(){
+  const runningTrades = useTradeStore(s=>s.runningTrades);
+  //console.log(runningTrades)
+  if (runningTrades.length < 1) {return;}
   return (
-    <><PositionsUI symbol={"ETHUSDT"} 
-    posSize={50} margin={5} entryPrice={2654} pnl={5}/></>
+    <Box
+    sx={{display:"flex",flexDirection:"column"}}>
+      {runningTrades.map(runningTrade=><PositionsUI typeOfPos={"open"} runningTrade={runningTrade}/>)}
+    </Box>
+  )
+}
+
+function DspClosedPositions(){
+  const closedTrades = useTradeStore(s=>s.closedTrades);
+  //console.log(runningTrades)
+  if (closedTrades.length < 1) {return;}
+  return (
+    <Box
+    sx={{display:"flex",flexDirection:"column"}}>
+      {closedTrades.map(closedTrade=><PositionsUI typeOfPos={"close"} runningTrade={closedTrade}/>)}
+    </Box>
   )
 }
 
@@ -321,10 +384,8 @@ function MoreOnTrades(){
         <ToggleButton value={"Trading Bots"}>Trading Bots</ToggleButton>
       </ToggleButtonGroup>
 
-      {dspItem=="Positions" && <DspPositions/>}
-      {dspItem=="History" && <Typography variant="body2" color="text.secondary">
-        COMING SOON
-      </Typography>}
+      {dspItem=="Positions" && <DspOpenPositions/>}
+      {dspItem=="History" && <DspClosedPositions/>}
       {dspItem=="Trading Bots" && <TradingBots/>}
    
  
@@ -345,6 +406,22 @@ export default function TradePanel() {
       sx={{
         gridArea: "trade",
         overflow: "auto",
+        scrollbarWidth: "thin",
+        scrollbarColor: "rgba(255,255,255,0.2) transparent",
+
+        "&::-webkit-scrollbar": {
+            height: "4px",
+        },
+        "&::-webkit-scrollbar-track": {
+            background: "transparent",
+        },
+        "&::-webkit-scrollbar-thumb": {
+            background: "rgba(255,255,255,0.2)",
+            borderRadius: "4px",
+        },
+        "&::-webkit-scrollbar-thumb:hover": {
+            background: "rgba(255,255,255,0.4)",
+        },
         
       }}
     >
