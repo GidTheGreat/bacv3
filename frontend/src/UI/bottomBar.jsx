@@ -337,10 +337,6 @@ function PickSymbol(){
 
 export default function BottomBar() {
   //console.count("bottom bar")
-  
-  const notification = useAppStore(state=>state.notification);
-  
-  
   useEffect(
     ()=>{
       ochestrator.startUp()
@@ -370,7 +366,7 @@ export default function BottomBar() {
 
       {/* Center */}
 
-      <marquee style={{color:"red"}}>{notification}</marquee>
+      
 
       {/* Right */}
 

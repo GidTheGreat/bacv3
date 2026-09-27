@@ -5,15 +5,16 @@ import heroImg from './assets/hero.png'
 //import './App.css'
 
 import Layout from './UI/UILayout'
-import { paperClasses } from '@mui/material'
+import TransientMsg from './UI/transientMessage'
+
 //import html2canvas from 'html2canvas'
 
 function App() {
   
   return (
     <>
-      
-  <Layout />
+      {<TransientMsg/>}
+      <Layout />
 
     </>
   )
