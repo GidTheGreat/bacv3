@@ -39,6 +39,24 @@ const useTradeStore = create((set) => ({
         }
     }),
 
+    modifyPnl: (newTradesList) => set(state => {
+        // Create a quick lookup map of the incoming updated trades by ID
+        const updatesMap = new Map(newTradesList.map(trade => [trade.id, trade]));
+
+        // Map through existing trades: if an update exists, use it; otherwise, keep the current one
+        const nextTrades = state.runningTrades.map(runningTrade => {
+            if (updatesMap.has(runningTrade.id)) {
+                return updatesMap.get(runningTrade.id);
+            }
+            return runningTrade;
+        });
+
+        return {
+            runningTrades: nextTrades
+        };
+    }),
+
+
     setLeverage: (leverage) => set({ leverage }),
 
     setStake: (stake) => set({ stake }),

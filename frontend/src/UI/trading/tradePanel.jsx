@@ -69,11 +69,13 @@ function TradeOptions() {
           return;
           }
           const cursor = replayState[key].cursor;
-          const entryCandle = data[cursor];
+          const entryCandle = data[cursor-1];
           const id = Math.floor(Math.random()*1_000_000_000_000);
           const startTime = new Date().getTime();
           const candleStartTime = entryCandle.time*1000; //ms
           const entryPrice = entryCandle.close;
+
+          //console.log(cursor,entryCandle)
           
           setRunningTrade({id,startTime, candleStartTime,
              entryPrice, stake, positionSize:(stake*leverage),
@@ -339,7 +341,7 @@ function DspOpenPositions(){
   return (
     <Box
     sx={{display:"flex",flexDirection:"column"}}>
-      {runningTrades.map(runningTrade=><PositionsUI typeOfPos={"open"} runningTrade={runningTrade}/>)}
+      {runningTrades.map(runningTrade=><PositionsUI key={runningTrade.id*Math.random()*6000} typeOfPos={"open"} runningTrade={runningTrade}/>)}
     </Box>
   )
 }
@@ -351,7 +353,7 @@ function DspClosedPositions(){
   return (
     <Box
     sx={{display:"flex",flexDirection:"column"}}>
-      {closedTrades.map(closedTrade=><PositionsUI typeOfPos={"close"} runningTrade={closedTrade}/>)}
+      {closedTrades.map(closedTrade=><PositionsUI key={closedTrade.id+Math.random()*2000} typeOfPos={"close"} runningTrade={closedTrade}/>)}
     </Box>
   )
 }

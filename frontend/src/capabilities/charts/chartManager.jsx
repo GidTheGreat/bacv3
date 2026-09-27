@@ -32,7 +32,7 @@ import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import VPControls from "./vpControls";
 import VerticalAlignCenterIcon from "@mui/icons-material/VerticalAlignCenter";
-
+import useTradeStore from "../../stores/tradeStore";
 
 function ChartSeries({chartId,chartRef, fpRef}){
     //console.count("in usechart",chartRef)
@@ -85,91 +85,36 @@ function ChartSeries({chartId,chartRef, fpRef}){
 
 }
 
-function noData({ symbol, tf }) {
-  return (
-    <Box
-      sx={{
-        position: 'absolute',
-        left: 24,
-        top: 24,
-        zIndex: 10,
-        width: 320,
-        p: 2,
-        borderRadius: 2,
-        backgroundColor: 'background.paper',
-        border: 1,
-        borderColor: 'divider',
-        boxShadow: 3,
-        opacity: 0.9,
-        backdropFilter: 'blur(6px)',
-        transition: 'opacity 0.2s ease, box-shadow 0.2s ease',
+function updatePnl(k1, renderdata, replayStateDeets) {
+  const runningTrades = useTradeStore.getState().runningTrades;
+  const thisMarketTrades = runningTrades.filter(runningTrade => runningTrade.key == k1);
+  const currentCandle = renderdata[replayStateDeets.cursor-1];
 
-        '&:hover': {
-          opacity: 1,
-          boxShadow: 6,
-        },
-      }}
-    >
-      <Typography
-        variant="subtitle1"
-        fontWeight={600}
-        sx={{ mb: 0.5 }}
-      >
-        No data available
-      </Typography>
+  // If there's no candle data yet, abort to prevent crashes
+  if (!currentCandle) return; 
 
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{ mb: 2 }}
-      >
-        {symbol} · {tf}
-      </Typography>
+  const newMarketTrades = thisMarketTrades.map(thisMarketTrade => {
+    const currentPrice = currentCandle.close;
+    const entryPrice = thisMarketTrade.entryPrice;
+    const size = thisMarketTrade.positionSize;
+    
+    // Calculate PnL with flawless sign mapping for both directions
+    const newPnl = thisMarketTrade.direction === "buy" 
+      ? (currentPrice - entryPrice) * size
+      : (entryPrice - currentPrice) * size;
 
-      <Stack spacing={1.25}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 2,
-          }}
-        >
-          <Typography variant="body2">
-            Historical data
-          </Typography>
+    //console.log("Entry price:", entryPrice, "exitPrice:",currentPrice, "pnl:",newPnl,"direction:",thisMarketTrade.direction)
+    // Return the updated object so map doesn't return undefined
+    return {
+      ...thisMarketTrade,
+      pnl: Number(newPnl.toFixed(2)), // Keep decimal precision clean for your MUI UI
+      exitPrice: currentPrice
+    };
+  });
 
-          <Button
-            variant="outlined"
-            size="small"
-          >
-            Fetch
-          </Button>
-        </Box>
-
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 2,
-          }}
-        >
-          <Typography variant="body2">
-            Live data
-          </Typography>
-
-          <Button
-            variant="contained"
-            size="small"
-          >
-            Stream
-          </Button>
-        </Box>
-      </Stack>
-    </Box>
-  );
+  useTradeStore.getState().modifyPnl(newMarketTrades)
 }
+
 
 function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
     const replayState = useReplayStore(s => s.replayState);
@@ -248,7 +193,7 @@ function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
                 tf,
                 replayStateDeets.cursor
             );
-
+            updatePnl(k1, renderdata, replayStateDeets)
             const replayData = renderdata.slice(0, offset);
 
             activeSeries.setData(replayData);

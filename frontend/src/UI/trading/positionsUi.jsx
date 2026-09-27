@@ -71,13 +71,12 @@ function PositionsUI({ runningTrade, typeOfPos}) {
         <CardContent sx={{ p: "12px 16px", "&:last-child": { pb: "12px" } }}>
           <Stack
             direction="row"
-            alignItems="center"
-            justifyContent="space-between"
+            
             spacing={1.5} // Slightly tighter spacing to prevent overflow
             sx={{ width: "100%", overflow: "hidden" }} // Enforces card structural bounds
           >
             {/* Left: Identity and Position Intent */}
-            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flexShrink: 1 }} >
+            <Stack direction="row"  spacing={1.5} sx={{ minWidth: 0, flexShrink: 1 }} >
               <Typography variant="subtitle2" sx={{ fontWeight: 700, fontFamily: "monospace", fontSize: "0.95rem" }}>
                 {symbol}
               </Typography>
@@ -190,6 +189,15 @@ function PositionsUI({ runningTrade, typeOfPos}) {
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">Pos Size</Typography>
             <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: "monospace" }}>{runningTrade.positionSize}</Typography>
+          </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">Entry Price</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: "monospace" }}>{runningTrade.entryPrice}</Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">Exit Price</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: "monospace" }}>{runningTrade?.exitPrice??"N/A"}</Typography>
           </Box>
         </Box>
 
