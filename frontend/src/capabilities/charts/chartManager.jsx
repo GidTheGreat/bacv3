@@ -107,8 +107,9 @@ function updatePnl(k1, renderdata, replayStateDeets) {
     // Return the updated object so map doesn't return undefined
     return {
       ...thisMarketTrade,
-      pnl: Number(newPnl.toFixed(2)), // Keep decimal precision clean for your MUI UI
-      exitPrice: currentPrice
+      pnl: Number(newPnl.toFixed(7)), // Keep decimal precision clean for your MUI UI
+      exitPrice: currentPrice,
+      candleExitTime: currentCandle.time*1000
     };
   });
 

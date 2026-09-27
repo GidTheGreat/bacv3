@@ -184,11 +184,11 @@ function PositionsUI({ runningTrade, typeOfPos}) {
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">Stake</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: "monospace" }}>{runningTrade.stake}</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: "monospace" }}>${runningTrade.stake}</Typography>
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">Pos Size</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: "monospace" }}>{runningTrade.positionSize}</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: "monospace" }}>${runningTrade.positionSize}</Typography>
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">Entry Price</Typography>
@@ -208,7 +208,7 @@ function PositionsUI({ runningTrade, typeOfPos}) {
           <Stack direction="row" alignItems="center" spacing={1}>
             <AccessTimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
             <Box>
-              <Typography variant="caption" color="text.secondary" display="block">Start Time</Typography>
+              <Typography variant="caption" color="text.secondary" display="block">Start Time(local time)</Typography>
               <Typography variant="caption" sx={{ fontFamily: "monospace", display: "block" }}>
                 {new Date(runningTrade.startTime).toLocaleString()}
               </Typography>
@@ -217,9 +217,18 @@ function PositionsUI({ runningTrade, typeOfPos}) {
           <Stack direction="row" alignItems="center" spacing={1}>
             <AccessTimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
             <Box>
-              <Typography variant="caption" color="text.secondary" display="block">Candle Start</Typography>
+              <Typography variant="caption" color="text.secondary" display="block">Candle Start(UTC time)</Typography>
               <Typography variant="caption" sx={{ fontFamily: "monospace", display: "block" }}>
-                {new Date(runningTrade.candleStartTime).toLocaleString()}
+                {new Date(runningTrade.candleStartTime).toUTCString()}
+              </Typography>
+            </Box>
+          </Stack>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <AccessTimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block">Candle Exit(UTC time)</Typography>
+              <Typography variant="caption" sx={{ fontFamily: "monospace", display: "block" }}>
+                {new Date(runningTrade?.candleExitTime??"N/A").toUTCString()}
               </Typography>
             </Box>
           </Stack>
