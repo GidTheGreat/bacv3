@@ -33,6 +33,7 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import VPControls from "./vpControls";
 import VerticalAlignCenterIcon from "@mui/icons-material/VerticalAlignCenter";
 import useTradeStore from "../../stores/tradeStore";
+import useAppStore from "../../stores/appStore";
 
 function ChartSeries({chartId,chartRef, fpRef}){
     //console.count("in usechart",chartRef)
@@ -93,6 +94,8 @@ function updatePnl(k1, renderdata, replayStateDeets) {
   // If there's no candle data yet, abort to prevent crashes
   if (!currentCandle) return; 
 
+  let drawDown = false;
+
   const newMarketTrades = thisMarketTrades.map(thisMarketTrade => {
     const currentPrice = currentCandle.close;
     const entryPrice = thisMarketTrade.entryPrice;
@@ -100,11 +103,13 @@ function updatePnl(k1, renderdata, replayStateDeets) {
     
     // Calculate PnL with flawless sign mapping for both directions
     const newPnl = thisMarketTrade.direction === "buy" 
-      ? (currentPrice - entryPrice) * size
-      : (entryPrice - currentPrice) * size;
+      ? (currentPrice - entryPrice)/entryPrice * size
+      : (entryPrice - currentPrice)/entryPrice * size;
 
-    //console.log("Entry price:", entryPrice, "exitPrice:",currentPrice, "pnl:",newPnl,"direction:",thisMarketTrade.direction)
-    // Return the updated object so map doesn't return undefined
+    if (newPnl < 0 && Math.abs(newPnl) > useTradeStore.getState().accBalance[useTradeStore.getState().accType]){
+      drawDown = true
+      
+    }
     return {
       ...thisMarketTrade,
       pnl: Number(newPnl.toFixed(7)), // Keep decimal precision clean for your MUI UI
@@ -113,7 +118,14 @@ function updatePnl(k1, renderdata, replayStateDeets) {
     };
   });
 
+  
   useTradeStore.getState().modifyPnl(newMarketTrades)
+  if (drawDown){
+    useAppStore.getState().setNotification("Fail,losses exceed account balance closing all trades");
+    useTradeStore.getState().setAccBalance(useTradeStore.getState().accType,0);
+    newMarketTrades.forEach(trade=>useTradeStore.getState().closeRunningTrade(trade.id));
+    
+  }
 }
 
 

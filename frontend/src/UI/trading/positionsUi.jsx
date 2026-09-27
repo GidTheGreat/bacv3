@@ -21,7 +21,18 @@ import { useState } from "react";
 function PositionsUI({ runningTrade, typeOfPos}) {
   const closeRunningTrade = useTradeStore(s=>s.closeRunningTrade);
   const setNotification = useAppStore(s=>s.setNotification);
+  const accBalance = useTradeStore(s=>s.accBalance);
+  const setAccBalance = useTradeStore(s=>s.setAccBalance);
+  const accType = useTradeStore(s=>s.accType);
+  const activeTrades = useTradeStore(s=>s.runningTrades);
 
+  const newPnl = activeTrades.find(trade=>{
+    if (trade.id==runningTrade.id){
+      return trade
+    }
+  })?.pnl
+
+  //console.log("should be seeing new pnl:",newPnl, "sum:",accBalance[accType]+newPnl);
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event) => {
@@ -45,7 +56,10 @@ function PositionsUI({ runningTrade, typeOfPos}) {
     e.stopPropagation();
     // TODO: Connect your close trade action dispatcher here
     setNotification(`Closing trade ID: ${runningTrade.id}`);
-    closeRunningTrade(runningTrade.id)
+    
+    setAccBalance(accType,(accBalance[accType]+newPnl));
+    closeRunningTrade(runningTrade.id);
+    
   };
 
   return (
@@ -91,7 +105,7 @@ function PositionsUI({ runningTrade, typeOfPos}) {
             </Stack>
 
             {/* Middle: Financials metrics */}
-            <Stack direction="row" alignItems="center" spacing={3}>
+            <Stack direction="row"  spacing={3}>
               
 
               <Box>
@@ -250,7 +264,7 @@ function PositionsUI({ runningTrade, typeOfPos}) {
             size="small"
             startIcon={<CloseIcon />}
             onClick={(e)=>{
-              console.log("terminate clicked");
+              //console.log("terminate clicked");
               handleCloseTrade(e);
             }}
             sx={{ borderRadius: "6px", textTransform: "none", fontSize: "0.75rem" }}

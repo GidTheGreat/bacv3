@@ -20,6 +20,8 @@ function TradeOptions() {
 
   const accType = useTradeStore(state=>state.accType);
 
+  const accBalance = useTradeStore(state=>state.accBalance);
+
   const setRunningTrade = useTradeStore(state=>state.setRunningTrade);
 
   const setNotification = useAppStore(state => state.setNotification);
@@ -63,9 +65,15 @@ function TradeOptions() {
           in PRACTICE MODE replay mode should be active to 
           simulate trading:${Math.ceil(Math.random()*10)}`)
         } else {
+          //console.log("stake:",stake,"accBalance:",accBalance[accType],"stake > accBalance:",stake>accBalance[accType])
           if ((stake*leverage)< minNotional){
             setNotification(`Failed to place ${buttonType.toUpperCase()} order, 
           (stake X leverage) less than minimum:${Math.ceil(Math.random()*10)}`)
+          return;
+          }
+          if (stake > accBalance[accType]) {
+            setNotification(`Failed to place ${buttonType.toUpperCase()} order, 
+          stake greater than account balance:${Math.ceil(Math.random()*10)}`)
           return;
           }
           const cursor = replayState[key].cursor;
