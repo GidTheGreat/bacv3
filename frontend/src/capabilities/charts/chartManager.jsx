@@ -103,8 +103,8 @@ function updatePnl(k1, renderdata, replayStateDeets) {
     
     // Calculate PnL with flawless sign mapping for both directions
     const newPnl = thisMarketTrade.direction === "buy" 
-      ? (currentPrice - entryPrice)/entryPrice * size
-      : (entryPrice - currentPrice)/entryPrice * size;
+      ? ((currentPrice - entryPrice)/entryPrice * size) - (size*0.001)
+      : ((entryPrice - currentPrice)/entryPrice * size) - (size*0.001);
 
     if (newPnl < 0 && Math.abs(newPnl) > useTradeStore.getState().accBalance[useTradeStore.getState().accType]){
       drawDown = true

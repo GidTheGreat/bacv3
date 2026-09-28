@@ -246,6 +246,25 @@ function PositionsUI({ runningTrade, typeOfPos}) {
               </Typography>
             </Box>
           </Stack>
+
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <AccessTimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block">Commission</Typography>
+              <Typography variant="caption" sx={{ fontFamily: "monospace", display: "block" }}>
+                {runningTrade.positionSize*0.001}
+              </Typography>
+            </Box>
+          </Stack>
+          {typeOfPos=="open" && <Stack direction="row" alignItems="center" spacing={1}>
+            <AccessTimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block">Stop Loss:</Typography>
+              <Typography variant="caption" sx={{ fontFamily: "monospace", display: "block" }}>
+                Take Profit
+              </Typography>
+            </Box>
+          </Stack>}
         </Box>
 
         <Divider />
