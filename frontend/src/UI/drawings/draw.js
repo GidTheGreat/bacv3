@@ -1,7 +1,7 @@
 import { keyframes } from "@emotion/react";
 import useDrawingStore from "../../stores/drawingStore";
 import useChartStore from "../../stores/chartStore";
-import { renderDrawing,renderDrawings } from "./render";
+import { renderDrawing,renderDrawings, renderTrades } from "./render";
 import hitTest from "./hitTest";
 import { DrawHorizontalLine, DrawVerticalLine, CircleTrendRect, longShort, WriteText } from "./graphic"
 
@@ -28,10 +28,11 @@ export default function draw(ctx, chartRef, k1, chartId, pointerType, x, y) {
     } else if (useDrawingStore.getState().DrawingState.action=="Cursor"){
         //console.log("[Cursor mode] should be calling hit test")
         //hitTest(ctx, chartRef, k1, chartId, pointerType, x, y);
-        renderDrawings(ctx, chartId, k1, chartRef)
+        renderDrawings(ctx, chartId, k1, chartRef);
+        renderTrades(ctx, k1, useChartStore.getState().selection[chartId].activeSeries, chartRef);
     } else if (useDrawingStore.getState().DrawingState.action=="Clear Drawings"){
         
-        useDrawingStore.getState().clearDrawings()
+        useDrawingStore.getState().clearDrawings();
         renderDrawings(ctx, chartId, k1, chartRef);
         useDrawingStore
             .getState()

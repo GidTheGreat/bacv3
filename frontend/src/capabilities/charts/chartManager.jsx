@@ -30,7 +30,7 @@ import { FootprintPrimitive } from "./footprintPrimitive";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import BarChartIcon from "@mui/icons-material/BarChart";
-import VPControls from "./vpControls";
+import ChartDrawingsControls from "./chartDrawingsControls";
 import VerticalAlignCenterIcon from "@mui/icons-material/VerticalAlignCenter";
 import useTradeStore from "../../stores/tradeStore";
 import useAppStore from "../../stores/appStore";
@@ -95,12 +95,15 @@ function updatePnl(k1, renderdata, replayStateDeets) {
   if (!currentCandle) return; 
 
   let drawDown = false;
-
-  const newMarketTrades = thisMarketTrades.map(thisMarketTrade => {
+  const newMarketTrades = []
+  for (const thisMarketTrade of thisMarketTrades){
     const currentPrice = currentCandle.close;
     const entryPrice = thisMarketTrade.entryPrice;
     const size = thisMarketTrade.positionSize;
-    
+
+    if (thisMarketTrade.candleStartTime/1000 > currentCandle.time){
+      continue;
+    }
     // Calculate PnL with flawless sign mapping for both directions
     const newPnl = thisMarketTrade.direction === "buy" 
       ? ((currentPrice - entryPrice)/entryPrice * size) - (size*0.001)
@@ -110,15 +113,14 @@ function updatePnl(k1, renderdata, replayStateDeets) {
       drawDown = true
       
     }
-    return {
+    newMarketTrades.push({
       ...thisMarketTrade,
       pnl: Number(newPnl.toFixed(7)), // Keep decimal precision clean for your MUI UI
       exitPrice: currentPrice,
       candleExitTime: currentCandle.time*1000
-    };
-  });
+    });
+  }
 
-  
   useTradeStore.getState().modifyPnl(newMarketTrades)
   if (drawDown){
     useAppStore.getState().setNotification("Fail,losses exceed account balance closing all trades");
@@ -272,7 +274,7 @@ function ChartControls({chartId,handleDestroyChart}){
             },
             
           }}>
-            <VPControls chartId={chartId} />
+            <ChartDrawingsControls chartId={chartId} />
           </Box>
 
         </Tooltip>

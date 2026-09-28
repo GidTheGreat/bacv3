@@ -14,9 +14,10 @@ import {
 } from "@mui/material";
 import CandlestickChartIcon from "@mui/icons-material/CandlestickChart";
 import useFootprintStore from "../../stores/footPrintStore";
+import useTradeStore from "../../stores/tradeStore";
 import { useState, useEffect} from "react"
 
-export default function VPControls({ chartId }) {
+export default function ChartDrawingsControls({ chartId }) {
   const footPrintState = useFootprintStore(
     (s) => s.footPrintState?.[chartId]
   );
@@ -24,6 +25,14 @@ export default function VPControls({ chartId }) {
   const setFootPrintState = useFootprintStore(
     (s) => s.setFootPrintState
   );
+
+  const drawActiveTrades = useTradeStore(s=>s.drawActiveTrades);
+
+  const drawClosedTrades = useTradeStore(s=>s.drawClosedTrades);
+
+  const setDrawActiveTrades = useTradeStore(s=>s.setDrawActiveTrades);
+
+  const setDrawClosedTrades = useTradeStore(s=>s.setDrawClosedTrades);
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -111,6 +120,86 @@ export default function VPControls({ chartId }) {
           },
         }}
       >
+
+        <Box sx={{ p: 1.25 }}>
+
+          {/* Header */}
+
+          <Typography
+            variant="caption"
+            sx={{
+              display: "block",
+              mb: 0.75,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 1,
+              color: "text.secondary",
+            }}
+          >
+            TRADES
+          </Typography>
+
+
+          {/* Master */}
+
+          <Box
+            sx={{
+              px: 0.75,
+              py: 0.25,
+              mb: 0.75,
+
+              borderRadius: 1,
+
+              bgcolor: enabled
+                ? "rgba(120, 90, 255, 0.10)"
+                : "transparent",
+            }}
+          >
+            <FormControlLabel
+              sx={{
+                ...controlSx,
+
+                "& .MuiFormControlLabel-label": {
+                  fontSize: 12,
+                  fontWeight: 600,
+                },
+              }}
+              labelPlacement="start"
+              checked={drawActiveTrades}
+              control={
+                <Checkbox
+                  size="small"
+                  onChange={() => setDrawActiveTrades()}
+                />
+              }
+              label="Active Trades"
+            />
+
+            <FormControlLabel
+              sx={{
+                ...controlSx,
+
+                "& .MuiFormControlLabel-label": {
+                  fontSize: 12,
+                  fontWeight: 600,
+                },
+              }}
+              labelPlacement="start"
+              checked={drawClosedTrades}
+              control={
+                <Checkbox
+                  size="small"
+                  onChange={() => setDrawClosedTrades()}
+                />
+              }
+              label="Closed Trades"
+            />
+          </Box>
+
+
+          
+
+        </Box>
         <Box sx={{ p: 1.25 }}>
 
           {/* Header */}

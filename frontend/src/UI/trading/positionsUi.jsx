@@ -219,15 +219,7 @@ function PositionsUI({ runningTrade, typeOfPos}) {
 
         {/* Timestamps */}
         <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1, bgcolor: "background.paper" }}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <AccessTimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-            <Box>
-              <Typography variant="caption" color="text.secondary" display="block">Start Time(local time)</Typography>
-              <Typography variant="caption" sx={{ fontFamily: "monospace", display: "block" }}>
-                {new Date(runningTrade.startTime).toLocaleString()}
-              </Typography>
-            </Box>
-          </Stack>
+          
           <Stack direction="row" alignItems="center" spacing={1}>
             <AccessTimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
             <Box>
@@ -256,15 +248,7 @@ function PositionsUI({ runningTrade, typeOfPos}) {
               </Typography>
             </Box>
           </Stack>
-          {typeOfPos=="open" && <Stack direction="row" alignItems="center" spacing={1}>
-            <AccessTimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-            <Box>
-              <Typography variant="caption" color="text.secondary" display="block">Stop Loss:</Typography>
-              <Typography variant="caption" sx={{ fontFamily: "monospace", display: "block" }}>
-                Take Profit
-              </Typography>
-            </Box>
-          </Stack>}
+          
         </Box>
 
         <Divider />

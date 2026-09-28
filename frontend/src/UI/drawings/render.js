@@ -1,9 +1,116 @@
 import useDrawingStore from "../../stores/drawingStore";
 import useChartStore from "../../stores/chartStore";
+import useTradeStore from "../../stores/tradeStore";
 
-const WIDTH = 120;
-const RISK_HEIGHT = 30;
-const PROFIT_HEIGHT = 60;
+function drawChevron(ctx, x, y, size, direction = "long") {
+  const w = size;
+  const h = size * 0.8;
+  const t = size * 0.28;     // thickness
+  const overlap = size * 0.08;
+
+  ctx.save();
+  ctx.beginPath();
+
+  if (direction === "long") {
+    // Upper chevron
+    chevron(ctx, x, y - h * 0.45, w, t, -1, overlap);
+
+    // Lower chevron — overlaps upper one
+    chevron(ctx, x, y + h * 0.35, w, t, -1, overlap);
+  } else {
+    // Upper chevron
+    chevron(ctx, x, y - h * 0.35, w, t, 1, overlap);
+
+    // Lower chevron — overlaps upper one
+    chevron(ctx, x, y + h * 0.45, w, t, 1, overlap);
+  }
+
+  ctx.fill();
+  ctx.restore();
+}
+
+
+function chevron(ctx, x, y, w, t, dir, overlap) {
+  const half = w;
+  const inner = t;
+
+  if (dir > 0) {
+    // ▲
+    ctx.moveTo(x - half, y - inner);
+    ctx.lineTo(x,       y + half * 0.55);
+    ctx.lineTo(x + half, y - inner);
+    ctx.lineTo(x + half, y + inner);
+    ctx.lineTo(x,        y + half * 0.55 + inner);
+    ctx.lineTo(x - half, y + inner);
+  } else {
+    // ▼
+    ctx.moveTo(x - half, y + inner);
+    ctx.lineTo(x,        y - half * 0.55);
+    ctx.lineTo(x + half, y + inner);
+    ctx.lineTo(x + half, y - inner);
+    ctx.lineTo(x,        y - half * 0.55 - inner);
+    ctx.lineTo(x - half, y - inner);
+  }
+
+  ctx.closePath();
+}
+
+
+export function renderTrades(ctx, k1, activeSeries, chartRef) {
+    const runningTrades = useTradeStore.getState().runningTrades;
+    const closedTrades = useTradeStore.getState().closedTrades
+    
+    function renderTradesHelper(runningTrades){
+        for (const runningTrade of runningTrades) {
+            if (runningTrade.key !== k1) continue;
+
+            const candleTime = runningTrade.candleStartTime / 1000
+            
+            //console.log("trade time:", candleTime);
+            const entryX = chartRef.current.timeScale().timeToCoordinate(candleTime);
+            const entryY = activeSeries.priceToCoordinate(
+                runningTrade.entryPrice
+            );
+            //console.log(entryX, entryY)
+
+            if (entryX == null || entryY == null) continue;
+
+            if (runningTrade.direction === "buy") {
+                ctx.fillStyle = "#00e676";
+                drawChevron(ctx, entryX, entryY, 10, "long");
+            } else {
+                ctx.fillStyle = "#ff3b30";
+                drawChevron(ctx, entryX, entryY, 10, "short");
+            }
+
+            if (runningTrade.exitPrice){
+                const exitX = chartRef.current.timeScale().timeToCoordinate(runningTrade.candleExitTime/1000);
+                const exitY = activeSeries.priceToCoordinate(
+                    runningTrade.exitPrice
+                );
+                ctx.save();
+                runningTrade.pnl > 0 ? ctx.strokeStyle = "#00e676" : ctx.strokeStyle = "#ff3b30";
+                    
+                ctx.beginPath();
+                ctx.setLineDash([10,5]);
+                ctx.moveTo(entryX, entryY);
+                ctx.lineTo(exitX, entryY);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+    }
+
+    if (runningTrades.length) {
+        useTradeStore.getState().drawActiveTrades ? renderTradesHelper(runningTrades) : null;
+    } else if (closedTrades.length){
+        useTradeStore.getState().drawClosedTrades ? renderTradesHelper(closedTrades) : null;
+    }
+    
+}
+
+
+
 
 export function renderDrawing(ctx, chartId, drawing, chartRef) {
     const activeSeries = useChartStore.getState().selection[chartId].activeSeries
@@ -228,6 +335,8 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                         ctx.restore();
                         
                 } else if  (drawing== "Vertical Line"){
+                        console.log("drawing start time",drawing_details.time);
+                        window.ts = chartRef.current.timeScale().timeToCoordinate
                         const x = chartRef.current.timeScale().timeToCoordinate(drawing_details.time);
                         //console.log("[render drawings vertical]",x)
                         ctx.save();
@@ -337,7 +446,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                     if (!drawing_details.start) return;
 
                     const ts = chartRef.current.timeScale();
-
+                    
                     const x = ts.timeToCoordinate(drawing_details.start.time);
                     const entry = activeSeries.priceToCoordinate(drawing_details.start.price);
 
@@ -600,5 +709,6 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
      
     }
 
-ctx.restore();
+    
+    ctx.restore();
 }
