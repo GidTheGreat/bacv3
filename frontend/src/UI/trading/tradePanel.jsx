@@ -87,7 +87,7 @@ function TradeOptions() {
           
           setRunningTrade({id,startTime, candleStartTime,
              entryPrice, stake, positionSize:(stake*leverage),
-             key, direction:buttonType, pnl:(0-(positionSize*0.1))})
+             key, direction:buttonType, pnl:(0-(positionSize*0.001))})
 
           setNotification(`Success,Placed ${buttonType.toUpperCase()} order, 
           on market:${key}:${Math.ceil(Math.random()*10)}`)
