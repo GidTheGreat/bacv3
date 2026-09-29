@@ -34,7 +34,8 @@ import useDrawingStore from "../../stores/drawingStore";
 import useChartStore from "../../stores/chartStore";
 import AdsClickIcon from '@mui/icons-material/AdsClick';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
-
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { useEffect } from "react";
 const groups = [
   [
     ["Cursor", <MouseOutlinedIcon />, false],
@@ -69,6 +70,11 @@ const groups = [
   ],
 
   [
+    ["Drawing Visibility", <VisibilityOff />, false],
+    
+  ],
+
+  [
     ["Clear Selected Drawing",<DeleteOutlinedIcon />,false],
     ["Clear Drawings", <DeleteSweepOutlinedIcon />, false],
   ],
@@ -77,8 +83,15 @@ const groups = [
 export default function DrawingToolbar() {
   const setDrawingState = useDrawingStore(s=>s.setDrawingState);
   const DrawingState = useDrawingStore(s=>s.DrawingState);
-  const selections = useChartStore(s=>s.selection)
+  const selections = useChartStore(s=>s.selection);
 
+  const setNotDrawings = useDrawingStore(s=>s.setNotDrawings);
+  
+  const NotDrawings  = useDrawingStore(s=>s.NotDrawings);
+
+  const VsIcon = NotDrawings?.["visibility"]  ? <Visibility/> : <VisibilityOff/>
+
+  //useEffect(()=>console.log(NotDrawings),[NotDrawings])
   //console.log(DrawingState)
   function handleDrawingstate(label){
     Object.keys(selections).forEach(chartId=>{
@@ -141,8 +154,9 @@ export default function DrawingToolbar() {
                 }}
                 onClick={()=>{
                   //console.log(DrawingState.action,label,DrawingState==label)
-                  handleDrawingstate(label);}}>
-                  {icon}
+                  label == "Drawing Visibility" ? setNotDrawings("visibility"): handleDrawingstate(label);
+                  }}>
+                  {label == "Drawing Visibility" ? VsIcon : icon}
                 </IconButton>
               </Tooltip>
             ))}

@@ -1,3 +1,4 @@
+import { Visibility } from "@mui/icons-material";
 import { create } from "zustand";
 const DEFAULT = {
     key:"binance|futures trade|BTCUSDT",
@@ -7,10 +8,25 @@ const DEFAULT = {
 const useDrawingStore = create((set) => ({
     DrawingState: { ...DEFAULT },
 
+    NotDrawings: {
+        visibility: true
+    },
+
     Drawings: {},
 
     clearDrawings: () => set({
         Drawings: {}
+    }),
+
+    setNotDrawings: (type)=>set(state=>{
+        //console.log("[setNotDrawings], condition:",state.NotDrawings?.[type],"notDrawings:", state.NotDrawings?.[type],)
+        return {
+            NotDrawings: {
+                ...state.NotDrawings,
+                [type]: !state.NotDrawings?.[type]
+                
+            }
+        }
     }),
 
     setDrawings: (key, type, id, entry) =>

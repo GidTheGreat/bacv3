@@ -299,6 +299,7 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
     const activeSeries = useChartStore.getState().selection[chartId].activeSeries
     
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    if (!useDrawingStore.getState().NotDrawings.visibility) return;
     ctx.save();
 
     ctx.strokeStyle = "red";
