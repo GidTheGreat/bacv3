@@ -269,9 +269,7 @@ class OchestratorMain{
     stateUpdate(msg){
         //console.log(msg)
         if (msg.store =="chartStore"){
-            /*useChartStore.getState().addSymbol(
-                msg.k1.split("|")[2]
-            )*/
+           //console.log(msg.k1, msg.tf, msg.trans_arr)
             
             useChartStore.getState().setData(
                 msg.k1, msg.tf, msg.trans_arr

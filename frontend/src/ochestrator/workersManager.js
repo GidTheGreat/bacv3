@@ -131,11 +131,12 @@ class WorkersManager {
 
     workerMsgCapture(event){
         const msg = event.data;
-        //console.log(msg)
+        //console.log("[workers manager] received message:", msg)
         if (msg.type=="status"){
             //console.log(this.workers.get(msg.worker))
            
         } else {
+            //console.log(this.msgRelays);
             [...this.msgRelays].forEach(relay=>{relay?.(msg);})
         }
         

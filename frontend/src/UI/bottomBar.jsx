@@ -315,7 +315,11 @@ function PickSymbol(){
                   }
                   ochestrator.send("connect", 
                     {selection}, "ws")
-                    setConnState("Connecting....")
+                    setConnState("Connecting....");
+                  
+                  ochestrator.send("connect", 
+                    {selection}, "http")
+
                 }
                 
               }}>

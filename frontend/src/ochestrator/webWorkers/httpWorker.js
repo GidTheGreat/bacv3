@@ -1,8 +1,8 @@
 //console.log("[http worker] started")
 import binanceFetch, { getCandles, upload, manageBuffers } from "./binanceFetch"
-import BackfillAggregator from "./backFillAgg"
+
    
-const BACKFILL_URL="https://fapi.binance.com/fapi/v1/aggTrades"
+const BACKFILL_URL="https://fapi.binance.com/fapi/v1/klines"
 
 
 const timeframes = {
@@ -14,20 +14,18 @@ const timeframes = {
     "4h": 14400,
 };
 
-const aggregator = new BackfillAggregator(timeframes);
 
-const allData = []
-async function backfill() {
+let allData = []
+async function backfill(symbol) {
     const start = performance.now();
-
-    const endTime = Date.now(); 
-    let startTime = Date.now() - 3_600_000;
     
-    while (startTime < endTime){
-        let url = BACKFILL_URL + `?symbol=BTCUSDT&startTime=${startTime}&limit=1000`;
-        //console.log(url);
-
-        try {
+    for (const tf of ["1m", "5m", "15m", "30m", "1h", "4h"]) {
+        const endTime = Date.now(); 
+        let startTime = Date.now() - 172_800_000;
+        //console.log("start of loop", tf)
+        while (startTime < endTime) {
+            let url = BACKFILL_URL + `?symbol=${symbol}&interval=${tf}&startTime=${startTime}&limit=1000`;
+        
             const response = await fetch(url);
 
             if (!response.ok) {
@@ -35,34 +33,52 @@ async function backfill() {
             }
 
             const current_data = await response.json();
-            const latestTime = current_data[current_data.length-1].T;
-            allData.push(...current_data)
-            const result = aggregator.aggregate(allData);
-            console.log(result)
-            /*for (const tf of Object.keys(result)){
-                postMessage({
-                                store: "chartStore",
-                                k1: `binance|um|BTCUSDT`,
-                                tf: tf,
-                                trans_arr: result[tf]
-                            })
-            }*/
+            if (current_data.length === 0) {
+                //console.log("No more data to fetch for", symbol, "at timeframe", tf);
+                break;
+            }
+            //console.log(current_data.length)
+            const latestTime = current_data[current_data.length-1][0];
+            for (const candle of current_data) {
+                const totalVolume = parseFloat(candle[7]);
+                const buyVolume   = parseFloat(candle[10]);
+                const sellVolume  = totalVolume - buyVolume;
+                const delta       = buyVolume - sellVolume;
+
+                let item = {
+                    time: candle[0] / 1000,
+                    open: parseFloat(candle[1]),
+                    high: parseFloat(candle[2]),
+                    low: parseFloat(candle[3]),
+                    close: parseFloat(candle[4]),
+                    totalVolume,
+                    totalDelta: delta
+                };
+                allData.push(item);
+            }
+            //console.log("allData:", allData)
+            
+            
             startTime = latestTime+1;
+            
             await new Promise(resolve => setTimeout(resolve, 150));
 
-        } catch (error) {
-            console.error("Backfill request failed:", error);
-            throw error
         }
-
+        postMessage({
+                            store: "chartStore",
+                            k1: `binance|um|${symbol}`,
+                            tf: tf.endsWith("m") ? tf + "in" : tf,
+                            trans_arr: allData
+                        })
         
-               
+        //console.log("End of loop", tf)
+        allData = []
         
     }
+    
     console.log((performance.now()-start)/1000)
 }
 
-//await backfill()
 onmessage = async(event) => {
     //console.log(event)
     const { type, payload } = event.data;
@@ -93,6 +109,25 @@ onmessage = async(event) => {
                 getCandles(payload.exchange, payload.symbol, payload.market, payload.tfs);
             }
 
+            case "connect":{
+                const selections = payload.selection;
+                if (!selections){
+                    //console.log("No selections provided for backfilling.");
+                    return;
+                }
+                //console.log("http worker connect case, selections:", selections)
+                for (const [selkey, selSet] of Object.entries(selections)) {
+                    const [platform, trade] = selkey.split("|");
+                    if (platform === "binance" && trade === "um") {
+                        for (const symbol of Array.from(selSet)) {
+                            //console.log("backfilling symbol:", symbol);
+                            await backfill(symbol);
+                        } 
+                    }
+                }
+                break;
+            }
+
             case "upload":{
                 
                //console.log("[http worker] upload case,payload:",payload)
@@ -100,7 +135,7 @@ onmessage = async(event) => {
                 getCandles(payload.exchange,
                      payload.csvName ? payload.csvName.split("-")[0] : payload.file.name.split("-")[0],
                       payload.market, ["1min"],);
-            break;
+                break;
 
             }
             case "buffers":{
