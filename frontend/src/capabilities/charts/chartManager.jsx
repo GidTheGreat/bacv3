@@ -1,7 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import useChartStore from "../../stores/chartStore";
-import useReplayStore from "../../stores/replayStore";
-import Buttons from "./buttons";
+
 import {
   Box,
   Paper,
@@ -21,19 +19,24 @@ import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArro
 import Tooltip from '@mui/material/Tooltip';
 import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 
-import { getCapabilities } from "../../registry";
 import {createChart, CandlestickSeries, createTextWatermark} from 'lightweight-charts';
 import CloseIcon from "@mui/icons-material/Close";
-import DrawingLayer from "../../UI/drawings/drawingLayer";
-import { FootprintPrimitive } from "./footprintPrimitive";
 
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import BarChartIcon from "@mui/icons-material/BarChart";
-import ChartDrawingsControls from "./chartDrawingsControls";
 import VerticalAlignCenterIcon from "@mui/icons-material/VerticalAlignCenter";
+
+import { getCapabilities } from "../../registry";
+import DrawingLayer from "../../UI/drawings/drawingLayer";
+import { FootprintPrimitive } from "./footprintPrimitive";
+import ChartDrawingsControls from "./chartDrawingsControls";
+import useChartStore from "../../stores/chartStore";
+import useReplayStore from "../../stores/replayStore";
+import Buttons from "./buttons";
 import useTradeStore from "../../stores/tradeStore";
 import useAppStore from "../../stores/appStore";
+import swingsGen from "./swings";
 
 function ChartSeries({chartId,chartRef, fpRef}){
     //console.count("in usechart",chartRef)
@@ -210,7 +213,8 @@ function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
             );
             updatePnl(k1, renderdata, replayStateDeets)
             const replayData = renderdata.slice(0, offset);
-
+            swingsGen.findSwings(k1, tf, replayData);
+            console.log("SWINGS:", swingsGen.swings[k1]?.[tf])
             activeSeries.setData(replayData);
 
             fpRef.current?.setData(replayData);
@@ -529,10 +533,6 @@ function Chart({chartId, destroyChart, pane}){
   )
 
 }
-
-
-
-
 
 
 export default function ChartManager({chartId, destroyChart, pane}) {

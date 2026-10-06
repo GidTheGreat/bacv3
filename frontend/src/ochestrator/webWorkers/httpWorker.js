@@ -76,7 +76,7 @@ async function backfill(symbol) {
         
     }
     
-    console.log((performance.now()-start)/1000)
+    //console.log((performance.now()-start)/1000)
 }
 
 onmessage = async(event) => {
