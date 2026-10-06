@@ -1,5 +1,7 @@
 // FootprintPrimitive.js
 import useFootprintStore from "../../stores/footPrintStore";
+import useSwingStore from "../../stores/swingStore";
+import useChartStore from "../../stores/chartStore";
 
 export class FootprintPrimitive {
     constructor(chartId, data = []) {
@@ -23,6 +25,11 @@ export class FootprintPrimitive {
         ];
 
         this.requestUpdate();
+
+        const selection = useChartStore.getState().selection?.[this.chartId];
+        this.k1 = selection
+        ? `${selection.platform}|${selection.trade}|${selection.symbol}`
+        : null
         
         this.unsubFp = useFootprintStore.subscribe(
             (state) =>  {
@@ -31,6 +38,7 @@ export class FootprintPrimitive {
                 this.requestUpdate?.();
             }
         );
+
         this.unsubChart = this.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
             if (!range) return;
 
@@ -39,6 +47,13 @@ export class FootprintPrimitive {
 
            //console.log(this.from, this.to)
         });
+
+        this.unsubSwing = useSwingStore.subscribe(
+            (state) => {
+                //console.log("Swing store updated:", state.swings);
+                this.requestUpdate?.();
+            }
+        );
     }
 
     detached() {
@@ -48,6 +63,7 @@ export class FootprintPrimitive {
         this._paneViews = [];
         this.unsubFp();
         this.unsubChart();
+        this.unsubSwing();
     }
 
     paneViews() {
@@ -248,6 +264,44 @@ function heatColor(
         : `rgb(${intensity},0,0)`;
 }
 
+function drawMs(ctx, k1, chart, series) {
+    const swings = useSwingStore.getState().swings?.[k1]?.['1min'];
+    //console.log("[drawMs] swings:",swings)
+    if (!swings) return;
+
+    ctx.save();
+    ctx.fillStyle = "yellow";
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 1;
+
+    swings.forEach((swing) => {
+        //console.log("[drawMs] swing:",swing)
+        let x = chart.timeScale().timeToCoordinate(swing.value.time);
+        
+        if (swing.swingType === "high") {
+           const y = series.priceToCoordinate(swing.value.high);
+            ctx.fillText(`High`, x, y-20);
+
+            ctx.beginPath();
+            ctx.moveTo(x, y-20);
+            ctx.lineTo(x,y);
+            ctx.stroke();
+            
+        } else if (swing.swingType === "low") {
+            const y = series.priceToCoordinate(swing.value.low);
+            ctx.fillText(`Low`, x, y+25);
+
+            ctx.beginPath();
+            ctx.moveTo(x, y+25);
+            ctx.lineTo(x,y);
+            ctx.stroke();
+        }
+    })
+
+    ctx.restore();
+        
+}
+
 class FootprintRenderer {
 
     constructor(source) {
@@ -293,186 +347,193 @@ class FootprintRenderer {
     }
 
     draw(target) {
-    const { chart, series, data, chartId, from, to } = this.source;
-    let newData;
-    if (from && to){
-        newData= data.slice(from,to);
-    } else {
-        newData = data;
-    }
-    if (!newData) return;
-    //console.log(newData.length);
-    const footPrintState = useFootprintStore.getState().footPrintState?.[chartId];
-    /*console.log({
-        state: footPrintState,
-        poc: footPrintState?.poc,
-        type: typeof footPrintState?.poc,
-        isTrue: footPrintState?.poc === true,
-        truthy: Boolean(footPrintState?.poc),
-    });*/
-    if (!footPrintState?.footprint) return;
-    const visible = series.priceScale().getVisibleRange();
-    if (!visible) return;
-    const priceSpan = Math.abs(visible.to - visible.from);
-    const paneHeight = chart.panes()[0].getHeight();
+        const { chart, series, data, chartId, from, to, k1 } = this.source;
+        let newData;
+        if (from && to){
+            newData= data.slice(from,to);
+        } else {
+            newData = data;
+        }
+        if (!newData) return;
+        //console.log(newData.length);
+        const footPrintState = useFootprintStore.getState().footPrintState?.[chartId];
+        /*console.log({
+            state: footPrintState,
+            poc: footPrintState?.poc,
+            type: typeof footPrintState?.poc,
+            isTrue: footPrintState?.poc === true,
+            truthy: Boolean(footPrintState?.poc),
+        });*/
+        
+        const visible = series.priceScale().getVisibleRange();
+        if (!visible) return;
+        const priceSpan = Math.abs(visible.to - visible.from);
+        const paneHeight = chart.panes()[0].getHeight();
 
-    const pixelsPerPrice = paneHeight / priceSpan;
-    const targetPx = 100;
-    const timeScale = chart.timeScale();
-    const spacing = timeScale.options().barSpacing;
+        const pixelsPerPrice = paneHeight / priceSpan;
+        const targetPx = 100;
+        const timeScale = chart.timeScale();
+        const spacing = timeScale.options().barSpacing;
 
-    
-    if (!chart || !series || !data.length) return;
+        
+        if (!chart || !series || !data.length) return;
 
-    target.useMediaCoordinateSpace(({ context: ctx }) => {
-        for (let item of newData) {
-            const x = timeScale.timeToCoordinate(item.time);
-
-            if (x === null) continue;
-            let bins;
-
-            if (footPrintState?.notional ?? true ){
-                bins = item.binnedProfile
-            } else {
-                item = quantityProfile(item);
-                bins = item.binnedProfile;
-            }
-
-            //console.log(item,bins)
-            const poc= item?.poc;
-            let pocY;
-            if (poc){
-                pocY = series.priceToCoordinate(poc.price);
+        target.useMediaCoordinateSpace(({ context: ctx }) => {
+            try{
+                drawMs(ctx, k1, chart, series);
+            } catch (error){
+                console.log(error)
             }
             
-            const width = spacing * 0.8;
-            if (!bins) continue;
-            const y1 = series.priceToCoordinate(item.low);
-            const y2 = series.priceToCoordinate(item.high);
-            const levels = Object.entries(bins);
+            if (!footPrintState?.footprint) return;
+            for (let item of newData) {
+                const x = timeScale.timeToCoordinate(item.time);
 
-            const profileRows = levels.map(([price,profile])=>({
-                price: Number(price), buy: profile.buy,
-              sell:profile.sell}))
-            profileRows.sort((a,b)=>b.price-a.price);
-            //const highUA = profileRows[0]?.sell > 0;
-            //const lowUA = profileRows.at(-1)?.buy > 0;
+                if (x === null) continue;
+                let bins;
 
-            let aggPerRow = targetPx/pixelsPerPrice;
-            //let aggLength = profileRows.length/aggPerRow;
-            let newRows = regroup(profileRows, aggPerRow);
-            newRows = !(footPrintState?.lod ?? false)
-                ? regroup10(newRows)
-                : newRows;
-            let rowHeight = Math.abs(y2-y1)/newRows.length;
-            //console.log(aggPerRow,newRows.length)
-            
-            /*
-            if (footPrintState?.ua ?? false) {
-                ctx.save();
-
-                const uaHeight = Math.min(rowHeight * 0.6, 8);
-
-                if (highUA) {
-                    ctx.strokeStyle = "#ffffff";
-                    ctx.lineWidth = 2;
-
-                    ctx.strokeRect(
-                        x - width / 2,
-                        y2 - uaHeight,
-                        width / 4,
-                        uaHeight
-                    );
+                if (footPrintState?.notional ?? true ){
+                    bins = item.binnedProfile
+                } else {
+                    item = quantityProfile(item);
+                    bins = item.binnedProfile;
                 }
 
-                if (lowUA) {
-                    ctx.strokeStyle = "#ffffff";
-                    ctx.lineWidth = 2;
-
-                    ctx.strokeRect(
-                        x + width / 4,
-                        y1,
-                        width / 4,
-                        uaHeight
-                    );
+                //console.log(item,bins)
+                const poc= item?.poc;
+                let pocY;
+                if (poc){
+                    pocY = series.priceToCoordinate(poc.price);
                 }
+                
+                const width = spacing * 0.8;
+                if (!bins) continue;
+                const y1 = series.priceToCoordinate(item.low);
+                const y2 = series.priceToCoordinate(item.high);
+                const levels = Object.entries(bins);
 
-                ctx.restore();
-            }*/
-            
-            if (footPrintState?.footer){
-                this.drawFooter(y1, x, item, ctx)
-            }
-            
-            const maxVolBuySide = newRows.reduce(
+                const profileRows = levels.map(([price,profile])=>({
+                    price: Number(price), buy: profile.buy,
+                sell:profile.sell}))
+                profileRows.sort((a,b)=>b.price-a.price);
+                //const highUA = profileRows[0]?.sell > 0;
+                //const lowUA = profileRows.at(-1)?.buy > 0;
+
+                let aggPerRow = targetPx/pixelsPerPrice;
+                //let aggLength = profileRows.length/aggPerRow;
+                let newRows = regroup(profileRows, aggPerRow);
+                newRows = !(footPrintState?.lod ?? false)
+                    ? regroup10(newRows)
+                    : newRows;
+                let rowHeight = Math.abs(y2-y1)/newRows.length;
+                //console.log(aggPerRow,newRows.length)
+                
+                /*
+                if (footPrintState?.ua ?? false) {
+                    ctx.save();
+
+                    const uaHeight = Math.min(rowHeight * 0.6, 8);
+
+                    if (highUA) {
+                        ctx.strokeStyle = "#ffffff";
+                        ctx.lineWidth = 2;
+
+                        ctx.strokeRect(
+                            x - width / 2,
+                            y2 - uaHeight,
+                            width / 4,
+                            uaHeight
+                        );
+                    }
+
+                    if (lowUA) {
+                        ctx.strokeStyle = "#ffffff";
+                        ctx.lineWidth = 2;
+
+                        ctx.strokeRect(
+                            x + width / 4,
+                            y1,
+                            width / 4,
+                            uaHeight
+                        );
+                    }
+
+                    ctx.restore();
+                }*/
+                
+                if (footPrintState?.footer){
+                    this.drawFooter(y1, x, item, ctx)
+                }
+                
+                const maxVolBuySide = newRows.reduce(
+                        (max, group) => Math.max(
+                            max,
+                            group.reduce((sum, val) => sum + val.buy, 0)
+                        ),
+                        0
+                    );
+
+                const maxVolSellSide = newRows.reduce(
                     (max, group) => Math.max(
                         max,
-                        group.reduce((sum, val) => sum + val.buy, 0)
+                        group.reduce((sum, val) => sum + val.sell, 0)
                     ),
                     0
                 );
-
-            const maxVolSellSide = newRows.reduce(
-                (max, group) => Math.max(
-                    max,
-                    group.reduce((sum, val) => sum + val.sell, 0)
-                ),
-                0
-            );
-            let pos = y2;
-            for ( const group of newRows){
-                const sellT = group.reduce((acc,val)=>Math.floor(acc+val.sell),0);
-                const sellColor =
-                            heatColor(
-                                sellT,
-                                maxVolSellSide,
-                                "sell"
-                            );
-                ctx.fillStyle=sellColor;
-                ctx.fillRect(x-width/2,pos,width/4,rowHeight);
-                
-                const buyT = group.reduce((acc,val)=>Math.floor(acc+val.buy),0);
-                const buyColor =
-                            heatColor(
-                                buyT,
-                                maxVolBuySide,
-                                "buy"
-                            );
-                ctx.fillStyle=buyColor;
-                ctx.fillRect(x+width/4,pos,width/4,rowHeight);
-                
-                
-                const availableWidth = width/4;
-                const textWidth = ctx.measureText(String(sellT)).width;
-                if (textWidth < availableWidth){
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillStyle = sellColor === "#ffffff" ? "black" : "white";
-                    ctx.fillText(formatNotional(sellT),x - 3 * width / 8,(pos+rowHeight/2));
+                let pos = y2;
+                for ( const group of newRows){
+                    const sellT = group.reduce((acc,val)=>Math.floor(acc+val.sell),0);
+                    const sellColor =
+                                heatColor(
+                                    sellT,
+                                    maxVolSellSide,
+                                    "sell"
+                                );
+                    ctx.fillStyle=sellColor;
+                    ctx.fillRect(x-width/2,pos,width/4,rowHeight);
                     
-                    ctx.fillStyle =buyColor === "#ffffff" ? "black" : "white";
-                    ctx.fillText(formatNotional(buyT),x + 3 * width / 8,(pos+rowHeight/2));
-                }
-                const containsPOC = group.some(row => row.price === poc?.price);
-
-                if (footPrintState?.poc && containsPOC) {
-                    ctx.save();
+                    const buyT = group.reduce((acc,val)=>Math.floor(acc+val.buy),0);
+                    const buyColor =
+                                heatColor(
+                                    buyT,
+                                    maxVolBuySide,
+                                    "buy"
+                                );
+                    ctx.fillStyle=buyColor;
+                    ctx.fillRect(x+width/4,pos,width/4,rowHeight);
                     
-                    ctx.strokeStyle = "yellow";
-                    ctx.lineWidth = 2;
+                    
+                    const availableWidth = width/4;
+                    const textWidth = ctx.measureText(String(sellT)).width;
+                    if (textWidth < availableWidth){
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillStyle = sellColor === "#ffffff" ? "black" : "white";
+                        ctx.fillText(formatNotional(sellT),x - 3 * width / 8,(pos+rowHeight/2));
+                        
+                        ctx.fillStyle =buyColor === "#ffffff" ? "black" : "white";
+                        ctx.fillText(formatNotional(buyT),x + 3 * width / 8,(pos+rowHeight/2));
+                    }
+                    const containsPOC = group.some(row => row.price === poc?.price);
 
-                    ctx.beginPath();
-                    ctx.moveTo(x - width / 2, pocY);
-                    ctx.lineTo(x + width / 2, pocY);
-                    ctx.stroke();
+                    if (footPrintState?.poc && containsPOC) {
+                        ctx.save();
+                        
+                        ctx.strokeStyle = "yellow";
+                        ctx.lineWidth = 2;
 
-                    ctx.restore();
+                        ctx.beginPath();
+                        ctx.moveTo(x - width / 2, pocY);
+                        ctx.lineTo(x + width / 2, pocY);
+                        ctx.stroke();
+
+                        ctx.restore();
+                    }
+                    pos = pos+rowHeight;
                 }
-                pos = pos+rowHeight;
+                
+
             }
-            
-
-        }
-    });
-}
+        });
+    }
 }

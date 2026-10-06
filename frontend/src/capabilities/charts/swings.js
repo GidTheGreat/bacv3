@@ -1,8 +1,12 @@
+import useSwingStore from "../../stores/swingStore";
+
 class SwingGen{
-    constructor(){
+    constructor(confirmationCount=3){
         this.pos = {};
         this.swings = {};
         this.pendingSwings = {};
+        this.confirmationCount = confirmationCount;
+        
         
     }
     
@@ -12,6 +16,49 @@ class SwingGen{
         
         const latestSwings = swingsList.slice(-4);
         
+        
+    }
+
+    addSwing(key, tf, swingType, swingValue){
+        const latestSwing = this.swings?.[key]?.[tf].slice(-1)[0];
+        console.log("latest swing:",latestSwing,
+            "islatestSwing ==swingType:",latestSwing?.swingType == swingType)
+
+        if (!latestSwing || latestSwing.swingType != swingType){
+            this.swings[key][tf].push({
+                        swingType,
+                        value: swingValue
+                    });
+            useSwingStore.getState().addSwing(key, tf, { swingType, value: swingValue });
+        
+        } else if (latestSwing && latestSwing.swingType==swingType){
+            if (swingType == 'low'){
+                if (swingValue.low < latestSwing.value.low){
+                    this.swings?.[key]?.[tf].pop();
+                    this.swings[key][tf].push({
+                        swingType,
+                        value: swingValue
+                    });
+                    useSwingStore.getState().replaceLatest(key, tf, { swingType, value: swingValue });
+                    console.log("new low warrants replacing existing")
+                }
+                
+
+            } else if (swingType == 'high'){
+                if (swingValue.high > latestSwing.value.high){
+                    this.swings?.[key]?.[tf].pop();
+                    this.swings[key][tf].push({
+                        swingType,
+                        value: swingValue
+                    });
+                    useSwingStore.getState().replaceLatest(key, tf, { swingType, value: swingValue });
+                    console.log("new high warrants replacing existing")
+                }
+                
+            } else {
+                console.log("new lows/highs dont warrant replacing existing")
+            }
+        }
         
     }
     
@@ -73,7 +120,13 @@ class SwingGen{
             
             
             if (!this.pendingSwings[key][tf]["max"]["value"]){
-                this.pendingSwings[key][tf]["max"]["value"] = maxCandle;
+                this.pendingSwings[key][tf]["max"]["value"] = {
+                    time:maxCandle.time,
+                    high:maxCandle.high,
+                    low:maxCandle.low,
+                    open:maxCandle.open,
+                    close:maxCandle.close
+                };
                 
             } else if (this.pendingSwings[key][tf]["max"]["value"] &&
             this.pendingSwings[key][tf]["max"]["value"].high > maxCandle.high){
@@ -82,12 +135,24 @@ class SwingGen{
             } else if (this.pendingSwings[key][tf]["max"]["value"] &&
             this.pendingSwings[key][tf]["max"]["value"].high < maxCandle.high){
                 this.pendingSwings[key][tf]["max"]["confirmed"] = 0;
-                this.pendingSwings[key][tf]["max"]["value"] = maxCandle
+                this.pendingSwings[key][tf]["max"]["value"] = {
+                    time:maxCandle.time,
+                    high:maxCandle.high,
+                    low:maxCandle.low,
+                    open:maxCandle.open,
+                    close:maxCandle.close
+                };
                 
             }
             
             if (!this.pendingSwings[key][tf]["min"]["value"]){
-                this.pendingSwings[key][tf]["min"]["value"] = minCandle;
+                this.pendingSwings[key][tf]["min"]["value"] = {
+                    time:minCandle.time,
+                    high:minCandle.high,
+                    low:minCandle.low,
+                    open:minCandle.open,
+                    close:minCandle.close
+                };
                 
             } else if (this.pendingSwings[key][tf]["min"]["value"] &&
             this.pendingSwings[key][tf]["min"]["value"].low < minCandle.low){
@@ -96,24 +161,24 @@ class SwingGen{
             } else if (this.pendingSwings[key][tf]["min"]["value"] &&
             this.pendingSwings[key][tf]["min"]["value"].low > minCandle.low){
                 this.pendingSwings[key][tf]["min"]["confirmed"] = 0;
-                this.pendingSwings[key][tf]["min"]["value"] = minCandle
+                this.pendingSwings[key][tf]["min"]["value"] = {
+                    time:minCandle.time,
+                    high:minCandle.high,
+                    low:minCandle.low,
+                    open:minCandle.open,
+                    close:minCandle.close
+                };  
                 
             }
             
-            if (this.pendingSwings[key][tf]["max"]["confirmed"] >=3 ||
-            this.pendingSwings[key][tf]["min"]["confirmed"] >=3){
-                if (this.pendingSwings[key][tf]["min"]["confirmed"] >=3){
-                        this.swings[key][tf].push({
-                        swingType:"low",
-                        value: this.pendingSwings[key][tf]["min"]["value"]
-                    })
+            if (this.pendingSwings[key][tf]["max"]["confirmed"] >=this.confirmationCount ||
+            this.pendingSwings[key][tf]["min"]["confirmed"] >=this.confirmationCount){
+                if (this.pendingSwings[key][tf]["min"]["confirmed"] >=this.confirmationCount){
+                    this.addSwing(key, tf, "low", this.pendingSwings[key][tf]["min"]["value"]);
                     this.pendingSwings[key][tf]["min"] = {value:null,confirmed:0};
                 }
-                if (this.pendingSwings[key][tf]["max"]["confirmed"] >=3){
-                    this.swings[key][tf].push({
-                        swingType:"high",
-                        value: this.pendingSwings[key][tf]["max"]["value"]
-                    })
+                if (this.pendingSwings[key][tf]["max"]["confirmed"] >=this.confirmationCount){
+                    this.addSwing(key, tf, "high", this.pendingSwings[key][tf]["max"]["value"]);
                     this.pendingSwings[key][tf]["max"] = {value:null,confirmed:0};
                 } 
                 

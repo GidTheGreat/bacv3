@@ -214,7 +214,7 @@ function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
             updatePnl(k1, renderdata, replayStateDeets)
             const replayData = renderdata.slice(0, offset);
             swingsGen.findSwings(k1, tf, replayData);
-            console.log("SWINGS:", swingsGen.swings[k1]?.[tf])
+            //console.log("SWINGS:", swingsGen.swings[k1]?.[tf])
             activeSeries.setData(replayData);
 
             fpRef.current?.setData(replayData);
