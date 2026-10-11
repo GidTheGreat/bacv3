@@ -297,7 +297,7 @@ export function renderDrawing(ctx, chartId, drawing, chartRef) {
 
 export function renderDrawings(ctx, chartId, k1, chartRef) {
     const activeSeries = useChartStore.getState().selection[chartId].activeSeries
-    
+    const posSize = useTradeStore.getState().stake * useTradeStore.getState().leverage
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     if (!useDrawingStore.getState().NotDrawings.visibility) return;
     ctx.save();
@@ -490,27 +490,33 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                         entry
                     );
                     ctx.fillText(
-                        `Reward:Risk  ${rewardToRisk.toFixed(2)}`,
+                        `Reward/Risk : ${rewardToRisk.toFixed(2)}`,
                         x + width,
                         entry+10
                     );
+                    ctx.fillText(
+                        `Position Size : ${posSize.toFixed(1)}`,
+                        x + width,
+                        entry+20
+                    );
                     
-
+                    const profit = posSize * (drawing_details.target.price-drawing_details.start.price)/drawing_details.start.price;
+                    const loss = posSize * (drawing_details.start.price-drawing_details.risk.price)/drawing_details.start.price;
                     // Target price — near the top of green zone
                     ctx.fillStyle = "#008000";
                     ctx.textAlign = "right";
                     ctx.fillText(
-                        `${drawing_details.target.price.toFixed(2)}`,
+                        `${drawing_details.target.price.toFixed(2)} | Target Profit:$${profit.toFixed(3)}`,
                         x + width - 6,
-                        target + 12
+                        target - 12
                     );
 
                     // Risk price — near the bottom of red zone
                     ctx.fillStyle = "#cc0000";
                     ctx.fillText(
-                        drawing_details.risk.price.toFixed(2),
+                        `${drawing_details.risk.price.toFixed(2)} | Stop Loss:$${loss.toFixed(3)}`,
                         x + width - 6,
-                        risk - 12
+                        risk + 12
                     );
                     if (drawing_details.selected){ 
                             //console.log(`${drawing}`,drawing_details.hit)
@@ -587,6 +593,8 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                     const rewardToRisk= ((drawing_details.target.price-drawing_details.start.price)/
                         (drawing_details.start.price-drawing_details.risk.price)
                     );
+
+
                     if (x == null || entry == null) return;
 
                     const width = (drawing_details?.width ?? 120);
@@ -621,25 +629,32 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
                         entry
                     );
                     ctx.fillText(
-                        `Reward:Risk  ${rewardToRisk.toFixed(2)}`,
+                        `Reward/Risk : ${rewardToRisk.toFixed(2)}`,
                         x + width,
                         entry + 10
                     );
 
+                    ctx.fillText(
+                        `Position Size : ${posSize.toFixed(2)}`,
+                        x + width,
+                        entry + 20
+                    );
 
-                    // Target price — upper green zone
+                    const profit = posSize * (drawing_details.start.price-drawing_details.target.price)/drawing_details.start.price;
+                    const loss = posSize * (drawing_details.risk.price-drawing_details.start.price)/drawing_details.start.price;
+                    // Target price — lower green zone
                     ctx.fillStyle = "#008000";
                     ctx.textAlign = "right";
                     ctx.fillText(
-                        drawing_details.target.price.toFixed(2),
+                        `${drawing_details.target.price.toFixed(2)} | Target Profit:$${profit.toFixed(3)}`,
                         x + width - 6,
                         target + 12
                     );
 
-                    // Risk price — lower red zone
+                    // Risk price — upper red zone
                     ctx.fillStyle = "#cc0000";
                     ctx.fillText(
-                        drawing_details.risk.price.toFixed(2),
+                        `${drawing_details.risk.price.toFixed(2)} | Stop Loss:$${loss.toFixed(3)}`,
                         x + width - 6,
                         risk - 12
                     );
