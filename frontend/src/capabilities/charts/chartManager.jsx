@@ -36,7 +36,7 @@ import useReplayStore from "../../stores/replayStore";
 import Buttons from "./buttons";
 import useTradeStore from "../../stores/tradeStore";
 import useAppStore from "../../stores/appStore";
-import swingsGen from "./swings";
+//import swingsGen from "./swings";
 
 function ChartSeries({chartId,chartRef, fpRef}){
     //console.count("in usechart",chartRef)
@@ -213,7 +213,7 @@ function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
             );
             updatePnl(k1, renderdata, replayStateDeets)
             const replayData = renderdata.slice(0, offset);
-            swingsGen.findSwings(k1, tf, replayData);
+            //swingsGen.findSwings(k1, tf, replayData);
             //console.log("SWINGS:", swingsGen.swings[k1]?.[tf])
             activeSeries.setData(replayData);
 
