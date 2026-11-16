@@ -36,7 +36,9 @@ import useReplayStore from "../../stores/replayStore";
 import Buttons from "./buttons";
 import useTradeStore from "../../stores/tradeStore";
 import useAppStore from "../../stores/appStore";
-//import swingsGen from "./swings";
+import useSwingStore from "../../stores/swingStore";
+
+import  SwingsIdentifier from '../marketInterpretation/identifySwings'
 
 function ChartSeries({chartId,chartRef, fpRef}){
     //console.count("in usechart",chartRef)
@@ -135,6 +137,17 @@ function updatePnl(k1, renderdata, replayStateDeets) {
 
 
 function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
+   const swings = useSwingStore(s => s.swings);
+   useEffect(() => {
+  console.log("swings:", JSON.stringify(swings));
+  console.log("isEmpty:", Object.keys(swings).length === 0);
+}, [swings]);
+
+   const swingsIdentifier = useRef(null);
+   
+    if (swingsIdentifier.current == null){
+      swingsIdentifier.current = new SwingsIdentifier(useSwingStore)
+    }
     const replayState = useReplayStore(s => s.replayState);
     const replayActive = useReplayStore(s=>s.replayActive);
     const setReplayState = useReplayStore(s => s.setReplayState);
@@ -206,6 +219,8 @@ function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
         });
         if (replayActive) {
             if (!replayStateDeets) return;
+            const swingKey = `${k1}${tf}`;
+          
 
             const offset = getOffset(
                 tf,
@@ -213,7 +228,7 @@ function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
             );
             updatePnl(k1, renderdata, replayStateDeets)
             const replayData = renderdata.slice(0, offset);
-            //swingsGen.findSwings(k1, tf, replayData);
+            swingsIdentifier.current.findSwings(swingKey, replayData);
             //console.log("SWINGS:", swingsGen.swings[k1]?.[tf])
             activeSeries.setData(replayData);
 
