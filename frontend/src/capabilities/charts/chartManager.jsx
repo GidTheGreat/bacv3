@@ -219,7 +219,7 @@ function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
         });
         if (replayActive) {
             if (!replayStateDeets) return;
-            const swingKey = `${k1}${tf}`;
+            const swingKey = `${k1}|${tf}`;
           
 
             const offset = getOffset(

@@ -1,6 +1,7 @@
 import useDrawingStore from "../../stores/drawingStore";
 import useChartStore from "../../stores/chartStore";
 import useTradeStore from "../../stores/tradeStore";
+import useSwingStore from "../../stores/swingStore"
 
 function drawChevron(ctx, x, y, size, direction = "long") {
   const w = size;
@@ -55,6 +56,42 @@ function chevron(ctx, x, y, w, t, dir, overlap) {
   ctx.closePath();
 }
 
+export function renderSwings(ctx, k1, activeSeries, chartRef, chartId){
+  const swings = useSwingStore.getState().swings;
+  const tf = useChartStore.getState().selection[chartId].timeframe;
+  const swingKey = `${k1}|${tf}`;
+  /*console.log("keys in swings so far:",Object.keys(swings),"swing key:",swingKey,"present in swings:",Object.keys(swings).includes(swingKey))*/
+  
+  if (Object.keys(swings).length === 0) return;
+
+  for (const swing of swings[swingKey]){
+    //console.log(swing); //return;
+    const y = swing.type=="high" ? activeSeries.priceToCoordinate(swing.high) : activeSeries.priceToCoordinate(swing.low);
+    const x = chartRef.current.timeScale().timeToCoordinate(swing.time);
+    //console.log("y:",y,"x:",x)
+    ctx.save();
+    ctx.strokeStyle = "blue";
+    ctx.fillStyle = "#ff3b30";
+
+    if (swing.type == "high"){
+      //console.log("indicating high")
+      ctx.fillText("H", x, y-20)
+      ctx.beginPath();
+      ctx.moveTo(x,y-20);
+      ctx.lineTo(x,y)
+      ctx.stroke();
+      
+    } else if (swing.type == "low"){
+      //console.log("indicating low")
+      ctx.fillText("L", x, y+20)
+      ctx.beginPath();
+      ctx.moveTo(x,y+20);
+      ctx.lineTo(x,y)
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
 
 export function renderTrades(ctx, k1, activeSeries, chartRef) {
     const runningTrades = useTradeStore.getState().runningTrades;
@@ -299,7 +336,9 @@ export function renderDrawings(ctx, chartId, k1, chartRef) {
     const activeSeries = useChartStore.getState().selection[chartId].activeSeries
     const posSize = useTradeStore.getState().stake * useTradeStore.getState().leverage
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    renderSwings(ctx, k1, activeSeries, chartRef, chartId)
     if (!useDrawingStore.getState().NotDrawings.visibility) return;
+  
     ctx.save();
 
     ctx.strokeStyle = "red";
