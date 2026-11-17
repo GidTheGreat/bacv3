@@ -1,4 +1,4 @@
-//xyzd
+
 class SwingsIdentifier {
     constructor(swingsStore) {
         this.pos = {};
@@ -31,6 +31,27 @@ class SwingsIdentifier {
         }
     }
 
+    processSwing(key, candle, type, last) {
+        const swing = {
+            type,
+            low: candle.low,
+            high: candle.high,
+            open: candle.open,
+            close: candle.close,
+            time: candle.time
+        };
+
+        if (!last || last.type !== type) {
+            this.addSwings(key, swing);
+        } else if (
+            type === "high" && last.high < candle.high ||
+            type === "low" && last.low > candle.low
+        ) {
+            this.removeLatestSwing(key);
+            this.addSwings(key, swing);
+        }
+    }
+
     findSwings(key, data) {
         if (data.length < 3) return;
 
@@ -46,62 +67,32 @@ class SwingsIdentifier {
 
             const last = this.getSwings(key).at(-1);
 
-            if (
-                candle_two.high > candle_one.high &&
-                candle_two.high > candle_three.high
-            ) {
-                //console.log(candle_two)
-                if (!last || last.type === "low") {
-                    this.addSwings(key, {
-                        type: "high",
-                        low:candle_two.low,
-                      high:candle_two.high,
-                      open:candle_two.open,
-                      close: candle_two.close,
-                      time: candle_two.time
-                    });
-                } else if (last.high < candle_two.high) {
-                    this.removeLatestSwing(key);
+            const isHigh =
+                candle_two.high >= candle_one.high &&
+                candle_two.high >= candle_three.high;
 
-                    this.addSwings(key, {
-                        type: "high",
-                        low:candle_two.low,
-                      high:candle_two.high,
-                      open:candle_two.open,
-                      close: candle_two.close,
-                      time: candle_two.time
-                    
-                    });
-                }
+            const isLow =
+                candle_two.low <= candle_one.low &&
+                candle_two.low <= candle_three.low;
 
-            } else if (
-                candle_two.low < candle_one.low &&
-                candle_two.low < candle_three.low
-            ) {
-               //console.log(candle_two)
-                if (!last || last.type === "high") {
-                    this.addSwings(key, {
-                        type: "low",
-                        low:candle_two.low,
-                      high:candle_two.high,
-                      open:candle_two.open,
-                      close: candle_two.close,
-                      time: candle_two.time
-                    
-                    });
-                } else if (last.low > candle_two.low) {
-                    this.removeLatestSwing(key);
+            // Both conditions qualify on the same candle.
+            if (isHigh && isLow) {
 
-                    this.addSwings(key, {
-                        type: "low",
-                        low:candle_two.low,
-                      high:candle_two.high,
-                      open:candle_two.open,
-                      close: candle_two.close,
-                      time: candle_two.time
-                    
-                    });
-                }
+                // Discard dual swing if no previous swing exists.
+                if (!last) continue;
+
+                // Alternate against the previous swing.
+                const type = last.type === "high" ? "low" : "high";
+
+                this.processSwing(key, candle_two, type, last);
+
+            } else if (isHigh) {
+
+                this.processSwing(key, candle_two, "high", last);
+
+            } else if (isLow) {
+
+                this.processSwing(key, candle_two, "low", last);
             }
         }
     }

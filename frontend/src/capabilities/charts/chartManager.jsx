@@ -135,12 +135,54 @@ function updatePnl(k1, renderdata, replayStateDeets) {
   }
 }
 
+function saveToCSV(data, filename = "candles.csv") {
+  console.log("saving")
+    if (!Array.isArray(data) || data.length === 0) {
+        throw new Error("Data must be a non-empty array");
+    }
+
+    const headers = [...new Set(data.flatMap(obj => Object.keys(obj)))];
+
+    const escapeCSV = value => {
+        if (value === null || value === undefined) return "";
+
+        const str = typeof value === "object"
+            ? JSON.stringify(value)
+            : String(value);
+
+        return `"${str.replace(/"/g, '""')}"`;
+    };
+
+    const csv = [
+        headers.map(escapeCSV).join(","),
+        ...data.map(row =>
+            headers.map(h => escapeCSV(row[h])).join(",")
+        )
+    ].join("\r\n");
+
+    const blob = new Blob([csv], {
+        type: "text/csv;charset=utf-8;"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = filename;
+    link.click();
+
+    URL.revokeObjectURL(url);
+}
+
+// Usage
+
+
 
 function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
    const swings = useSwingStore(s => s.swings);
    useEffect(() => {
-  console.log("swings:", JSON.stringify(swings));
-  console.log("isEmpty:", Object.keys(swings).length === 0);
+  //console.log("swings:", JSON.stringify(swings));
+  //console.log("isEmpty:", Object.keys(swings).length === 0);
 }, [swings]);
 
    const swingsIdentifier = useRef(null);
@@ -229,6 +271,7 @@ function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
             updatePnl(k1, renderdata, replayStateDeets)
             const replayData = renderdata.slice(0, offset);
             swingsIdentifier.current.findSwings(swingKey, replayData);
+            //saveToCSV(replayData, "market-data.csv");
             //console.log("SWINGS:", swingsGen.swings[k1]?.[tf])
             activeSeries.setData(replayData);
 
