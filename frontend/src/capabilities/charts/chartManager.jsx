@@ -472,6 +472,8 @@ function Chart({chartId, destroyChart, pane}){
     destroyChart(chartId, pane);
   }
   const setChartReady = useChartStore(s=>s.setChartReady);
+
+  const setDisplaySwings = useSwingStore(s=>s.setDisplaySwings);
   
   useEffect(
     ()=>{
@@ -479,6 +481,7 @@ function Chart({chartId, destroyChart, pane}){
         chartId,
         pane
     });*/
+      setDisplaySwings(chartId, false)
       const rect = containerRef.current.getBoundingClientRect();
       const chart = createChart(containerRef.current,
             {

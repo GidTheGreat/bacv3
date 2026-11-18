@@ -15,9 +15,14 @@ import {
 import CandlestickChartIcon from "@mui/icons-material/CandlestickChart";
 import useFootprintStore from "../../stores/footPrintStore";
 import useTradeStore from "../../stores/tradeStore";
+import useSwingStore from "../../stores/swingStore";
 import { useState, useEffect} from "react"
 
 export default function ChartDrawingsControls({ chartId }) {
+  const displaySwings = useSwingStore(s=>s.displaySwings[chartId]);
+  const setDisplaySwings = useSwingStore(s=>s.setDisplaySwings);
+  //useEffect(()=>console.log(displaySwings),[displaySwings])
+  
   const footPrintState = useFootprintStore(
     (s) => s.footPrintState?.[chartId]
   );
@@ -121,6 +126,65 @@ export default function ChartDrawingsControls({ chartId }) {
         }}
       >
 
+        <Box sx={{ p: 1.25 }}>
+
+          {/* Header */}
+
+          <Typography
+            variant="caption"
+            sx={{
+              display: "block",
+              mb: 0.75,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 1,
+              color: "text.secondary",
+            }}
+          >
+            SWINGS
+          </Typography>
+
+
+          {/* Master */}
+
+          <Box
+            sx={{
+              px: 0.75,
+              py: 0.25,
+              mb: 0.75,
+
+              borderRadius: 1,
+
+              bgcolor: enabled
+                ? "rgba(120, 90, 255, 0.10)"
+                : "transparent",
+            }}
+          >
+            <FormControlLabel
+              sx={{
+                ...controlSx,
+
+                "& .MuiFormControlLabel-label": {
+                  fontSize: 12,
+                  fontWeight: 600,
+                },
+              }}
+              labelPlacement="start"
+              checked={displaySwings}
+              control={
+                <Checkbox
+                  size="small"
+                  onChange={() => setDisplaySwings(chartId,!displaySwings)}
+                />
+              }
+              label="Show Swings"
+            />
+
+            
+          </Box>
+
+        </Box>
+        
         <Box sx={{ p: 1.25 }}>
 
           {/* Header */}

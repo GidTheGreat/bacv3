@@ -3,6 +3,11 @@ import { create } from "zustand";
 
 const useSwingStore = create((set) => ({
     swings: {},
+    displaySwings: {},
+    setDisplaySwings:(chartId, displaySwings)=>set(state=>({
+      displaySwings:{
+      [chartId]:displaySwings
+    }})),
 
     addSwings: (key, swing) => set((state) => {
         //console.log("adding swing:", swing)
