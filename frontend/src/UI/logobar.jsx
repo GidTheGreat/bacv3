@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   AppBar,
   Toolbar,
@@ -21,6 +23,10 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import FullscreenOutlinedIcon from "@mui/icons-material/FullscreenOutlined";
 import DashboardCustomizeOutlinedIcon from "@mui/icons-material/DashboardCustomizeOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import useMediaQuery from "@mui/material/useMediaQuery";
+
+import { CloudUploadIcon } from "lucide-react";
+import { CloudUpload } from "lucide-react";
 
 import BidAskCathedralLogo from "./logo";
 import { getCapabilities } from "../registry";
@@ -28,15 +34,13 @@ import ReplayButton from "../capabilities/replay/replayButton";
 
 import LayoutControls from "./panelUtils/layoutControls";
 import Journal from "../capabilities/journal/Journal";
-import useMediaQuery from "@mui/material/useMediaQuery";
+
 import FetchDataButton from "../capabilities/fetch";
 import DevTools from "../capabilities/devTools";
 import Trading from "../capabilities/trade";
 import ochestrator from '../ochestrator/main';
+import MarketAnalysisPopper from '../capabilities/marketInterpretation/marketAnalysisPopper'
 
-import { CloudUploadIcon } from "lucide-react";
-import { CloudUpload } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import useConnStore from "../stores/connStore";
 
@@ -314,6 +318,7 @@ export default function LogoBar() {
           spacing={0.5}
           sx={{ flexShrink: 0 }}
         >
+          <MarketAnalysisPopper/>
           {<Trading/>}
           <ManualUpload/>
           <FetchDataButton/>
