@@ -42,8 +42,8 @@ export class FootprintPrimitive {
         this.unsubChart = this.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
             if (!range) return;
 
-            this.from = Math.max(0, Math.floor(range.from));;
-            this.to   = Math.min(this.data.length, Math.ceil(range.to));;
+            this.from = Math.max(0, Math.floor(range.from));
+            this.to   = Math.min(this.data.length, Math.ceil(range.to));
 
            //console.log(this.from, this.to)
         });

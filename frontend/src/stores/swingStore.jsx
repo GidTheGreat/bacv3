@@ -1,13 +1,32 @@
 
 import { create } from "zustand";
 
+const marketState4 = {
+  "binance|um|BTCUSDT":{
+    "1min": "uptrend"
+  }
+}
+
+
 const useSwingStore = create((set) => ({
     swings: {},
     displaySwings: {},
+    marketState: {},
     setDisplaySwings:(chartId, displaySwings)=>set(state=>({
       displaySwings:{
+        ...state.displaySwings,
       [chartId]:displaySwings
     }})),
+
+    setMarketState: (key, subKey, newVal)=>set((state)=>({
+      marketState:{
+        ...state.marketState,
+        [key]:{
+          ...state.marketState[key],
+          [subKey]: newVal
+        }
+      }
+    })),
 
     addSwings: (key, swing) => set((state) => {
         //console.log("adding swing:", swing)

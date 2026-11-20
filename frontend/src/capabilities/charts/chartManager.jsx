@@ -38,7 +38,9 @@ import useTradeStore from "../../stores/tradeStore";
 import useAppStore from "../../stores/appStore";
 import useSwingStore from "../../stores/swingStore";
 
-import  SwingsIdentifier from '../marketInterpretation/identifySwings'
+import  inferTrend from '../marketInterpretation/inferTrend';
+import MarketAnalysisPopper from '../marketInterpretation/marketAnalysisPopper';
+
 
 function ChartSeries({chartId,chartRef, fpRef}){
     //console.count("in usechart",chartRef)
@@ -185,11 +187,11 @@ function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
   //console.log("isEmpty:", Object.keys(swings).length === 0);
 }, [swings]);
 
-   const swingsIdentifier = useRef(null);
+   /*const swingsIdentifier = useRef(null);
    
     if (swingsIdentifier.current == null){
       swingsIdentifier.current = new SwingsIdentifier(useSwingStore)
-    }
+    }*/
     const replayState = useReplayStore(s => s.replayState);
     const replayActive = useReplayStore(s=>s.replayActive);
     const setReplayState = useReplayStore(s => s.setReplayState);
@@ -270,7 +272,7 @@ function ChartData({ chartId, fpRef, chartRef, containerRef, watermarkRef }) {
             );
             updatePnl(k1, renderdata, replayStateDeets)
             const replayData = renderdata.slice(0, offset);
-            swingsIdentifier.current.findSwings(swingKey, replayData);
+            
             //saveToCSV(replayData, "market-data.csv");
             //console.log("SWINGS:", swingsGen.swings[k1]?.[tf])
             activeSeries.setData(replayData);
@@ -318,12 +320,15 @@ function ChartControls({chartId,handleDestroyChart}){
             
           }}>
             <Buttons chartId={chartId} />
+            
           </Box>
 
+        
+        
         <Tooltip >
           <Box size="small" sx={{
             position: 'absolute',
-            right: 60,
+            right: 50,
             top: 10,
             zIndex: 10,
             borderRadius: 50,
@@ -340,6 +345,7 @@ function ChartControls({chartId,handleDestroyChart}){
           </Box>
 
         </Tooltip>
+        
         
         <Tooltip title="Destroy Chart">
           <IconButton size="small" sx={{
@@ -519,7 +525,7 @@ function Chart({chartId, destroyChart, pane}){
         chartId,
         chartRef: chartRef.current
     });*/
-
+      const unsub = inferTrend();
       setChartReady(chartId,true)
       const resize = new ResizeObserver((entries) => {
         const entry = entries[0];
@@ -547,6 +553,7 @@ function Chart({chartId, destroyChart, pane}){
         resize.disconnect();
         setChartReady(chartId,false);
         chartRef.current=null;
+        unsub()
         /*console.log("CHART CLEANUP END:", {
             chartId,
             chartRef: chartRef.current

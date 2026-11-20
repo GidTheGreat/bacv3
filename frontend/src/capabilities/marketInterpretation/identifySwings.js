@@ -53,6 +53,7 @@ class SwingsIdentifier {
     }
 
     findSwings(key, data) {
+        //console.log("in findwings, pos:",JSON.stringify(this.pos))
         if (data.length < 3) return;
 
         if (this.pos[key] === undefined) {
@@ -94,7 +95,9 @@ class SwingsIdentifier {
 
                 this.processSwing(key, candle_two, "low", last);
             }
+          //console.log("new pos:", this.pos[key])
         }
+      //
     }
 }
 

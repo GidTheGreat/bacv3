@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
   Box,
   Button,
@@ -10,72 +10,307 @@ import {
   FormGroup,
   Paper,
   Popper,
+  Popover,
   Stack,
   Typography,
-  IconButton
+  IconButton,
+  Tooltip
 } from "@mui/material";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
 import InsightsOutlinedIcon from "@mui/icons-material/InsightsOutlined";
 
-const TIMEFRAMES = ["1m", "5m", "15m", "30m", "1h", "4h"];
+import { List } from "react-window";
+
+import useChartStore from "../../stores/chartStore";
+import useAnalysisStore from "../../stores/analysisStore";
+
+import useSwingStore from "../../stores/swingStore";
+import MarketState from "./marketState"
+
+const TIMEFRAMES = ["1min", "5min", "15min", "30min", "1h", "4h"];
+
+function SymbolRow({ index, style, symbols,
+  activeTrade, activePlatform, selection, setSelection }) {
+  if (!symbols){
+    return;
+  }
+  const symbol = symbols[index];
+
+  return (
+    <div style={style}>
+      <FormControlLabel
+        control={
+          <Checkbox
+            onChange={e=>setSelection(activePlatform,activeTrade,e.target.value)}
+            checked={selection[`${activePlatform}|${activeTrade}`]?.has(symbol) ?? false}
+            value={symbol}
+          />
+        }
+        label={symbol}
+      />
+    </div>
+  );
+}
+
+function SymbolSelector(){
+  console.log("executing")
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleClick = (event) => {
+    
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
+
+  const id = open
+    ? "symbols-popover"
+    : undefined;
+
+  const activePlatform = useAnalysisStore(s=>s.activePlatform);
+  const activeTrade = useAnalysisStore(s=>s.activeTrade);
+  const setSymbols = useAnalysisStore(s=>s.setSymbols);
+  const selection = useAnalysisStore(s=>s.selection);
+  const setSelection = useAnalysisStore(s=>s.setSelection);
+
+  const symbolsKey = `${activePlatform}|${activeTrade}`;
+  const symbols = useChartStore(s=>s.symbols[symbolsKey]);
+  //useEffect(()=>console.log("in bottom bar",symbols),[symbols])
+  
+  const selections = selection[`${activePlatform}|${activeTrade}`]
+  
+  return (
+    <Box>
+      <Tooltip><Button
+        aria-describedby={id}
+        onClick={handleClick}
+        variant="outlined"
+        endIcon={<ArrowDropDownIcon />}
+
+      >
+        <Typography
+          noWrap
+          sx={{ maxWidth: 60 }}
+        >
+          {selections?.size && selections.size>0? Array.from(selections).join(",") : "select symbol"}
+        </Typography>
+        
+      </Button></Tooltip>
+
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+      >
+        <Stack
+          sx={{
+            width: 150,
+            height: 300,
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(255,255,255,0.2) transparent",
+
+            "&::-webkit-scrollbar": {
+                height: "4px",
+            },
+            "&::-webkit-scrollbar-track": {
+                background: "transparent",
+            },
+            "&::-webkit-scrollbar-thumb": {
+                background: "rgba(255,255,255,0.2)",
+                borderRadius: "4px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+                background: "rgba(255,255,255,0.4)",
+            },
+          }}
+        >
+          <List
+            rowComponent={SymbolRow}
+            rowCount={symbols?.length ?? 5}
+            rowHeight={40}
+            rowProps={{ symbols,activeTrade,activePlatform,selection,setSelection }}
+            style={{
+              height: "100%",
+              width: "100%",
+            }}
+          />
+        </Stack>
+      </Popover>
+    </Box>
+  )
+
+}
+
+function PickSymbol(){
+
+  const platforms = useAnalysisStore(s=>s.platforms);
+  const trades = useAnalysisStore(s=>s.trades);
+  const setActive = useAnalysisStore(s=>s.setActive);
+
+  const selection = useAnalysisStore(s=>s.selection);
+
+  let totalSizeList = []
+  
+  Object.keys(selection).forEach(key=>{
+    //console.log(selection[key].size)
+    selection[key]? totalSizeList.push(selection[key].size) : null
+  } 
+  )
+
+  let symbolsLen = totalSizeList.reduce((total, n) => total + n, 0)
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const id = open ? "replay-popper" : undefined;
+
+  return (
+    <Box>
+      <Tooltip >
+        <Button
+              aria-describedby={id}
+              onClick={(event) => {
+                setAnchorEl((current) =>
+                  current ? null : event.currentTarget
+                );
+              }}
+              variant="outlined">
+              <Typography variant="body2" color="text.secondary">
+                Active
+              </Typography>
+
+              <Typography
+                variant="body2"
+                fontWeight={700}
+                sx={{ ml: 0.5 }}
+              >
+                {symbolsLen}
+              </Typography>
+              
+        </Button>
+      </Tooltip>
+      <Popper
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        placement="bottom-start"
+        sx={{
+    zIndex: (theme) => theme.zIndex.modal,
+  }}
+        modifiers={[
+          {
+            name: "offset",
+            options: {
+              offset: [0, 8],
+            },
+          },
+        ]}
+      >
+        <Box
+          sx={{
+            p: 1.5,
+            width: 330,
+            borderRadius: 1.5,
+            backgroundColor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: 8,
+            
+          }}
+        >
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1.2fr",
+              gap: 0.75,
+
+              "& select": {
+                width: "100%",
+                minWidth: 0,
+                height: 32,
+                padding: "0 7px",
+                borderRadius: 1,
+                border: "1px solid",
+                borderColor: "divider",
+                backgroundColor: "background.default",
+                color: "text.primary",
+                outline: "none",
+                fontSize: 12,
+                cursor: "pointer",
+
+                "&:focus": {
+                  borderColor: "primary.main",
+                },
+              },
+            }}
+          >
+            <select onChange={e=>setActive("platform",e.target.value)}>
+              {platforms.map(platform=>(
+                <option key={platform} value={platform}>
+                  {platform}</option>))}
+              
+            </select>
+
+            <select onChange={e=>setActive("trade",e.target.value)}>
+              {trades.map(trade=>(
+                <option key={trade} value={trade} disabled={trade=="cm"} >
+                  {trade=="um"?"USD-M":"COIN-M"}</option>))}
+              
+            </select>
+            {<SymbolSelector/>
+            }
+          </Box>
+          
+
+        </Box>
+        
+      </Popper>
+    </Box>
+    
+  )
+}
+
+
+
 
 export default function MarketAnalysisPopper() {
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const [showSwings, setShowSwings] = useState(true);
-  const [timeframes, setTimeframes] = useState([
-    "5m",
-    "15m",
-    "1h",
-    "4h",
-  ]);
-  const [sendAlerts, setSendAlerts] = useState(false);
+  const selection = useChartStore(s=>s.selection)
+  const timeframes = useAnalysisStore(s=>s.timeframes);
 
-  const [analysis, setAnalysis] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const marketState = useSwingStore(s=>s.marketState);
+
+  const analysisRunning = useAnalysisStore(s=>s.analysisRunning);
+  const toggleAnalysisRunning = useAnalysisStore(s=>s.toggleAnalysisRunning);
+  
+  const [sendAlerts, setSendAlerts] = useState(false);
 
   const open = Boolean(anchorEl);
 
   const togglePopper = (event) => {
-    setAnchorEl(open ? null : event.currentTarget);
+    setAnchorEl(prev=>{
+      const curr = prev ? null : event.currentTarget;
+      return curr
+    });
   };
 
   const handleClickAway = () => {
     setAnchorEl(null);
   };
 
-  const toggleTimeframe = (timeframe) => {
-    setTimeframes((prev) =>
-      prev.includes(timeframe)
-        ? prev.filter((item) => item !== timeframe)
-        : [...prev, timeframe]
-    );
-  };
+  const toggleTimeframe = useAnalysisStore(s=>s.toggleTimeframe);
 
-  const runAnalysis = () => {
-    setLoading(true);
-    setAnalysis(null);
-
-    // Dummy analysis response
-    setTimeout(() => {
-      setAnalysis({
-        trend: "Bullish",
-        structure: "Higher High / Higher Low",
-        lastSwing: "Higher High",
-        support: "1.08250",
-        resistance: "1.08950",
-        summary:
-          "Market structure currently indicates bullish momentum. Price has maintained a sequence of higher highs and higher lows.",
-        signals: [
-          "Bullish market structure confirmed on 15m",
-          "Potential liquidity resting above recent highs",
-          "1h structure remains bullish",
-        ],
-      });
-
-      setLoading(false);
-    }, 1000);
-  };
+  //useEffect(()=>console.log(marketState),[marketState])
 
   return (
     <>
@@ -93,7 +328,7 @@ export default function MarketAnalysisPopper() {
         placement="bottom-start"
         sx={{ zIndex: (theme) => theme.zIndex.modal }}
       >
-        <ClickAwayListener onClickAway={handleClickAway}>
+        
           <Paper
             elevation={8}
             sx={{
@@ -122,30 +357,18 @@ export default function MarketAnalysisPopper() {
 
             <Divider sx={{ mb: 2 }} />
 
-            {/* SECTION 1: MARKET STRUCTURE */}
+            {/* SECTION 1: MARKET SELECT */}
             <Box sx={{ mb: 2 }}>
               <Typography
                 variant="subtitle2"
                 fontWeight={700}
                 sx={{ mb: 1 }}
               >
-                1. Market Structure
+                1. Market Select
               </Typography>
 
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    size="small"
-                    checked={showSwings}
-                    onChange={(e) => setShowSwings(e.target.checked)}
-                  />
-                }
-                label={
-                  <Typography variant="body2">
-                    Show swings
-                  </Typography>
-                }
-              />
+              <PickSymbol/>
+              
             </Box>
 
             <Divider sx={{ mb: 2 }} />
@@ -216,10 +439,10 @@ export default function MarketAnalysisPopper() {
               fullWidth
               variant="contained"
               startIcon={<InsightsOutlinedIcon />}
-              onClick={runAnalysis}
-              disabled={loading || timeframes.length === 0}
+              onClick={()=>toggleAnalysisRunning(!analysisRunning)}
+              disabled={timeframes.length === 0}
             >
-              {loading ? "Analyzing..." : "Run Analysis"}
+              {analysisRunning ? "Stop Analysis" : "Start Analysis"}
             </Button>
 
             {/* ANALYSIS RESULTS */}
@@ -239,98 +462,14 @@ export default function MarketAnalysisPopper() {
                   bgcolor: "background.default",
                 }}
               >
-                {!analysis && !loading && (
-                  <Typography variant="body2" color="text.secondary">
-                    Configure your analysis and click Run Analysis to view results.
-                  </Typography>
-                )}
+                
+                <MarketState />
 
-                {loading && (
-                  <Typography variant="body2" color="text.secondary">
-                    Processing market structure...
-                  </Typography>
-                )}
-
-                {analysis && (
-                  <Stack spacing={1.5}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        Market Trend
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        fontWeight={700}
-                        color="success.main"
-                      >
-                        {analysis.trend}
-                      </Typography>
-                    </Box>
-
-                    <Divider />
-
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        Structure
-                      </Typography>
-                      <Typography variant="body2">
-                        {analysis.structure}
-                      </Typography>
-                    </Box>
-
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        Last Swing
-                      </Typography>
-                      <Typography variant="body2">
-                        {analysis.lastSwing}
-                      </Typography>
-                    </Box>
-
-                    <Stack direction="row" spacing={3}>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">
-                          Support
-                        </Typography>
-                        <Typography variant="body2">
-                          {analysis.support}
-                        </Typography>
-                      </Box>
-
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">
-                          Resistance
-                        </Typography>
-                        <Typography variant="body2">
-                          {analysis.resistance}
-                        </Typography>
-                      </Box>
-                    </Stack>
-
-                    <Divider />
-
-                    <Typography variant="body2">
-                      {analysis.summary}
-                    </Typography>
-
-                    <Typography variant="caption" fontWeight={700}>
-                      Observations
-                    </Typography>
-
-                    {analysis.signals.map((signal, index) => (
-                      <Typography
-                        key={index}
-                        variant="body2"
-                        color="text.secondary"
-                      >
-                        • {signal}
-                      </Typography>
-                    ))}
-                  </Stack>
-                )}
+                    
               </Paper>
             </Box>
           </Paper>
-        </ClickAwayListener>
+      
       </Popper>
     </>
   );

@@ -62,6 +62,7 @@ export function renderSwings(ctx, k1, activeSeries, chartRef, chartId){
   const swingKey = `${k1}|${tf}`;
   /*console.log("keys in swings so far:",Object.keys(swings),"swing key:",swingKey,"present in swings:",Object.keys(swings).includes(swingKey))*/
   
+  if (!swings[swingKey]) return;
   if (Object.keys(swings).length === 0) return;
 
   for (const swing of swings[swingKey]){

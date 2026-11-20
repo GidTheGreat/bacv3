@@ -39,9 +39,8 @@ import FetchDataButton from "../capabilities/fetch";
 import DevTools from "../capabilities/devTools";
 import Trading from "../capabilities/trade";
 import ochestrator from '../ochestrator/main';
-import MarketAnalysisPopper from '../capabilities/marketInterpretation/marketAnalysisPopper'
 
-
+import MarketAnalysisPopper from "../capabilities/marketInterpretation/marketAnalysisPopper";
 import useConnStore from "../stores/connStore";
 
 function ManualUpload(){
