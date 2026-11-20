@@ -48,12 +48,7 @@ export class FootprintPrimitive {
            //console.log(this.from, this.to)
         });
 
-        this.unsubSwing = useSwingStore.subscribe(
-            (state) => {
-                //console.log("Swing store updated:", state.swings);
-                this.requestUpdate?.();
-            }
-        );
+        
     }
 
     detached() {
@@ -63,7 +58,7 @@ export class FootprintPrimitive {
         this._paneViews = [];
         this.unsubFp();
         this.unsubChart();
-        this.unsubSwing();
+        
     }
 
     paneViews() {
@@ -264,43 +259,6 @@ function heatColor(
         : `rgb(${intensity},0,0)`;
 }
 
-function drawMs(ctx, k1, chart, series) {
-    const swings = useSwingStore.getState().swings?.[k1]?.['1min'];
-    //console.log("[drawMs] swings:",swings)
-    if (!swings) return;
-
-    ctx.save();
-    ctx.fillStyle = "yellow";
-    ctx.strokeStyle = "red";
-    ctx.lineWidth = 1;
-
-    swings.forEach((swing) => {
-        //console.log("[drawMs] swing:",swing)
-        let x = chart.timeScale().timeToCoordinate(swing.value.time);
-        
-        if (swing.swingType === "high") {
-           const y = series.priceToCoordinate(swing.value.high);
-            ctx.fillText(`High`, x, y-20);
-
-            ctx.beginPath();
-            ctx.moveTo(x, y-20);
-            ctx.lineTo(x,y);
-            ctx.stroke();
-            
-        } else if (swing.swingType === "low") {
-            const y = series.priceToCoordinate(swing.value.low);
-            ctx.fillText(`Low`, x, y+25);
-
-            ctx.beginPath();
-            ctx.moveTo(x, y+25);
-            ctx.lineTo(x,y);
-            ctx.stroke();
-        }
-    })
-
-    ctx.restore();
-        
-}
 
 class FootprintRenderer {
 
@@ -379,11 +337,6 @@ class FootprintRenderer {
         if (!chart || !series || !data.length) return;
 
         target.useMediaCoordinateSpace(({ context: ctx }) => {
-            try{
-                drawMs(ctx, k1, chart, series);
-            } catch (error){
-                console.log(error)
-            }
             
             if (!footPrintState?.footprint) return;
             for (let item of newData) {

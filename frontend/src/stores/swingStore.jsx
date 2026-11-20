@@ -12,6 +12,13 @@ const useSwingStore = create((set) => ({
     swings: {},
     displaySwings: {},
     marketState: {},
+    timeVisibleRange:{},
+    setTimeVisibleRange: (chartId,from,to)=>set((state)=>({
+      timeVisibleRange:{
+        ...state.timeVisibleRange,
+        [chartId]:{from,to}
+      }
+    })),
     setDisplaySwings:(chartId, displaySwings)=>set(state=>({
       displaySwings:{
         ...state.displaySwings,

@@ -58,14 +58,19 @@ function chevron(ctx, x, y, w, t, dir, overlap) {
 
 export function renderSwings(ctx, k1, activeSeries, chartRef, chartId){
   const swings = useSwingStore.getState().swings;
+  if (Object.keys(swings).length === 0) return;
+  
+  const timeVisibleRange = useSwingStore.getState().timeVisibleRange[chartId];
   const tf = useChartStore.getState().selection[chartId].timeframe;
   const swingKey = `${k1}|${tf}`;
   /*console.log("keys in swings so far:",Object.keys(swings),"swing key:",swingKey,"present in swings:",Object.keys(swings).includes(swingKey))*/
-  
   if (!swings[swingKey]) return;
-  if (Object.keys(swings).length === 0) return;
+  
+  const dspSwings = swings[swingKey].filter(swing=>swing.time >= timeVisibleRange.from && swing.time <= timeVisibleRange.to);
 
-  for (const swing of swings[swingKey]){
+  /*console.log("swings for this chart:",swings[swingKey], " visible range:",dspSwings, "range:",timeVisibleRange)*/
+
+  for (const swing of dspSwings){
     //console.log(swing); //return;
     const y = swing.type=="high" ? activeSeries.priceToCoordinate(swing.high) : activeSeries.priceToCoordinate(swing.low);
     const x = chartRef.current.timeScale().timeToCoordinate(swing.time);

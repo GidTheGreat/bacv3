@@ -480,6 +480,7 @@ function Chart({chartId, destroyChart, pane}){
   const setChartReady = useChartStore(s=>s.setChartReady);
 
   const setDisplaySwings = useSwingStore(s=>s.setDisplaySwings);
+  const setTimeVisibleRange = useSwingStore(s=>s.setTimeVisibleRange);
   
   useEffect(
     ()=>{
@@ -520,6 +521,14 @@ function Chart({chartId, destroyChart, pane}){
               ],
           }
       );
+      //console.dir(chart.timeScale())
+      const tRHandler = (range) => {
+            if (!range) return;
+
+            setTimeVisibleRange(chartId,range.from, range.to)
+      }
+      chart.timeScale().subscribeVisibleTimeRangeChange(tRHandler);
+    
       chartRef.current = chart;
        /*console.log("CHART CREATED:", {
         chartId,
@@ -547,6 +556,7 @@ function Chart({chartId, destroyChart, pane}){
             pane,
             chartRef: chartRef.current
         });*/
+        chart.timeScale().unsubscribeVisibleTimeRangeChange(tRHandler)
         watermarkRef.current?.detach?.();
         watermarkRef.current = null;
         chart.remove();
@@ -554,6 +564,7 @@ function Chart({chartId, destroyChart, pane}){
         setChartReady(chartId,false);
         chartRef.current=null;
         unsub()
+        
         /*console.log("CHART CLEANUP END:", {
             chartId,
             chartRef: chartRef.current
