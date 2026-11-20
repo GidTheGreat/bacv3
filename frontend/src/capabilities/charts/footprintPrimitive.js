@@ -6,7 +6,7 @@ import useChartStore from "../../stores/chartStore";
 export class FootprintPrimitive {
     constructor(chartId, data = []) {
         this.data = data;
-
+        this.getLogicalRange = this.getLogicalRange.bind(this)
         this.chart = null;
         this.series = null;
         this.requestUpdate = null;
@@ -39,16 +39,17 @@ export class FootprintPrimitive {
             }
         );
 
-        this.unsubChart = this.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+        this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.getLogicalRange);
+
+        
+    }
+   getLogicalRange(range){
             if (!range) return;
 
             this.from = Math.max(0, Math.floor(range.from));
             this.to   = Math.min(this.data.length, Math.ceil(range.to));
 
            //console.log(this.from, this.to)
-        });
-
-        
     }
 
     detached() {
@@ -57,7 +58,7 @@ export class FootprintPrimitive {
         this.requestUpdate = null;
         this._paneViews = [];
         this.unsubFp();
-        this.unsubChart();
+        this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.getLogicalRange);
         
     }
 
