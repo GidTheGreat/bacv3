@@ -375,7 +375,7 @@ class SwingsIdentifier {
    }
 
    
-contained(key) {
+processContained(key) {
     const priceAction = this.priceActionSwings[key];
 
     // Validate containment state.
@@ -509,14 +509,14 @@ contained(key) {
      }
      
      const swings = this.getSwings(key);
-     for (; this.ammendPos[key] < swings.length; ){
+     
        if (!this.contained[key]){
          this.notContained(key)
        } else {
-         this.contained(key)
+         this.processContained(key)
        }
        
-     }
+     
    }
     
     processSwing(key, candle, type, last) {
@@ -540,7 +540,7 @@ contained(key) {
             this.removeLatestSwing(key);
             this.addSwings(key, swing);
         }
-        this.parseSwings(key)
+       this.parseSwings(key)
     }
 
     findSwings(key, data) {

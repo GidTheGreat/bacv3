@@ -58,6 +58,7 @@ function chevron(ctx, x, y, w, t, dir, overlap) {
 
 export function renderSwings(ctx, k1, activeSeries, chartRef, chartId){
   const swings = useSwingStore.getState().swings;
+  //console.log(useSwingStore.getState().parsedSwings)
   if (Object.keys(swings).length === 0) return;
   
   const timeVisibleRange = useSwingStore.getState().timeVisibleRange[chartId];

@@ -10,6 +10,7 @@ import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 
 import useSwingStore from "../../stores/swingStore";
+import sendTelegramMessage from "../sendTelegram"
 
 const marketState4 = {
   "binance|um|BTCUSDT": {
@@ -17,8 +18,10 @@ const marketState4 = {
   }
 };
 
-export default function MarketState() {
+export default function MarketState({sendAlerts}) {
   const marketState = useSwingStore(s=>s.marketState);
+  sendAlerts ?
+  sendTelegramMessage(marketState4): null
   return (
     <Stack spacing={2}>
       {Object.entries(marketState).map(([market, timeframes]) => {

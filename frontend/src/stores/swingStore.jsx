@@ -37,13 +37,12 @@ const useSwingStore = create((set) => ({
       }
     })),
 
-   addParsedSwings: (key, swings) => set((state) => {
-        //console.log("adding swing:", swing)
+  addParsedSwings: (key, swings) => set((state) => {
         const currentSwings = state.parsedSwings[key] || [];
-
+    
         return {
-            swings: {
-                ...state.swings,
+            parsedSwings: {
+                ...state.parsedSwings,
                 [key]: [...currentSwings, ...swings]
             }
         };

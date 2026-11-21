@@ -14,7 +14,8 @@ import {
   Stack,
   Typography,
   IconButton,
-  Tooltip
+  Tooltip,
+  TextField
 } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
@@ -26,6 +27,9 @@ import useChartStore from "../../stores/chartStore";
 import useAnalysisStore from "../../stores/analysisStore";
 
 import useSwingStore from "../../stores/swingStore";
+import useTelegramStore from "../../stores/telegramStore";
+
+import sendTelegramMessage from "../sendTelegram"
 import MarketState from "./marketState"
 
 const TIMEFRAMES = ["1min", "5min", "15min", "30min", "1h", "4h"];
@@ -54,7 +58,7 @@ function SymbolRow({ index, style, symbols,
 }
 
 function SymbolSelector(){
-  console.log("executing")
+  //console.log("executing")
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event) => {
@@ -292,6 +296,12 @@ export default function MarketAnalysisPopper() {
 
   const analysisRunning = useAnalysisStore(s=>s.analysisRunning);
   const toggleAnalysisRunning = useAnalysisStore(s=>s.toggleAnalysisRunning);
+
+  const botToken = useTelegramStore(s=>s.botToken);
+  const chartId = useTelegramStore(s=>s.chartId);
+
+  const setBotToken = useTelegramStore(s=>s.setBotToken);
+  const setChartId = useTelegramStore(s=>s.setChartId);
   
   const [sendAlerts, setSendAlerts] = useState(false);
 
@@ -426,10 +436,29 @@ export default function MarketAnalysisPopper() {
                 }
                 label={
                   <Typography variant="body2">
-                    Send alerts
+                    Send alerts(Telegram)
                   </Typography>
                 }
               />
+
+                <TextField
+                  required
+                  fullWidth
+                  label="BOT TOKEN"
+                  autoComplete="botToken"
+                  value={botToken}
+                  onChange={(e)=>setBotToken(e.target.value)}
+                  
+                />
+              <TextField
+                  required
+                  fullWidth
+                  label="CHART ID"
+                  autoComplete="chartId"
+                  value={chartId}
+                  onChange={(e)=>setChartId(e.target.value)}
+                  
+                />
             </Box>
 
             <Divider sx={{ mb: 2 }} />
@@ -463,7 +492,7 @@ export default function MarketAnalysisPopper() {
                 }}
               >
                 
-                <MarketState />
+                <MarketState sendAlerts={sendAlerts} />
 
                     
               </Paper>
