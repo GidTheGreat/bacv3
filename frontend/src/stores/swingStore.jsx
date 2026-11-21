@@ -10,9 +10,11 @@ const marketState4 = {
 
 const useSwingStore = create((set) => ({
     swings: {},
+    parsedSwings: {},
     displaySwings: {},
     marketState: {},
     timeVisibleRange:{},
+  
     setTimeVisibleRange: (chartId,from,to)=>set((state)=>({
       timeVisibleRange:{
         ...state.timeVisibleRange,
@@ -34,6 +36,18 @@ const useSwingStore = create((set) => ({
         }
       }
     })),
+
+   addParsedSwings: (key, swings) => set((state) => {
+        //console.log("adding swing:", swing)
+        const currentSwings = state.parsedSwings[key] || [];
+
+        return {
+            swings: {
+                ...state.swings,
+                [key]: [...currentSwings, ...swings]
+            }
+        };
+    }),
 
     addSwings: (key, swing) => set((state) => {
         //console.log("adding swing:", swing)
