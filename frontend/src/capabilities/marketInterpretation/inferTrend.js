@@ -26,54 +26,93 @@ function getOffset(tf, minuteCursor){
 
 const swingsIdentifier = new SwingsIdentifier(useSwingStore);
 
-function determineState(group,swingKey,latest4Swings){
-  const firstSwing = latest4Swings[0];
-  const secondSwing = latest4Swings[1];
-  const thirdSwing = latest4Swings[2];
-  const fourthSwing = latest4Swings[3];
 
-  const tf = swingKey.match(/(?<=group)|\d+\w+/)[0];
-  function addTrend(trend){
-    window.ms = useSwingStore.getState().marketState
-    //console.log(group,tf)
-    const currTrend = useSwingStore.getState()?.marketState?.[group]?.[tf] ?? null;
-    if (currTrend == trend) return;
-    useSwingStore.getState().setMarketState(group, tf, trend);
-  }
+function handleGroups(groupName, group, swings){
+    //console.log(groupName, group, swings)
+    //console.log("Entered handleGroups");
+    if (swings.length < 8){
+      return
+    }
+
+    //console.log("Passed length check");
+    const [ first, second, third, 
+    fourth, fifth, sixth, seventh, 
+    eigth ] = swings.slice(-8);
+    //console.log("Extracted swings");
+    
+    const firstSetHigh = [ fifth, sixth 
+    ].find(swing=>swing.type == "high");
+    //console.log("Found first high");
   
-  if (firstSwing.type == "low"){
-    if (thirdSwing.low > firstSwing.low && fourthSwing.high > secondSwing.high){
-      addTrend("uptrend")
-    } else if (thirdSwing.low < firstSwing.low && fourthSwing.high < secondSwing.high){
-      addTrend("downtrend")
-    } else {
-      addTrend("range")
+    const firstSetLow = [ fifth, sixth 
+    ].find(swing=>swing.type == "low");
+    //console.log("Found first low");
+    
+    const secondSetHigh = [ seventh, eigth 
+    ].find(swing=>swing.type == "high");
+    //console.log("Found second high");
+  
+    const secondSetLow = [ seventh, eigth 
+    ].find(swing=>swing.type == "low");
+    //console.log("Found second low");
+  
+    const tf = group.match(/(?<=group)|\d+\w+/)[0];
+    function addTrend(trend){
+      //window.ms = useSwingStore.getState().marketState
+      console.log(groupName,tf)
+      const currTrend = useSwingStore.getState()?.marketState?.[group]?.[tf] ?? null;
+      if (currTrend == trend) return;
+     useSwingStore.getState().setMarketState(groupName, tf, trend);
     }
-  } else if (firstSwing.type == "high"){
-    if (fourthSwing.low > secondSwing.low && thirdSwing.high > firstSwing.high){
-      addTrend("uptrend")
-    } else if (fourthSwing.low < secondSwing.low && thirdSwing.high < firstSwing.high){
-      addTrend("downtrend")
+    
+    if (
+    (secondSetHigh && firstSetHigh &&
+        secondSetHigh.high > firstSetHigh.high) ||
+
+    (secondSetLow && firstSetLow &&
+        secondSetLow.low < firstSetLow.low)
+){
+        if (fifth.type == "low"){
+            if (seventh.low < fifth.low &&
+            eigth.high < sixth.high){
+                (seventh.close < fifth.low) ? 
+                addTrend("downtrend") : addTrend("failed downtrend")
+            } else if (seventh.low > fifth.low &&
+            eigth.high > sixth.high){
+                (eigth.close > sixth.high) ? 
+                addTrend("uptrend") : addTrend(" failed uptrend")
+            }else {
+                addTrend("range")
+            }
+        } else {
+            if (seventh.high < fifth.high &&
+            eigth.low < sixth.low){
+                (eigth.close < sixth.low) ? 
+                addTrend("downtrend") : addTrend(" failed downtrend")
+            } else if (seventh.high > fifth.high &&
+            eigth.low > sixth.low){
+                (seventh.close > fifth.high) ? 
+                addTrend("uptrend") : addTrend(" failed uptrend")
+            }else {
+                addTrend("range")
+            }
+        }
     } else {
-      addTrend("range")
+        addTrend("range")
     }
-  }
 }
 
-function marketState(analysisGroups, currSwings){
-  Object.keys(analysisGroups).forEach(group=>analysisGroups[group].forEach(
-    swingKey=>{
-      const swingData = currSwings[swingKey];
-      if (swingData.length < 4){
-        return
-      } else {
-        const latest4Swings = swingData.slice(swingData.length-4,swingData.length);
-        determineState(group, swingKey, latest4Swings)
-        
-      }
-    }
-  ))
+
+function marketState(groups, swings){
+    
+    Object.keys(groups).forEach(groupName=>{
+        groups[groupName].forEach(group=>{
+            handleGroups(groupName, group, swings[group])
+        })
+    })
+    
 }
+
 
 export default function inferTrend(){
   const unsubRp= useReplayStore.subscribe(state=>{
@@ -119,25 +158,29 @@ export default function inferTrend(){
   })
 
   const unsubSg = useSwingStore.subscribe(
-    state=>{
-      //console.log(state.swings)
-      const currSwings = state.swings;
-      const swingKeys = Object.keys(currSwings);
-      if (swingKeys.length==0) return;
-      const noDigReg = new RegExp("[^0-9]+");
+    state => state.swings,
+    currSwings => {
+       //console.log("new swing")
+        const swingKeys = Object.keys(currSwings);
 
-      const analysisGroups = {};
-      swingKeys.forEach(swingKey=>{
-        const swingKeyNoTf = swingKey.match(noDigReg)[0];
-        if (!Object.keys(analysisGroups).includes(swingKeyNoTf)){
-          analysisGroups[swingKeyNoTf]=[];
-        }
-        analysisGroups[swingKeyNoTf].push(swingKey);
-      })
-      marketState(analysisGroups, currSwings);
-      
+        if (swingKeys.length === 0) return;
+
+        const noDigReg = new RegExp("[^0-9]+");
+        const analysisGroups = {};
+
+        swingKeys.forEach(swingKey => {
+            const swingKeyNoTf = swingKey.match(noDigReg)[0];
+
+            if (!analysisGroups[swingKeyNoTf]) {
+                analysisGroups[swingKeyNoTf] = [];
+            }
+
+            analysisGroups[swingKeyNoTf].push(swingKey);
+        });
+
+        marketState(analysisGroups, currSwings);
     }
-  )
+);
   return ()=>{
     unsubRp();
     unsubSg();

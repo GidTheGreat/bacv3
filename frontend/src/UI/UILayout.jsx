@@ -27,7 +27,7 @@ function gridStyle(tradeMode, isMobile) {
     if (isMobile) {
       return {
         gridTemplateColumns: "40px 1fr",
-        gridTemplateRows: "1fr 100px",
+        gridTemplateRows: "1fr 200px",
         gridTemplateAreas: `
           "drawing main"
           "trade trade"

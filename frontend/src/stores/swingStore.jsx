@@ -1,5 +1,6 @@
 
 import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
 
 const marketState4 = {
   "binance|um|BTCUSDT":{
@@ -8,7 +9,8 @@ const marketState4 = {
 }
 
 
-const useSwingStore = create((set) => ({
+const useSwingStore = create(
+  subscribeWithSelector((set) => ({
     swings: {},
     parsedSwings: {},
     displaySwings: {},
@@ -70,6 +72,6 @@ const useSwingStore = create((set) => ({
             }
         };
     })
-}));
+})));
 
 export default useSwingStore;

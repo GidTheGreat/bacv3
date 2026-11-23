@@ -1,15 +1,18 @@
+import { useEffect, useState } from "react";
+
 import { Slider, Box, IconButton, Paper, Stack, ToggleButton,
   ToggleButtonGroup,
   Typography, Popover, Tooltip, Button, TextField, Divider } from "@mui/material";
+
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+
 import PositionsUI from "./positionsUi"
 import useTradeStore from "../../stores/tradeStore";
 import useChartStore from "../../stores/chartStore";
 import useAppStore from "../../stores/appStore";
 import useReplayStore from "../../stores/replayStore";
-import { useEffect, useState } from "react";
-
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import MarketState from "../../capabilities/marketInterpretation/marketState";
 
 function TradeOptions() {
   const activeTrade = useTradeStore((state) => state.activeTrade);
@@ -368,6 +371,7 @@ function DspClosedPositions(){
 
 function MoreOnTrades(){
   const [ dspItem, setDspItem ] = useState("Positions")
+  //useEffect(()=> console.log(dspItem),[dspItem])
   return (
     <>
       <ToggleButtonGroup
@@ -391,12 +395,12 @@ function MoreOnTrades(){
       >
         <ToggleButton value={"Positions"}>Positions</ToggleButton>
         <ToggleButton value={"History"}>History</ToggleButton>
-        <ToggleButton value={"Trading Bots"}>Trading Bots</ToggleButton>
+        <ToggleButton value={"Market State"}>Market State</ToggleButton>
       </ToggleButtonGroup>
 
       {dspItem=="Positions" && <DspOpenPositions/>}
       {dspItem=="History" && <DspClosedPositions/>}
-      {dspItem=="Trading Bots" && <TradingBots/>}
+      {dspItem=="Market State" && <MarketState/>}
    
  
     </>
