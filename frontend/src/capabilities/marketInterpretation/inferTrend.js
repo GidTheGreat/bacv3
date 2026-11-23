@@ -30,29 +30,28 @@ const swingsIdentifier = new SwingsIdentifier(useSwingStore);
 function handleGroups(groupName, group, swings){
     //console.log(groupName, group, swings)
     //console.log("Entered handleGroups");
-    if (swings.length < 8){
+    if (swings.length < 4){
       return
     }
 
     //console.log("Passed length check");
     const [ first, second, third, 
-    fourth, fifth, sixth, seventh, 
-    eigth ] = swings.slice(-8);
+    fourth ] = swings.slice(-4);
     //console.log("Extracted swings");
     
-    const firstSetHigh = [ fifth, sixth 
+    const firstSetHigh = [ first, second 
     ].find(swing=>swing.type == "high");
     //console.log("Found first high");
   
-    const firstSetLow = [ fifth, sixth 
+    const firstSetLow = [ first, second
     ].find(swing=>swing.type == "low");
     //console.log("Found first low");
     
-    const secondSetHigh = [ seventh, eigth 
+    const secondSetHigh = [ third, fourth
     ].find(swing=>swing.type == "high");
     //console.log("Found second high");
   
-    const secondSetLow = [ seventh, eigth 
+    const secondSetLow = [ third, fourth
     ].find(swing=>swing.type == "low");
     //console.log("Found second low");
   
@@ -72,26 +71,26 @@ function handleGroups(groupName, group, swings){
     (secondSetLow && firstSetLow &&
         secondSetLow.low < firstSetLow.low)
 ){
-        if (fifth.type == "low"){
-            if (seventh.low < fifth.low &&
-            eigth.high < sixth.high){
-                (seventh.close < fifth.low) ? 
+        if (first.type == "low"){
+            if (third.low < first.low &&
+            fourth.high < second.high){
+                (third.close < first.low) ? 
                 addTrend("downtrend") : addTrend("failed downtrend")
-            } else if (seventh.low > fifth.low &&
-            eigth.high > sixth.high){
-                (eigth.close > sixth.high) ? 
+            } else if (third.low > first.low &&
+            fourth.high > second.high){
+                (fourth.close > second.high) ? 
                 addTrend("uptrend") : addTrend(" failed uptrend")
             }else {
                 addTrend("range")
             }
         } else {
-            if (seventh.high < fifth.high &&
-            eigth.low < sixth.low){
-                (eigth.close < sixth.low) ? 
+            if (third.high < first.high &&
+            fourth.low < second.low){
+                (fourth.close < second.low) ? 
                 addTrend("downtrend") : addTrend(" failed downtrend")
-            } else if (seventh.high > fifth.high &&
-            eigth.low > sixth.low){
-                (seventh.close > fifth.high) ? 
+            } else if (third.high > first.high &&
+            fourth.low > second.low){
+                (third.close > first.high) ? 
                 addTrend("uptrend") : addTrend(" failed uptrend")
             }else {
                 addTrend("range")
