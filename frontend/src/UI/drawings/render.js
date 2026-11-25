@@ -340,7 +340,10 @@ export function renderDrawing(ctx, chartId, drawing, chartRef) {
 
 
 export function renderDrawings(ctx, chartId, k1, chartRef) {
-    const activeSeries = useChartStore.getState().selection[chartId].activeSeries
+   const data = useChartStore.getState().data?.[k1]?.["1min"]?.data;
+   if (!data) return;
+  
+    const activeSeries = useChartStore.getState().selection[chartId].activeSeries;
     const posSize = useTradeStore.getState().stake * useTradeStore.getState().leverage
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     if (useSwingStore.getState().displaySwings[chartId]){
