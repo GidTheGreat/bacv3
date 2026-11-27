@@ -29,7 +29,7 @@ export default function draw(ctx, chartRef, k1, chartId, pointerType, x, y) {
         //console.log("[Cursor mode] should be calling hit test")
         //hitTest(ctx, chartRef, k1, chartId, pointerType, x, y);
         renderDrawings(ctx, chartId, k1, chartRef);
-        renderTrades(ctx, k1, useChartStore.getState().selection[chartId].activeSeries, chartRef);
+        renderTrades(ctx, k1, useChartStore.getState().selection[chartId].activeSeries, chartRef, chartId);
     } else if (useDrawingStore.getState().DrawingState.action=="Clear Drawings"){
         
         useDrawingStore.getState().clearDrawings();

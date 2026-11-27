@@ -107,7 +107,7 @@ export function renderSwings(ctx, k1, activeSeries, chartRef, chartId){
   }
 }
 
-export function renderTrades(ctx, k1, activeSeries, chartRef) {
+export function renderTrades(ctx, k1, activeSeries, chartRef, chartId) {
     const runningTrades = useTradeStore.getState().runningTrades;
     const closedTrades = useTradeStore.getState().closedTrades
     
@@ -153,9 +153,9 @@ export function renderTrades(ctx, k1, activeSeries, chartRef) {
     }
 
     if (runningTrades.length) {
-        useTradeStore.getState().drawActiveTrades ? renderTradesHelper(runningTrades) : null;
+        useTradeStore.getState().drawActiveTrades?.[chartId]??false ? renderTradesHelper(runningTrades) : null;
     } else if (closedTrades.length){
-        useTradeStore.getState().drawClosedTrades ? renderTradesHelper(closedTrades) : null;
+        useTradeStore.getState().drawClosedTrades?.[chartId]??false ? renderTradesHelper(closedTrades) : null;
     }
     
 }

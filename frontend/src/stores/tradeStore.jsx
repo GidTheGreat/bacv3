@@ -25,19 +25,25 @@ const useTradeStore = create((set) => ({
 
     closedTrades: [],
 
-    drawActiveTrades: false,
+    drawActiveTrades: {},
 
-    drawClosedTrades: false,
+    drawClosedTrades: {},
 
-    setDrawActiveTrades: ()=>set((state)=>{
-        return {
-           drawActiveTrades: !state.drawActiveTrades, 
+    setDrawActiveTrades: (chartId)=>set((state)=>{
+      
+      return {
+           drawActiveTrades: {
+             ...state.drawActiveTrades,
+             [chartId]:!state.drawActiveTrades?.[chartId] 
+           }, 
         }
     }),
 
-    setDrawClosedTrades: ()=>set((state)=>{
+    setDrawClosedTrades: (chartId)=>set((state)=>{
         return {
-           drawClosedTrades: !state.drawClosedTrades, 
+           drawClosedTrades: {
+             ...state.drawClosedTrades,
+             [chartId]:!state.drawClosedTrades?.[chartId]}, 
         }
     }),
 

@@ -230,11 +230,11 @@ export default function ChartDrawingsControls({ chartId }) {
                 },
               }}
               labelPlacement="start"
-              checked={drawActiveTrades}
+              checked={drawActiveTrades?.[chartId]??false}
               control={
                 <Checkbox
                   size="small"
-                  onChange={() => setDrawActiveTrades()}
+                  onChange={() => setDrawActiveTrades(chartId)}
                 />
               }
               label="Active Trades"
@@ -250,11 +250,11 @@ export default function ChartDrawingsControls({ chartId }) {
                 },
               }}
               labelPlacement="start"
-              checked={drawClosedTrades}
+              checked={drawClosedTrades?.[chartId]??false}
               control={
                 <Checkbox
                   size="small"
-                  onChange={() => setDrawClosedTrades()}
+                  onChange={() => setDrawClosedTrades(chartId)}
                 />
               }
               label="Closed Trades"
