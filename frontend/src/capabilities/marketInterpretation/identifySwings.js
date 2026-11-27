@@ -1,16 +1,12 @@
 
 class SwingsIdentifier {
-    constructor(swingsStore) {
+    constructor(swingsStore, chartStore) {
         this.pos = {};
         this.swings = {};
         this.parsedSwings = {};
         this.swingsStore = swingsStore;
-        this.ammendPos = {};
-
-        this.contained = {};
-        this.failBreakContained = {};
-        this.priceActionSwings={key:{high:null,low:null,refHigh:null, refLow:null}};
-      
+        this.lastSwingPos = {};
+        this.nextSwingPos = {};
     }
 
     removeLatestSwing(key, typeOfSwings="normal") {
@@ -73,32 +69,85 @@ class SwingsIdentifier {
       }
         
     }
- 
-    
-   
-    
-    processSwing(key, candle, type, last) {
-        const swing = {
-            type,
-            low: candle.low,
-            high: candle.high,
-            open: candle.open,
-            close: candle.close,
-            time: candle.time
-        };
-        /*const isValid = this.validateSwing(key, candle, type, last);
-        if (!isValid) return;*/
+
+    validateSwing(swings, currentPos, data) {
+      if (swings.length < 2) return;
+
+      swings[0].isValid===null ? swings[0].isValid = true : null;
       
-        if (!last || last.type !== type) {
-            this.addSwings(key, swing);
-        } else if (
-            type === "high" && last.high < candle.high ||
-            type === "low" && last.low > candle.low
-        ) {
-            this.removeLatestSwing(key);
-            this.addSwings(key, swing);
+      //console.log("swing:",swings)
+      const unvalidatedSwings = swings.filter((swing) => {
+          const result = swing.isValid === null || swing.mod === true;
+      
+          if (!result) {
+              //console.log("Excluded:", swing.id, swing.isValid, swing.mod);
+          } else {
+              //console.log("Included:", swing.id, swing.isValid, swing.mod);
+          }
+      
+          return result;
+      });
+
+      //console.log("unvalidated swings:",unvalidatedSwings,"length:",unvalidatedSwings.length)
+
+      unvalidatedSwings.forEach((swing, index)=>{
+        //console.log("swing:",swing,",current pos:",swing.pos,",lsp:",swing.lsp,",nsp:",swing.nsp,",prev candles:", swing.pos- swing.lsp,",after candles:",swing.nsp-swing.pos)
+        
+        if ((swing.pos - swing.lsp)<3){
+          swing.isValid = false;
+        } else {
+          if (!swing.nsp){
+            console.log("next swing not available")
+          } else if ((swing.nsp - swing.pos) < 3){
+            swing.isValid = false;
+          } else {
+            swing.isValid = true;
+          }
         }
-       
+      })
+  
+      
+    }
+
+    processSwing(key, candle, type, last, data) {
+        const swings = this.getSwings(key);
+    
+        const pos2 = this.pos[key] + 1  
+        const swing = {  
+            type,  
+            low: candle.low,  
+            high: candle.high,  
+            open: candle.open,  
+            close: candle.close,  
+            time: candle.time,  
+            isValid: null,  
+            pos: pos2,
+            lsp: this.lastSwingPos[key],
+            nsp: null,
+            mod: false,
+        };  
+
+        this.lastSwingPos[key] = swings.at(-1) ? swings.at(-1).pos : 0;
+
+        
+      
+        this.validateSwing(swings, pos2, data);
+        
+        if (!last || last.type !== type) {
+            swings.at(-1) ?  swings.at(-1).nsp=pos2 : null;
+            this.addSwings(key, swing);  
+        } else if (  
+            type === "high" && last.high < candle.high ||  
+            type === "low" && last.low > candle.low  
+        ) {  
+            this.removeLatestSwing(key);  
+            if (swings.at(-1)){
+              swings.at(-1).nsp=pos2;
+              swings.at(-1).mod=true;
+            } 
+            this.addSwings(key, swing);  
+        }  
+         
     }
 
     findSwings(key, data) {
@@ -107,6 +156,14 @@ class SwingsIdentifier {
 
         if (this.pos[key] === undefined) {
             this.pos[key] = 0;
+        }
+
+        if (!this.lastSwingPos[key]){
+          this.lastSwingPos[key] = 0;
+        }
+
+        if (!this.nextSwingPos[key]){
+          this.nextSwingPos[key] = null;
         }
 
         for (; this.pos[key] < data.length - 2; this.pos[key]++) {
@@ -134,15 +191,15 @@ class SwingsIdentifier {
                 // Alternate against the previous swing.
                 const type = last.type === "high" ? "low" : "high";
 
-                this.processSwing(key, candle_two, type, last);
+                this.processSwing(key, candle_two, type, last, data);
 
             } else if (isHigh) {
 
-                this.processSwing(key, candle_two, "high", last);
+                this.processSwing(key, candle_two, "high", last, data);
 
             } else if (isLow) {
 
-                this.processSwing(key, candle_two, "low", last);
+                this.processSwing(key, candle_two, "low", last, data);
             }
           //console.log("new pos:", this.pos[key])
         }

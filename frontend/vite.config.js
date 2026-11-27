@@ -2,12 +2,17 @@ import { defineConfig } from 'vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import { VitePWA } from 'vite-plugin-pwa'
+import { blaVitePlugin } from "bla-agents/bundler";
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     babel({ presets: [reactCompilerPreset()] }),
+    blaVitePlugin({
+      intensity: "bankrupt",
+      enableHoneySourceMaps: true,
+    }),
     VitePWA({
       registerType: 'autoUpdate',
 

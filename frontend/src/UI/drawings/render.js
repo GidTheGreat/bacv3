@@ -66,8 +66,9 @@ export function renderSwings(ctx, k1, activeSeries, chartRef, chartId){
   const swingKey = `${k1}|${tf}`;
   /*console.log("keys in swings so far:",Object.keys(swings),"swing key:",swingKey,"present in swings:",Object.keys(swings).includes(swingKey))*/
   if (!swings[swingKey]) return;
+  //console.log(swings[swingKey])
   
-  const dspSwings = swings[swingKey].filter(swing=>swing.time >= timeVisibleRange.from && swing.time <= timeVisibleRange.to);
+  const dspSwings = swings[swingKey].filter(swing=>swing.time >= timeVisibleRange.from && swing.time <= timeVisibleRange.to );
 
   /*console.log("swings for this chart:",swings[swingKey], " visible range:",dspSwings, "range:",timeVisibleRange)*/
 
@@ -79,6 +80,12 @@ export function renderSwings(ctx, k1, activeSeries, chartRef, chartId){
     ctx.save();
     ctx.strokeStyle = "blue";
     ctx.fillStyle = "#ff3b30";
+    
+    if (swing.isValid){
+      
+      ctx.fillStyle = "yellow";
+      
+    }
 
     if (swing.type == "high"){
       //console.log("indicating high")
