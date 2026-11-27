@@ -98,7 +98,7 @@ onmessage = async(event) => {
                     
                     await binanceFetch(payload.exchange, payload.symbol, payload.market, 
                     payload.timeframe, payload.start, payload.end)}
-                    getCandles(payload.exchange, payload.symbol, payload.market, payload.tfs);
+                    getCandles(payload.exchange, payload.symbol, payload.market, payload.tfs, payload.calcFp);
                 
 
                 break;

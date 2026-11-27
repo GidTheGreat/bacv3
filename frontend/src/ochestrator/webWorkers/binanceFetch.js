@@ -56,7 +56,147 @@ function totalsHelper(bins){
 
 }
 
-function* candles(tf, priceView, timestampView, quantityView, sideView){
+function* candles2(tf, priceView, timestampView, quantityView, sideView, calcFp) {
+    let cursor = null;
+    let current_bucket = null;
+
+    let candles = {
+        [tf]: {
+            ...(calcFp ? { binnedProfile: {} } : {}),
+            totalVolume: null,
+            totalDelta: null
+        }
+    };
+
+    const tf_sec = timeframes[tf];
+
+    for (let i = 0; i < priceView.length; i++) {
+
+        const price = priceView[i];
+        const timestamp = timestampView[i];
+        const bucket = Math.floor(timestamp / (tf_sec * 1000));
+
+        if (cursor === null) {
+            cursor = timestamp;
+            current_bucket = bucket;
+
+            candles[tf].time = timestamp / 1000;
+            candles[tf].open = price;
+            candles[tf].high = price;
+            candles[tf].low = price;
+            candles[tf].close = price;
+
+            if (calcFp) {
+                candles[tf].binnedProfile[price] = {
+                    buy: sideView[i] == 1 ? 0 : quantityView[i] * price,
+                    sell: sideView[i] == 1 ? quantityView[i] * price : 0
+                };
+            }
+
+            continue;
+        }
+
+        if (bucket !== current_bucket) {
+
+            if (calcFp) {
+                const [totalDelta, totalVolume] =
+                    totalsHelper(candles[tf].binnedProfile);
+
+                const bins = candles[tf].binnedProfile;
+
+                const POC = Object.entries(bins).reduce(
+                    (max, [price, profile]) => {
+                        const volume = profile.buy + profile.sell;
+
+                        return volume > max.volume
+                            ? { price: Number(price), volume }
+                            : max;
+                    },
+                    { price: null, volume: 0 }
+                );
+
+                candles[tf].poc = POC;
+                candles[tf].totalDelta = totalDelta;
+                candles[tf].totalVolume = totalVolume;
+            }
+
+            yield candles[tf];
+
+            candles[tf] = {
+                ...(calcFp ? { binnedProfile: {} } : {}),
+                totalVolume: null,
+                totalDelta: null
+            };
+
+            current_bucket = bucket;
+            cursor = timestamp;
+
+            candles[tf].time = timestamp / 1000;
+            candles[tf].open = price;
+            candles[tf].high = price;
+            candles[tf].low = price;
+            candles[tf].close = price;
+
+            if (calcFp) {
+                candles[tf].binnedProfile[price] = {
+                    buy: sideView[i] == 1 ? 0 : quantityView[i] * price,
+                    sell: sideView[i] == 1 ? quantityView[i] * price : 0
+                };
+            }
+
+            continue;
+        }
+
+        // OHLC calculations
+        candles[tf].close = price;
+        candles[tf].high = Math.max(candles[tf].high, price);
+        candles[tf].low = Math.min(candles[tf].low, price);
+
+        // Footprint calculations
+        if (calcFp) {
+            const bins = candles[tf].binnedProfile;
+
+            bins[price] = {
+                buy: binsHelper(
+                    bins, price, quantityView[i], sideView[i], "buy"
+                ),
+                sell: binsHelper(
+                    bins, price, quantityView[i], sideView[i], "sell"
+                )
+            };
+        }
+    }
+
+    if (cursor !== null) {
+
+        if (calcFp) {
+            const [totalDelta, totalVolume] =
+                totalsHelper(candles[tf].binnedProfile);
+
+            const bins = candles[tf].binnedProfile;
+
+            const POC = Object.entries(bins).reduce(
+                (max, [price, profile]) => {
+                    const volume = profile.buy + profile.sell;
+
+                    return volume > max.volume
+                        ? { price: Number(price), volume }
+                        : max;
+                },
+                { price: null, volume: 0 }
+            );
+
+            candles[tf].poc = POC;
+            candles[tf].totalDelta = totalDelta;
+            candles[tf].totalVolume = totalVolume;
+        }
+
+        yield candles[tf];
+    }
+}
+
+function* candles(tf, priceView, timestampView, quantityView, sideView, calcFp){
+    console.log(calcFp)
     let cursor = null;
     let current_bucket = null;
     let candles = {[tf]:{binnedProfile:{},totalVolume:null,totalDelta:null}};
@@ -329,7 +469,7 @@ export async function upload(payload){
 }
 
 
-export async function getCandles(exchange, symbol, market, tfs){
+export async function getCandles(exchange, symbol, market, tfs, calcFp){
     //console.log("should be in candles", buffers)
     const tfs2 = [
   "1min","5min","15min","30min","1h","4h",
@@ -354,7 +494,7 @@ export async function getCandles(exchange, symbol, market, tfs){
         const sideView = new Uint8Array(buffer, (length*8*3)+16, length);
         for (const tf of tfs2){
             let trans_arr = []
-            for (const candle of candles(tf, priceView, timestampView, quantityView, sideView)){
+            for (const candle of candles2(tf, priceView, timestampView, quantityView, sideView, calcFp)){
 
                 trans_arr.push(candle)
                 if ((trans_arr.length%1000)==0){
@@ -387,6 +527,8 @@ export async function getCandles(exchange, symbol, market, tfs){
             }
 
         }
+
+        buffers.delete(bufferKey);
         
     }
 

@@ -6,6 +6,9 @@ import useChartStore from "../stores/chartStore";
 import {
   IconButton,
   Tooltip,
+  Checkbox,
+  FormControlLabel,
+  Box
 } from "@mui/material";
 
 const toggleStyle = {
@@ -54,6 +57,7 @@ const overlayStyle = {
   justifyContent: "center",
   alignItems: "center",
   zIndex: 9999,
+  overflow:"auto"
 };
 
 const panelStyle = {
@@ -72,6 +76,7 @@ const panelStyle = {
 export default function FetchDataButton({
  
 }) {
+  const [ fp, setFp ] = useState(false);
   const [open, setOpen] = useState(false);
 
   const [exchange, setExchange] = useState("binance");
@@ -159,6 +164,7 @@ export default function FetchDataButton({
         timeframe: "daily",
         start: dateVals.start,
         end: dateVals.end,
+        calcFp: fp,
       };
 
       ochestrator.send("fetch", payload, "http");
@@ -266,6 +272,53 @@ export default function FetchDataButton({
                     </option>
                   ))}
                 </select>
+                
+
+              <Box
+            sx={{
+              px: 0.75,
+              py: 0.25,
+              mb: 0.75,
+
+              borderRadius: 1,
+
+              bgcolor: fp
+                ? "rgba(120, 90, 255, 0.10)"
+                : "transparent",
+            }}
+          >
+            <FormControlLabel
+              sx={{
+                
+              m: 0,
+              width: "100%",
+              minHeight: 30,
+              justifyContent: "space-between",
+          
+              "& .MuiFormControlLabel-label": {
+                fontSize: 12,
+              },
+          
+              "& .MuiCheckbox-root": {
+                p: 0.5,
+              },
+            
+
+                "& .MuiFormControlLabel-label": {
+                  fontSize: 12,
+                  fontWeight: 600,
+                },
+              }}
+              labelPlacement="start"
+              checked={fp}
+              control={
+                <Checkbox
+                  size="small"
+                  onChange={() => setFp(!fp)}
+                />
+              }
+              label="Calculate Footprint"
+            /></Box>
               </div>
 
               {/* Mode */}
