@@ -331,6 +331,9 @@ export async function upload(payload){
 
 export async function getCandles(exchange, symbol, market, tfs){
     //console.log("should be in candles", buffers)
+    const tfs2 = [
+  "1min","5min","15min","30min","1h","4h",
+];
     if (buffers.size<1) return;
 
     for (const [ bufferKey,buffer ] of buffers.entries()){
@@ -349,7 +352,7 @@ export async function getCandles(exchange, symbol, market, tfs){
         const priceView = new Float64Array(buffer, (length*8)+16, length);
         const quantityView = new Float64Array(buffer, (length*8*2)+16, length);
         const sideView = new Uint8Array(buffer, (length*8*3)+16, length);
-        for (const tf of tfs){
+        for (const tf of tfs2){
             let trans_arr = []
             for (const candle of candles(tf, priceView, timestampView, quantityView, sideView)){
 

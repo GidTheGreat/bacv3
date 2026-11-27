@@ -107,6 +107,7 @@ onmessage = async(event) => {
 
             case "candles":{
                 getCandles(payload.exchange, payload.symbol, payload.market, payload.tfs);
+                break;
             }
 
             case "connect":{

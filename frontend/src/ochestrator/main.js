@@ -257,7 +257,7 @@ class OchestratorMain{
                 //console.log("tf already present");
             } else {
                 this.activeTfs.get(key).add(tf);
-                this.send("candles",{exchange, market, symbol},"http", [tf])
+                //this.send("candles",{exchange, market, symbol},"http", [tf])
                 //console.log("initiating calc for tf:",tf)
             }
             
